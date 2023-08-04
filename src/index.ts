@@ -69,7 +69,11 @@ generatorHandler({
         const outputDirectory =
             // options.generator.output.value ||
             // process.env.PRISMA_GENERATOR_OUTPUT ||
-            "./";
+            resolve("node_modules", "sua-biblioteca");
+
+        // Verifique se a pasta existe, senão crie-a
+        if (!fs.existsSync(outputDirectory))
+            fs.mkdirSync(outputDirectory, { recursive: true });
 
         const outputFilePath = resolve(outputDirectory, "encrypted-fields.ts");
 

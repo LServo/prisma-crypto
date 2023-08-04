@@ -9,5 +9,6 @@ tsconfig.json
 vite.config.ts
 
 .env
+.env.example
 package-lock.json
 src
