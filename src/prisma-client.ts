@@ -46,6 +46,7 @@ function decryptData(encryptedData: string): string {
     const tag = encryptedBuffer.subarray(32, 48);
     const encrypted = encryptedBuffer.subarray(48);
 
+    console.log("process.env.SECRET_KEY:", process.env.SECRET_KEY);
     const decipher = createDecipheriv(
         "aes-256-gcm",
         process.env.SECRET_KEY,
@@ -74,7 +75,7 @@ function manageEncryption(
         const fieldValue = data[fieldName];
         if (!fieldValue) return;
 
-        // console.log(`data[${fieldName}]:`, data[fieldName]);
+        console.log(`data[${fieldName}]:`, data[fieldName]);
 
         const isArray = Array.isArray(fieldValue);
         const isString = typeof fieldValue === "string";
@@ -135,7 +136,7 @@ function manageEncryption(
                 break;
         }
 
-        // console.log(`data[${fieldName}]:`, data[fieldName]);
+        console.log(`data[${fieldName}]:`, data[fieldName]);
     });
 }
 
