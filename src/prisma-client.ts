@@ -329,8 +329,13 @@ const readReplicaPrisma = new PrismaClient({
                 console.log("result before:", result);
 
                 // descriptografar os campos criptografados no resultado da pesquisa
-                if (fields && result)
-                    manageEncryption(fields, result, "decrypt");
+                if (fields && result) {
+                    if (Array.isArray(result))
+                        result.forEach((entry: unknown) => {
+                            manageEncryption(fields, entry, "decrypt");
+                        });
+                    else manageEncryption(fields, result, "decrypt");
+                }
                 console.log("result after:", result);
 
                 return result;
