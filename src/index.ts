@@ -70,8 +70,10 @@ generatorHandler({
             options.generator.output.value ||
             process.env.PRISMA_GENERATOR_OUTPUT ||
             "./";
+        logger.info(`Output Directory: ${outputDirectory}`);
 
         const outputFilePath = resolve(outputDirectory, "encrypted-fields.ts");
+        logger.info(`Output File Path: ${outputFilePath}`);
 
         fs.writeFileSync(outputFilePath, fileContent, "utf-8");
 
