@@ -312,23 +312,22 @@ const readReplicaPrisma = new PrismaClient({
         $allModels: {
             async $allOperations({ args, model, query }) {
                 console.log("readReplica");
+
                 // pegar os campos que precisam ser criptografados para o model
-                console.log("model:", model);
-                console.log("prismaEncryptFields:", prismaEncryptFields);
                 const fields = prismaEncryptFields[model];
-                console.log("fields:", fields);
 
                 // criptografar a pesquisa para o banco de dados passando
                 if (fields) resolveEncryptedArgs(args, fields);
-                console.log("passou");
+
                 // pesquisar no banco de dados
                 const result = await query(args);
-                // console.log("result before:", result);
+                console.log("result before:", result);
 
                 // descriptografar os campos criptografados no resultado da pesquisa
+                console.log("fields && result:", fields && result);
                 if (fields && result)
                     manageEncryption(fields, result, "decrypt");
-                // console.log("result after:", result);
+                console.log("result after:", result);
 
                 return result;
             },
