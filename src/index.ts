@@ -65,10 +65,16 @@ generatorHandler({
         exports.prismaEncryptFields = void 0;
         exports.prismaEncryptFields = ${encryptedFieldsJSON};\n`;
 
+        const isPaipe = options.generator?.config?.env === "paipe";
+
         const outputDirectory =
             // options.generator.output.value ||
             // process.env.PRISMA_GENERATOR_OUTPUT ||
-            resolve("node_modules", "prisma-crypto", "dist");
+            resolve(
+                "node_modules",
+                `${isPaipe ? "@paipe/prisma-crypto" : "prisma-crypto"}`,
+                "dist",
+            );
 
         // Verifique se a pasta existe, senão crie-a
         if (!fs.existsSync(outputDirectory))
