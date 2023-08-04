@@ -46,7 +46,6 @@ function decryptData(encryptedData: string): string {
     const tag = encryptedBuffer.subarray(32, 48);
     const encrypted = encryptedBuffer.subarray(48);
 
-    console.log("process.env.SECRET_KEY:", process.env.SECRET_KEY);
     const decipher = createDecipheriv(
         "aes-256-gcm",
         process.env.SECRET_KEY,
@@ -70,17 +69,12 @@ function manageEncryption(
     data: unknown,
     mode: "encrypt" | "decrypt",
 ): void {
-    console.log("data:", data);
-    console.log("fields:", fields);
     fields.forEach((field) => {
-        console.log("field:", field);
         const { fieldName } = field;
-        console.log("fieldName:", fieldName);
         const fieldValue = data[fieldName];
-        console.log("fieldValue:", fieldValue);
         if (!fieldValue) return;
 
-        console.log(`data[${fieldName}]:`, data[fieldName]);
+        // console.log(`data[${fieldName}]:`, data[fieldName]);
 
         const isArray = Array.isArray(fieldValue);
         const isString = typeof fieldValue === "string";
@@ -141,7 +135,7 @@ function manageEncryption(
                 break;
         }
 
-        console.log(`data[${fieldName}]:`, data[fieldName]);
+        // console.log(`data[${fieldName}]:`, data[fieldName]);
     });
 }
 
@@ -194,7 +188,7 @@ const prisma = new PrismaClient({
                     case "upsert":
                     case "delete":
                     case "deleteMany":
-                        console.log("write");
+                        // console.log("write");
                         return writeReplicaPrisma[model][operation](
                             args,
                             model,
@@ -206,7 +200,7 @@ const prisma = new PrismaClient({
                     case "findMany":
                     case "findUnique":
                     case "findUniqueOrThrow":
-                        console.log("read");
+                        // console.log("read");
                         return readReplicaPrisma[model][operation](
                             args,
                             model,
@@ -214,7 +208,7 @@ const prisma = new PrismaClient({
                             operation,
                         );
                     default:
-                        console.log("default");
+                        // console.log("default");
                         return query(args);
                 }
             },
@@ -316,8 +310,6 @@ const readReplicaPrisma = new PrismaClient({
     query: {
         $allModels: {
             async $allOperations({ args, model, query }) {
-                console.log("readReplica");
-
                 // pegar os campos que precisam ser criptografados para o model
                 const fields = prismaEncryptFields[model];
 
@@ -326,17 +318,18 @@ const readReplicaPrisma = new PrismaClient({
 
                 // pesquisar no banco de dados
                 const result = await query(args);
-                console.log("result before:", result);
+                // console.log("result before:", result);
 
                 // descriptografar os campos criptografados no resultado da pesquisa
                 if (fields && result) {
                     if (Array.isArray(result))
+                        // caso seja utilizado o findMany
                         result.forEach((entry: unknown) => {
                             manageEncryption(fields, entry, "decrypt");
                         });
                     else manageEncryption(fields, result, "decrypt");
                 }
-                console.log("result after:", result);
+                // console.log("result after:", result);
 
                 return result;
             },
