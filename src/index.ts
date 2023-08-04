@@ -54,6 +54,8 @@ generatorHandler({
         };
     },
     async onGenerate(options: GeneratorOptions) {
+        console.log("options.binaryPaths:", options.binaryPaths);
+        console.log("options.generator:", options.generator);
         const encryptedFields = findEncryptFields(options.schemaPath);
 
         const encryptedFieldsJSON = JSON.stringify(encryptedFields, null, 4);
