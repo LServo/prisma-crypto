@@ -6,6 +6,7 @@ import { resolve } from "node:path";
 
 import { generatorHandler, GeneratorOptions } from "@prisma/generator-helper";
 import { logger } from "@prisma/sdk";
+export { prisma } from "./prisma-client";
 
 function findEncryptFields(filePath: string) {
     const fileContent = fs.readFileSync(filePath, "utf-8");
