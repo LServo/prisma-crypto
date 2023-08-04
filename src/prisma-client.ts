@@ -176,7 +176,6 @@ const prisma = new PrismaClient({
         },
     },
 }).$extends({
-    name: "writeReplica",
     query: {
         $allModels: {
             // eslint-disable-next-line consistent-return
@@ -189,7 +188,7 @@ const prisma = new PrismaClient({
                     case "upsert":
                     case "delete":
                     case "deleteMany":
-                        // console.log("write");
+                        console.log("write");
                         return writeReplicaPrisma[model][operation](
                             args,
                             model,
@@ -201,7 +200,7 @@ const prisma = new PrismaClient({
                     case "findMany":
                     case "findUnique":
                     case "findUniqueOrThrow":
-                        // console.log("read");
+                        console.log("read");
                         return readReplicaPrisma[model][operation](
                             args,
                             model,
@@ -209,7 +208,7 @@ const prisma = new PrismaClient({
                             operation,
                         );
                     default:
-                        // console.log("default");
+                        console.log("default");
                         return query(args);
                 }
             },
@@ -311,6 +310,7 @@ const readReplicaPrisma = new PrismaClient({
     query: {
         $allModels: {
             async $allOperations({ args, model, query }) {
+                console.log("readReplica");
                 // pegar os campos que precisam ser criptografados para o model
                 const fields = prismaEncryptFields[model];
 
