@@ -12,3 +12,4 @@ vite.config.ts
 .env.example
 package-lock.json
 src
+node_modules
