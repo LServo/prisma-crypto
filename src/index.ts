@@ -67,8 +67,8 @@ generatorHandler({
         export const prismaEncryptFields: IPrismaEncryptFields = ${encryptedFieldsJSON};\n`;
 
         const outputDirectory =
-            options.generator.output.value ||
-            process.env.PRISMA_GENERATOR_OUTPUT ||
+            // options.generator.output.value ||
+            // process.env.PRISMA_GENERATOR_OUTPUT ||
             "./";
 
         const outputFilePath = resolve(outputDirectory, "encrypted-fields.ts");
