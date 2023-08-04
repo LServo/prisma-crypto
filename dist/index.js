@@ -89,9 +89,7 @@ function findEncryptFields(filePath) {
                 outputDirectory = options.generator.output.value ||
                     process.env.PRISMA_GENERATOR_OUTPUT ||
                     "./";
-                sdk_1.logger.info("Output Directory: ".concat(outputDirectory));
                 outputFilePath = (0, node_path_1.resolve)(outputDirectory, "encrypted-fields.ts");
-                sdk_1.logger.info("Output File Path: ".concat(outputFilePath));
                 node_fs_1.default.writeFileSync(outputFilePath, fileContent, "utf-8");
                 sdk_1.logger.info("Generated ".concat(outputFilePath));
                 return [2 /*return*/, {
