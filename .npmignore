@@ -1,0 +1,13 @@
+.husky
+.vscode
+.editorconfig
+.eslintignore
+.eslintrc.json
+.huskyrc
+.nvmrc
+tsconfig.json
+vite.config.ts
+
+.env
+package-lock.json
+src
