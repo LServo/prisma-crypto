@@ -46,6 +46,7 @@ var node_fs_1 = __importDefault(require("node:fs"));
 var node_path_1 = require("node:path");
 var generator_helper_1 = require("@prisma/generator-helper");
 var sdk_1 = require("@prisma/sdk");
+var package_json_1 = require("./../package.json");
 var prisma_client_1 = require("./prisma-client");
 Object.defineProperty(exports, "prisma", { enumerable: true, get: function () { return prisma_client_1.prisma; } });
 function findEncryptFields(filePath) {
@@ -76,10 +77,10 @@ function findEncryptFields(filePath) {
 (0, generator_helper_1.generatorHandler)({
     onManifest: function () {
         return {
-            version: "0.0.1",
+            version: "".concat(package_json_1.version),
             // defaultOutput: "node_modules/@prisma-client",
             defaultOutput: "./",
-            prettyName: "Encrypt Fields",
+            prettyName: "Prisma Crypto",
         };
     },
     onGenerate: function (options) {

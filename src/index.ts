@@ -6,6 +6,8 @@ import { resolve } from "node:path";
 
 import { generatorHandler, GeneratorOptions } from "@prisma/generator-helper";
 import { logger } from "@prisma/sdk";
+
+import { version } from "./../package.json";
 export { prisma } from "./prisma-client";
 
 function findEncryptFields(filePath: string) {
@@ -47,10 +49,10 @@ function findEncryptFields(filePath: string) {
 generatorHandler({
     onManifest() {
         return {
-            version: "0.0.1",
+            version: `${version}`,
             // defaultOutput: "node_modules/@prisma-client",
             defaultOutput: "./",
-            prettyName: "Encrypt Fields",
+            prettyName: "Prisma Crypto",
         };
     },
     async onGenerate(options: GeneratorOptions) {
@@ -72,6 +74,7 @@ generatorHandler({
                 "node_modules",
                 `${isPaipe ? "@paipe/prisma-crypto" : "prisma-crypto"}`,
                 "dist",
+                "src",
             );
 
         // Verifique se a pasta existe, senão crie-a
