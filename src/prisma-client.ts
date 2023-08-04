@@ -322,6 +322,7 @@ const readReplicaPrisma = new PrismaClient({
 
                 // descriptografar os campos criptografados no resultado da pesquisa
                 if (fields && result) {
+                    console.log("fields:", fields);
                     if (Array.isArray(result))
                         // caso seja utilizado o findMany
                         result.forEach((entry: unknown) => {
