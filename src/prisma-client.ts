@@ -327,7 +327,7 @@ const readReplicaPrisma = new PrismaClient({
                 const test = !!fields && !!result;
                 console.log("test:", test);
 
-                if (fields && result)
+                if (!!fields && !!result)
                     manageEncryption(fields, result, "decrypt");
                 console.log("result after:", result);
 
