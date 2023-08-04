@@ -100,7 +100,7 @@ function findEncryptFields(filePath) {
                     node_fs_1.default.mkdirSync(outputDirectory, { recursive: true });
                 outputFilePath = (0, node_path_1.resolve)(outputDirectory, "encrypted-fields.js");
                 node_fs_1.default.writeFileSync(outputFilePath, fileContent, "utf-8");
-                sdk_1.logger.info("Generated ".concat(outputFilePath));
+                sdk_1.logger.info("Encrypted fields: ".concat(outputFilePath));
                 return [2 /*return*/, {
                         exitCode: 0,
                     }];
