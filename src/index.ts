@@ -7,8 +7,6 @@ import { resolve } from "node:path";
 import { generatorHandler, GeneratorOptions } from "@prisma/generator-helper";
 import { logger } from "@prisma/sdk";
 
-import { name } from "./../package.json";
-
 function findEncryptFields(filePath: string) {
     const fileContent = fs.readFileSync(filePath, "utf-8");
     const lines = fileContent.split("\n");
@@ -71,7 +69,7 @@ generatorHandler({
         const outputDirectory =
             // options.generator.output.value ||
             // process.env.PRISMA_GENERATOR_OUTPUT ||
-            resolve("node_modules", `${name}`);
+            resolve("node_modules", "prisma-crypto");
 
         // Verifique se a pasta existe, senão crie-a
         if (!fs.existsSync(outputDirectory))
