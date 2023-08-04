@@ -304,13 +304,14 @@ var readReplicaPrisma = new client_1.PrismaClient({
                                 // criptografar a pesquisa para o banco de dados passando
                                 if (fields)
                                     resolveEncryptedArgs(args, fields);
+                                console.log("fields:", fields);
                                 return [4 /*yield*/, query(args)];
                             case 1:
                                 result = _b.sent();
                                 // console.log("result before:", result);
                                 // descriptografar os campos criptografados no resultado da pesquisa
                                 if (fields && result) {
-                                    console.log("fields:", fields);
+                                    console.log("entrou");
                                     if (Array.isArray(result))
                                         // caso seja utilizado o findMany
                                         result.forEach(function (entry) {

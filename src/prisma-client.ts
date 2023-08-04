@@ -315,6 +315,7 @@ const readReplicaPrisma = new PrismaClient({
 
                 // criptografar a pesquisa para o banco de dados passando
                 if (fields) resolveEncryptedArgs(args, fields);
+                console.log("fields:", fields);
 
                 // pesquisar no banco de dados
                 const result = await query(args);
@@ -322,7 +323,7 @@ const readReplicaPrisma = new PrismaClient({
 
                 // descriptografar os campos criptografados no resultado da pesquisa
                 if (fields && result) {
-                    console.log("fields:", fields);
+                    console.log("entrou");
                     if (Array.isArray(result))
                         // caso seja utilizado o findMany
                         result.forEach((entry: unknown) => {
