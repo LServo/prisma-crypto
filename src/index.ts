@@ -83,7 +83,7 @@ generatorHandler({
 
         fs.writeFileSync(outputFilePath, fileContent, "utf-8");
 
-        logger.info(`Generated ${outputFilePath}`);
+        logger.info(`Encrypted fields: ${outputFilePath}`);
         return {
             exitCode: 0,
         };
