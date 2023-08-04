@@ -57,14 +57,10 @@ generatorHandler({
 
         const encryptedFieldsJSON = JSON.stringify(encryptedFields, null, 4);
 
-        const fileContent = `interface IPrismaEncryptFields {
-            [key: string]: {
-                fieldName: string;
-                typeName: string;
-            }[];
-        }
-        
-        export const prismaEncryptFields: IPrismaEncryptFields = ${encryptedFieldsJSON};\n`;
+        const fileContent = `"use strict";
+        Object.defineProperty(exports, "__esModule", { value: true });
+        exports.prismaEncryptFields = void 0;
+        exports.prismaEncryptFields = ${encryptedFieldsJSON};\n`;
 
         const outputDirectory =
             // options.generator.output.value ||
