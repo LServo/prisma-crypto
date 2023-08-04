@@ -70,9 +70,14 @@ function manageEncryption(
     data: unknown,
     mode: "encrypt" | "decrypt",
 ): void {
+    console.log("manageEncryption");
+    console.log("fields:", fields);
     fields.forEach((field) => {
+        console.log("field:", field);
         const { fieldName } = field;
+        console.log("fieldName:", fieldName);
         const fieldValue = data[fieldName];
+        console.log("fieldValue:", fieldValue);
         if (!fieldValue) return;
 
         console.log(`data[${fieldName}]:`, data[fieldName]);
@@ -324,11 +329,10 @@ const readReplicaPrisma = new PrismaClient({
                 console.log("result before:", result);
 
                 // descriptografar os campos criptografados no resultado da pesquisa
-                const test = !!fields && !!result;
-                console.log("test:", test);
-
-                if (!!fields && !!result)
+                if (fields && result) {
+                    console.log("entrou");
                     manageEncryption(fields, result, "decrypt");
+                }
                 console.log("result after:", result);
 
                 return result;
