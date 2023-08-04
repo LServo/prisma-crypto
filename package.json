@@ -1,6 +1,6 @@
 {
     "name": "prisma-crypto",
-    "version": "0.0.14",
+    "version": "0.0.15",
     "description": "An easy method to apply database encryption using PrismaORM",
     "bin": "./dist/index.js",
     "main": "./dist/index.js",
