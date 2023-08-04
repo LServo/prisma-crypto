@@ -87,8 +87,6 @@ function findEncryptFields(filePath) {
         return __awaiter(this, void 0, void 0, function () {
             var encryptedFields, encryptedFieldsJSON, fileContent, isPaipe, outputDirectory, outputFilePath;
             return __generator(this, function (_c) {
-                console.log("options.binaryPaths:", options.binaryPaths);
-                console.log("options.generator:", options.generator);
                 encryptedFields = findEncryptFields(options.schemaPath);
                 encryptedFieldsJSON = JSON.stringify(encryptedFields, null, 4);
                 fileContent = "\"use strict\";\n        Object.defineProperty(exports, \"__esModule\", { value: true });\n        exports.prismaEncryptFields = void 0;\n        exports.prismaEncryptFields = ".concat(encryptedFieldsJSON, ";\n");
