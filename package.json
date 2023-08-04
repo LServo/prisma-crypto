@@ -1,0 +1,68 @@
+{
+    "name": "prisma-crypto",
+    "version": "0.0.1",
+    "description": "An easy method to apply database encryption using PrismaORM",
+    "bin": "./dist/index.js",
+    "main": "./dist/index.js",
+    "types": "./dist/index.d.ts",
+    "scripts": {
+        "test": "vitest",
+        "clean": "rimraf dist",
+        "build": "npm run clean && tsc --declaration",
+        "esbuild": "npm run clean && node ./esbuild.config.cjs",
+        "start": "node -r dotenv/config dist/shared/main/index.cjs",
+        "local": "npx nodemon",
+        "prepare": "husky install",
+        "lint": "eslint .",
+        "lint:fix": "eslint --fix ."
+    },
+    "engines": {
+        "node": ">=18"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/LServo/prisma-crypto.git"
+    },
+    "keywords": [
+        "prisma",
+        "crypto"
+    ],
+    "lint-staged": {
+        "**/*.{js,jsx,ts,tsx}": [
+            "npx eslint --fix"
+        ]
+    },
+    "author": "Lucas Servo",
+    "license": "ISC",
+    "bugs": {
+        "url": "https://github.com/LServo/prisma-crypto/issues"
+    },
+    "homepage": "https://github.com/LServo/prisma-crypto#readme",
+    "dependencies": {
+        "@prisma/generator-helper": "^5.1.1",
+        "@prisma/sdk": "^4.0.0",
+        "@prisma/client": "^5.0.0",
+        "dotenv": "^16.3.1"
+    },
+    "devDependencies": {
+        "@types/node": "^20.4.6",
+        "@typescript-eslint/eslint-plugin": "^5.59.9",
+        "@typescript-eslint/parser": "^5.59.9",
+        "esbuild": "^0.17.19",
+        "eslint": "^8.44.0",
+        "eslint-config-prettier": "^8.8.0",
+        "eslint-import-resolver-typescript": "^3.5.5",
+        "eslint-plugin-import": "^2.27.5",
+        "eslint-plugin-import-helpers": "^1.3.1",
+        "eslint-plugin-prettier": "^4.2.1",
+        "eslint-plugin-vitest-globals": "^1.3.1",
+        "husky": "^8.0.0",
+        "nodemon": "^2.0.22",
+        "prettier": "^2.8.8",
+        "prisma": "^5.0.0",
+        "ts-node": "^10.9.1",
+        "typescript": "^5.1.6",
+        "vite-tsconfig-paths": "^4.2.0",
+        "vitest": "^0.32.4"
+    }
+}

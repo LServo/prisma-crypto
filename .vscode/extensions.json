@@ -1,0 +1,17 @@
+{
+    "recommendations": [
+        "dbaeumer.vscode-eslint",
+        "EditorConfig.EditorConfig",
+        "andrejunges.Handlebars",
+        "PKief.material-icon-theme",
+        "vincaslt.highlight-matching-tag",
+        "ms-vscode-remote.remote-wsl",
+        "ms-vscode-remote.remote-containers",
+        "streetsidesoftware.code-spell-checker",
+        "ms-azuretools.vscode-docker",
+        "Prisma.prisma",
+        "Prisma.prisma-insider",
+        "dbaeumer.vscode-eslint",
+        "midnightsyntax.vscode-wrap-console-log"
+    ]
+}
