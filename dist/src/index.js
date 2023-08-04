@@ -81,13 +81,17 @@ function findEncryptFields(filePath) {
     },
     onGenerate: function (options) {
         return __awaiter(this, void 0, void 0, function () {
-            var encryptedFields, encryptedFieldsJSON, fileContent, outputFilePath;
+            var encryptedFields, encryptedFieldsJSON, fileContent, outputDirectory, outputFilePath;
             return __generator(this, function (_a) {
                 encryptedFields = findEncryptFields(options.schemaPath);
                 encryptedFieldsJSON = JSON.stringify(encryptedFields, null, 4);
                 fileContent = "interface IPrismaEncryptFields {\n            [key: string]: {\n                fieldName: string;\n                typeName: string;\n            }[];\n        }\n        \n        export const prismaEncryptFields: IPrismaEncryptFields = ".concat(encryptedFieldsJSON, ";\n");
-                outputFilePath = options.generator.output.value ||
-                    (0, node_path_1.resolve)("src/database/prisma/prisma-generator-encrypt/", "encrypt-fields.ts");
+                outputDirectory = options.generator.output.value ||
+                    process.env.PRISMA_GENERATOR_OUTPUT ||
+                    "./";
+                sdk_1.logger.info("Output Directory: ".concat(outputDirectory));
+                outputFilePath = (0, node_path_1.resolve)(outputDirectory, "encrypted-fields.ts");
+                sdk_1.logger.info("Output File Path: ".concat(outputFilePath));
                 node_fs_1.default.writeFileSync(outputFilePath, fileContent, "utf-8");
                 sdk_1.logger.info("Generated ".concat(outputFilePath));
                 return [2 /*return*/, {
