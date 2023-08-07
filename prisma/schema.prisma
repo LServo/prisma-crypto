@@ -1,0 +1,25 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+    provider = "prisma-client-js"
+}
+
+generator prisma_crypto {
+    provider = "../dist/index.js"
+}
+
+datasource db {
+    provider = "postgresql"
+    url      = env("PRISMA_WRITE")
+}
+
+model migrate_encryption {
+    id Int @id @default(autoincrement())
+
+    token             String
+    add_encryption    String[]
+    remove_encryption String[]
+
+    created_at DateTime @default(now())
+}

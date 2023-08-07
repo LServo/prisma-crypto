@@ -1,22 +1,32 @@
 #!/usr/bin/env node
 /* eslint-disable @typescript-eslint/no-var-requires */
 
+import { execSync } from "node:child_process";
 import fs from "node:fs";
 import { resolve } from "node:path";
 
+import { Prisma } from "@prisma/client";
 import { generatorHandler, GeneratorOptions } from "@prisma/generator-helper";
 import { logger } from "@prisma/sdk";
 
+import { prisma } from "./prisma-client";
 export { prisma } from "./prisma-client";
 
-function findEncryptFields(filePath: string) {
+interface EncryptedFields {
+    [modelName: string]: {
+        fieldName: string;
+        typeName: string;
+    }[];
+}
+
+function findEncryptFields(filePath: string): EncryptedFields {
     const fileContent = fs.readFileSync(filePath, "utf-8");
     const lines = fileContent.split("\n");
 
     const commentRegex = /\/\/.*?@encrypt\b/;
     const modelRegex = /^\s*model\s+(\w+)/;
 
-    const modelsEncryptedFields = {};
+    const modelsEncryptedFields = {} satisfies EncryptedFields;
 
     let currentModel: string = null;
 
@@ -64,8 +74,28 @@ generatorHandler({
         exports.prismaEncryptFields = void 0;
         exports.prismaEncryptFields = ${encryptedFieldsJSON};\n`;
 
+        if (!fs.existsSync(resolve(__dirname))) return { exitCode: 1 };
+
+        try {
+            execSync("npx prisma db push");
+            logger.info("Comando prisma db push executado com sucesso.");
+        } catch (error) {
+            logger.error("Erro ao executar o comando prisma db push:", error);
+            process.exit(1);
+        }
+
+        try {
+            const latestMigration = await prisma.$queryRaw(
+                Prisma.sql`SELECT * FROM "migrate_encryption" ORDER BY "created_at" DESC LIMIT 1;`,
+            );
+
+            logger.info("Registro mais recente:", latestMigration);
+        } catch (error) {
+            logger.error("Erro ao buscar o registro mais recente:", error);
+            process.exit(1);
+        }
+
         const outputFilePath = resolve(__dirname, "encrypted-fields.js");
-        console.log("outputFilePath:", outputFilePath);
 
         fs.writeFileSync(outputFilePath, fileContent, "utf-8");
 
