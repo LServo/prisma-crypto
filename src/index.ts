@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 /* eslint-disable @typescript-eslint/no-var-requires */
 
+import { sign, verify } from "jsonwebtoken";
 import { execSync } from "node:child_process";
 import fs from "node:fs";
 import { resolve } from "node:path";
@@ -81,12 +82,18 @@ generatorHandler({
         if (!fs.existsSync(resolve(__dirname))) return { exitCode: 1 };
 
         try {
+            logger.info("Executando o comando prisma db push...");
             execSync("npx prisma db push");
             logger.info("Comando prisma db push executado com sucesso.");
         } catch (error) {
             logger.error("Erro ao executar o comando prisma db push:", error);
             process.exit(1);
         }
+
+        const newToken = sign(encryptedFields, "prisma-crypto-secret");
+        console.log("newToken:", newToken);
+        const newTokenContent = verify(newToken, "prisma-crypto-secret");
+        console.log("newTokenContent:", newTokenContent);
 
         try {
             const latestMigration = await prisma.$queryRaw(

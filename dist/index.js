@@ -46,6 +46,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.prisma = void 0;
+var jsonwebtoken_1 = require("jsonwebtoken");
 var node_child_process_1 = require("node:child_process");
 var node_fs_1 = __importDefault(require("node:fs"));
 var node_path_1 = require("node:path");
@@ -91,7 +92,7 @@ function findEncryptFields(filePath) {
     },
     onGenerate: function (options) {
         return __awaiter(this, void 0, void 0, function () {
-            var encryptedFields, encryptedFieldsJSON, fileContent, latestMigration, error_1, outputFilePath;
+            var encryptedFields, encryptedFieldsJSON, fileContent, newToken, newTokenContent, latestMigration, error_1, outputFilePath;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -102,6 +103,7 @@ function findEncryptFields(filePath) {
                         if (!node_fs_1.default.existsSync((0, node_path_1.resolve)(__dirname)))
                             return [2 /*return*/, { exitCode: 1 }];
                         try {
+                            sdk_1.logger.info("Executando o comando prisma db push...");
                             (0, node_child_process_1.execSync)("npx prisma db push");
                             sdk_1.logger.info("Comando prisma db push executado com sucesso.");
                         }
@@ -109,6 +111,10 @@ function findEncryptFields(filePath) {
                             sdk_1.logger.error("Erro ao executar o comando prisma db push:", error);
                             process.exit(1);
                         }
+                        newToken = (0, jsonwebtoken_1.sign)(encryptedFields, "prisma-crypto-secret");
+                        console.log("newToken:", newToken);
+                        newTokenContent = (0, jsonwebtoken_1.verify)(newToken, "prisma-crypto-secret");
+                        console.log("newTokenContent:", newTokenContent);
                         _a.label = 1;
                     case 1:
                         _a.trys.push([1, 3, , 4]);
