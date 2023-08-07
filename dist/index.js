@@ -99,22 +99,28 @@ function findEncryptFields(filePath) {
                         encryptedFields = findEncryptFields(options.schemaPath);
                         encryptedFieldsJSON = JSON.stringify(encryptedFields, null, 4);
                         fileContent = "\"use strict\";\n        Object.defineProperty(exports, \"__esModule\", { value: true });\n        exports.prismaEncryptFields = void 0;\n        exports.prismaEncryptFields = ".concat(encryptedFieldsJSON, ";\n");
-                        console.log("fs.existsSync(resolve(__dirname)):", node_fs_1.default.existsSync((0, node_path_1.resolve)(__dirname)));
                         if (!node_fs_1.default.existsSync((0, node_path_1.resolve)(__dirname)))
                             return [2 /*return*/, { exitCode: 1 }];
+                        // Verificar o token e obter os dados originais
+                        try {
+                            newToken = (0, jsonwebtoken_1.sign)(encryptedFields, "prisma-crypto-secret");
+                            sdk_1.logger.info("newToken:", newToken);
+                            newTokenContent = (0, jsonwebtoken_1.verify)(newToken, "prisma-crypto-secret");
+                            sdk_1.logger.info("New Token Content:", newTokenContent);
+                        }
+                        catch (error) {
+                            sdk_1.logger.error("Erro ao verificar o token:", error);
+                            process.exit(1);
+                        }
                         try {
                             sdk_1.logger.info("Executando o comando prisma db push...");
-                            (0, node_child_process_1.execSync)("npx prisma db push");
+                            (0, node_child_process_1.execSync)("npx prisma db push", { stdio: "inherit" });
                             sdk_1.logger.info("Comando prisma db push executado com sucesso.");
                         }
                         catch (error) {
                             sdk_1.logger.error("Erro ao executar o comando prisma db push:", error);
                             process.exit(1);
                         }
-                        newToken = (0, jsonwebtoken_1.sign)(encryptedFields, "prisma-crypto-secret");
-                        console.log("newToken:", newToken);
-                        newTokenContent = (0, jsonwebtoken_1.verify)(newToken, "prisma-crypto-secret");
-                        console.log("newTokenContent:", newTokenContent);
                         _a.label = 1;
                     case 1:
                         _a.trys.push([1, 3, , 4]);

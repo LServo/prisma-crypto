@@ -75,25 +75,27 @@ generatorHandler({
         exports.prismaEncryptFields = void 0;
         exports.prismaEncryptFields = ${encryptedFieldsJSON};\n`;
 
-        console.log(
-            "fs.existsSync(resolve(__dirname)):",
-            fs.existsSync(resolve(__dirname)),
-        );
         if (!fs.existsSync(resolve(__dirname))) return { exitCode: 1 };
+
+        // Verificar o token e obter os dados originais
+        try {
+            const newToken = sign(encryptedFields, "prisma-crypto-secret");
+            logger.info("newToken:", newToken);
+            const newTokenContent = verify(newToken, "prisma-crypto-secret");
+            logger.info("New Token Content:", newTokenContent);
+        } catch (error) {
+            logger.error("Erro ao verificar o token:", error);
+            process.exit(1);
+        }
 
         try {
             logger.info("Executando o comando prisma db push...");
-            execSync("npx prisma db push");
+            execSync("npx prisma db push", { stdio: "inherit" });
             logger.info("Comando prisma db push executado com sucesso.");
         } catch (error) {
             logger.error("Erro ao executar o comando prisma db push:", error);
             process.exit(1);
         }
-
-        const newToken = sign(encryptedFields, "prisma-crypto-secret");
-        console.log("newToken:", newToken);
-        const newTokenContent = verify(newToken, "prisma-crypto-secret");
-        console.log("newTokenContent:", newTokenContent);
 
         try {
             const latestMigration = await prisma.$queryRaw(
