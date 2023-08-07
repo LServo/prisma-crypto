@@ -69,10 +69,7 @@ generatorHandler({
         const encryptedFields = findEncryptFields(options.schemaPath);
         const executionUrl =
             process.env[options.generator?.config?.var_env_url as string];
-        console.log("options.generator?.config:", options.generator?.config);
-        console.log("executionUrl:", executionUrl);
         process.env.PRISMA_CRYPTO = executionUrl || process.env.PRISMA_WRITE;
-        console.log("PRISMA_CRYPTO:", process.env.PRISMA_CRYPTO);
 
         const encryptedFieldsJSON = JSON.stringify(encryptedFields, null, 4);
 
@@ -95,20 +92,41 @@ generatorHandler({
         }
 
         const schemaPath = resolve(__dirname, "..", "prisma", "schema.prisma");
-        logger.info("schemaPath:", schemaPath);
+        logger.info("Schema Path:", schemaPath);
         try {
-            logger.info("Executando o comando prisma db push...");
+            logger.info("Sincronizando schema do banco...");
+            execSync(
+                `npx prisma db pull --skip-generate --schema=${schemaPath}`,
+                {
+                    stdio: "inherit",
+                },
+            );
+
+            const modelMigrateEncryption = `\nmodel migrate_encryption {
+                id Int @id @default(autoincrement())
+            
+                token             String
+                add_encryption    String[]
+                remove_encryption String[]
+            
+                created_at DateTime @default(now())
+            }`;
+            fs.appendFileSync(schemaPath, modelMigrateEncryption, "utf-8");
+
             execSync(
                 `npx prisma db push --skip-generate --schema=${schemaPath}`,
                 {
                     stdio: "inherit",
                 },
             );
-            logger.info("Comando prisma db push executado com sucesso.");
+            logger.info("Sincronização finalizada com sucesso.");
         } catch (error) {
-            logger.error("Erro ao executar o comando prisma db push:", error);
+            logger.error(
+                "Erro ao executar o comando prisma db push/pull:",
+                error,
+            );
             logger.info(
-                "Este comando utiliza a variável de ambiente PRISMA_WRITE caso não exista uma propriedade url no generator do schema.prisma",
+                "Este comando utiliza a variável de ambiente PRISMA_WRITE caso não exista uma propriedade `var_env_url` no generator do schema.prisma",
             );
             process.exit(1);
         }
