@@ -91,12 +91,14 @@ generatorHandler({
             process.exit(1);
         }
 
-        const modelExists = await prisma.$queryRaw<boolean>(
+        const result = await prisma.$queryRaw<boolean>(
             Prisma.sql`SELECT EXISTS (
                 SELECT FROM information_schema.tables
                 WHERE table_name = '_migrate_encryption'
                 ) AS "exists"`,
         );
+
+        const modelExists = result[0]?.exists;
         console.log("modelExists:", modelExists);
 
         if (modelExists) {
