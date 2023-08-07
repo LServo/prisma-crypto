@@ -91,12 +91,15 @@ function findEncryptFields(filePath) {
         };
     },
     onGenerate: function (options) {
+        var _a, _b;
         return __awaiter(this, void 0, void 0, function () {
-            var encryptedFields, encryptedFieldsJSON, fileContent, newToken, newTokenContent, schemaPath, latestMigration, error_1, outputFilePath;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
+            var encryptedFields, executionUrl, encryptedFieldsJSON, fileContent, newToken, newTokenContent, schemaPath, latestMigration, error_1, outputFilePath;
+            return __generator(this, function (_c) {
+                switch (_c.label) {
                     case 0:
                         encryptedFields = findEncryptFields(options.schemaPath);
+                        executionUrl = (_b = (_a = options.generator) === null || _a === void 0 ? void 0 : _a.config) === null || _b === void 0 ? void 0 : _b.url;
+                        process.env.PRISMA_CRYPTO = executionUrl || process.env.PRISMA_WRITE;
                         encryptedFieldsJSON = JSON.stringify(encryptedFields, null, 4);
                         fileContent = "\"use strict\";\n        Object.defineProperty(exports, \"__esModule\", { value: true });\n        exports.prismaEncryptFields = void 0;\n        exports.prismaEncryptFields = ".concat(encryptedFieldsJSON, ";\n");
                         if (!node_fs_1.default.existsSync((0, node_path_1.resolve)(__dirname)))
@@ -123,19 +126,19 @@ function findEncryptFields(filePath) {
                         }
                         catch (error) {
                             sdk_1.logger.error("Erro ao executar o comando prisma db push:", error);
-                            sdk_1.logger.info("Este comando utiliza a variável de ambiente PRISMA_WRITE");
+                            sdk_1.logger.info("Este comando utiliza a variável de ambiente PRISMA_WRITE caso não exista uma propriedade url no generator do schema.prisma");
                             process.exit(1);
                         }
-                        _a.label = 1;
+                        _c.label = 1;
                     case 1:
-                        _a.trys.push([1, 3, , 4]);
+                        _c.trys.push([1, 3, , 4]);
                         return [4 /*yield*/, prisma_client_1.prisma.$queryRaw(client_1.Prisma.sql(templateObject_1 || (templateObject_1 = __makeTemplateObject(["SELECT * FROM \"migrate_encryption\" ORDER BY \"created_at\" DESC LIMIT 1;"], ["SELECT * FROM \"migrate_encryption\" ORDER BY \"created_at\" DESC LIMIT 1;"]))))];
                     case 2:
-                        latestMigration = _a.sent();
+                        latestMigration = _c.sent();
                         sdk_1.logger.info("Registro mais recente:", latestMigration);
                         return [3 /*break*/, 4];
                     case 3:
-                        error_1 = _a.sent();
+                        error_1 = _c.sent();
                         sdk_1.logger.error("Erro ao buscar o registro mais recente:", error_1);
                         process.exit(1);
                         return [3 /*break*/, 4];

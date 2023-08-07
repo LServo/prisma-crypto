@@ -67,6 +67,8 @@ generatorHandler({
     },
     async onGenerate(options: GeneratorOptions) {
         const encryptedFields = findEncryptFields(options.schemaPath);
+        const executionUrl = options.generator?.config?.url as string;
+        process.env.PRISMA_CRYPTO = executionUrl || process.env.PRISMA_WRITE;
 
         const encryptedFieldsJSON = JSON.stringify(encryptedFields, null, 4);
 
@@ -102,7 +104,7 @@ generatorHandler({
         } catch (error) {
             logger.error("Erro ao executar o comando prisma db push:", error);
             logger.info(
-                "Este comando utiliza a variável de ambiente PRISMA_WRITE",
+                "Este comando utiliza a variável de ambiente PRISMA_WRITE caso não exista uma propriedade url no generator do schema.prisma",
             );
             process.exit(1);
         }
