@@ -67,8 +67,10 @@ generatorHandler({
     },
     async onGenerate(options: GeneratorOptions) {
         const encryptedFields = findEncryptFields(options.schemaPath);
-        const executionUrl = options.generator?.config?.url as string;
+        const executionUrl =
+            process.env[options.generator?.config?.var_env_url as string];
         console.log("options.generator?.config:", options.generator?.config);
+        console.log("executionUrl:", executionUrl);
         process.env.PRISMA_CRYPTO = executionUrl || process.env.PRISMA_WRITE;
         console.log("PRISMA_CRYPTO:", process.env.PRISMA_CRYPTO);
 

@@ -98,8 +98,9 @@ function findEncryptFields(filePath) {
                 switch (_d.label) {
                     case 0:
                         encryptedFields = findEncryptFields(options.schemaPath);
-                        executionUrl = (_b = (_a = options.generator) === null || _a === void 0 ? void 0 : _a.config) === null || _b === void 0 ? void 0 : _b.url;
+                        executionUrl = process.env[(_b = (_a = options.generator) === null || _a === void 0 ? void 0 : _a.config) === null || _b === void 0 ? void 0 : _b.var_env_url];
                         console.log("options.generator?.config:", (_c = options.generator) === null || _c === void 0 ? void 0 : _c.config);
+                        console.log("executionUrl:", executionUrl);
                         process.env.PRISMA_CRYPTO = executionUrl || process.env.PRISMA_WRITE;
                         console.log("PRISMA_CRYPTO:", process.env.PRISMA_CRYPTO);
                         encryptedFieldsJSON = JSON.stringify(encryptedFields, null, 4);
