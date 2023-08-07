@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 
 import { sign, verify } from "jsonwebtoken";
-import { execSync } from "node:child_process";
+import { exec } from "node:child_process";
 import fs from "node:fs";
 import { resolve } from "node:path";
 
@@ -90,7 +90,7 @@ generatorHandler({
 
         try {
             logger.info("Executando o comando prisma db push...");
-            execSync("npx prisma db push", { stdio: "inherit" });
+            exec("npx prisma db push");
             logger.info("Comando prisma db push executado com sucesso.");
         } catch (error) {
             logger.error("Erro ao executar o comando prisma db push:", error);
