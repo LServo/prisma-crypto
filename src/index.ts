@@ -14,20 +14,29 @@ import { prisma } from "./prisma-client";
 export { prisma } from "./prisma-client";
 
 interface EncryptedFields {
-    [modelName: string]: {
-        fieldName: string;
-        typeName: string;
-    }[];
+    fieldName: string;
+    typeName: string;
+}
+interface EncryptedModels {
+    [modelName: string]: EncryptedFields[];
 }
 
-function findEncryptFields(filePath: string): EncryptedFields {
+interface MigrateEncryption {
+    id: number;
+    token: string;
+    add_encryption: string[];
+    remove_encryption: string[];
+    created_at: Date;
+}
+
+function findEncryptFields(filePath: string): EncryptedModels {
     const fileContent = fs.readFileSync(filePath, "utf-8");
     const lines = fileContent.split("\n");
 
     const commentRegex = /\/\/.*?@encrypt\b/;
     const modelRegex = /^\s*model\s+(\w+)/;
 
-    const modelsEncryptedFields = {} satisfies EncryptedFields;
+    const modelsEncryptedFields = {} satisfies EncryptedModels;
 
     let currentModel: string = null;
 
@@ -66,17 +75,21 @@ generatorHandler({
         };
     },
     async onGenerate(options: GeneratorOptions) {
-        const encryptedFields = findEncryptFields(options.schemaPath);
+        const newEncryptedModels = findEncryptFields(options.schemaPath);
         const executionUrl =
             process.env[options.generator?.config?.var_env_url as string];
         process.env.PRISMA_CRYPTO = executionUrl || process.env.PRISMA_WRITE;
 
-        const encryptedFieldsJSON = JSON.stringify(encryptedFields, null, 4);
+        const newEncryptedModelsJSON = JSON.stringify(
+            newEncryptedModels,
+            null,
+            4,
+        );
 
         const fileContent = `"use strict";
         Object.defineProperty(exports, "__esModule", { value: true });
         exports.prismaEncryptFields = void 0;
-        exports.prismaEncryptFields = ${encryptedFieldsJSON};\n`;
+        exports.prismaEncryptFields = ${newEncryptedModelsJSON};\n`;
 
         if (!fs.existsSync(resolve(__dirname))) return { exitCode: 1 };
 
@@ -137,7 +150,7 @@ generatorHandler({
             }
         }
 
-        let latestMigration: unknown;
+        let latestMigration: MigrateEncryption[];
         try {
             latestMigration = await prisma.$queryRaw(
                 Prisma.sql`SELECT * FROM "_migrate_encryption" ORDER BY "created_at" DESC LIMIT 1;`,
@@ -151,61 +164,51 @@ generatorHandler({
 
         // Verificar o token e obter os dados originais
         try {
-            const newToken = sign(encryptedFields, "prisma-crypto-secret");
+            const newToken = sign(newEncryptedModels, "prisma-crypto-secret");
             logger.info("newToken:", newToken);
 
-            let lastEncryptedFields: EncryptedFields;
-            if (latestMigration) {
-                lastEncryptedFields = verify(
-                    newToken,
+            let lastEncryptedModels: EncryptedModels;
+            if (latestMigration[0]) {
+                console.log(
+                    "latestMigration[0]?.token:",
+                    latestMigration[0]?.token,
+                );
+                lastEncryptedModels = verify(
+                    latestMigration[0]?.token,
                     "prisma-crypto-secret",
-                ) as EncryptedFields;
-                logger.info("Last Token Content:", lastEncryptedFields);
+                ) as EncryptedModels;
+                logger.info("Last Token Content:", lastEncryptedModels);
             }
 
-            // função para verificar diferenças entre os objetos do tipo EncryptedFields, ela retorna um objeto com as chaves add_encryption e remove_encryption
-            const compareEncryptedFields = (
-                obj1: EncryptedFields,
-                obj2: EncryptedFields,
-            ): {
-                add_encryption: String[];
-                remove_encryption: String[];
-            } => {
-                const result = {
-                    add_encryption: [],
-                    remove_encryption: [],
-                };
+            const { add_encryption, remove_encryption } = Object.keys(
+                newEncryptedModels,
+            ).reduce(
+                (acc, curr) => {
+                    let newFields = newEncryptedModels[curr]?.map(
+                        (field) => `${curr}.${field.fieldName}`,
+                    );
+                    const lastFields =
+                        lastEncryptedModels?.[curr]?.map(
+                            (field) => `${curr}.${field.fieldName}`,
+                        ) || [];
 
-                for (const [modelName, fields] of Object.entries(obj1)) {
-                    const fields2 = obj2[modelName];
+                    const fieldsToAdd = newFields.filter(
+                        (field) => !lastFields.includes(field),
+                    );
+                    acc.add_encryption.push(...fieldsToAdd);
 
-                    if (!fields2) {
-                        result.add_encryption.push(...fields);
-                    } else {
-                        const fieldsToAdd = fields.filter(
-                            (field) =>
-                                !fields2.some(
-                                    (field2) =>
-                                        field.fieldName === field2.fieldName,
-                                ),
-                        );
-                        result.add_encryption.push(...fieldsToAdd);
+                    const fieldsToRemove = lastFields.filter(
+                        (field) => !newFields.includes(field),
+                    );
+                    acc.remove_encryption.push(...fieldsToRemove);
 
-                        const fieldsToRemove = fields2.filter(
-                            (field) =>
-                                !fields.some(
-                                    (field2) =>
-                                        field.fieldName === field2.fieldName,
-                                ),
-                        );
-                        result.remove_encryption.push(...fieldsToRemove);
-                    }
-                }
-
-                return result;
-            };
-            const { add_encryption, remove_encryption } =
-                compareEncryptedFields(encryptedFields, lastEncryptedFields);
+                    return acc;
+                },
+                {
+                    add_encryption: [] as String[],
+                    remove_encryption: [] as String[],
+                },
+            );
             console.log("add_encryption:", add_encryption);
             console.log("remove_encryption:", remove_encryption);
         } catch (error) {

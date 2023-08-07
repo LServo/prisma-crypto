@@ -91,22 +91,22 @@ function findEncryptFields(filePath) {
         };
     },
     onGenerate: function (options) {
-        var _a, _b, _c;
+        var _a, _b, _c, _d, _e;
         return __awaiter(this, void 0, void 0, function () {
-            var encryptedFields, executionUrl, encryptedFieldsJSON, fileContent, result, modelExists, schemaPath, modelMigrateEncryption, latestMigration, error_1, newToken, lastEncryptedFields, compareEncryptedFields, _d, add_encryption, remove_encryption, outputFilePath;
-            return __generator(this, function (_e) {
-                switch (_e.label) {
+            var newEncryptedModels, executionUrl, newEncryptedModelsJSON, fileContent, result, modelExists, schemaPath, modelMigrateEncryption, latestMigration, error_1, newToken, lastEncryptedModels_1, _f, add_encryption, remove_encryption, outputFilePath;
+            return __generator(this, function (_g) {
+                switch (_g.label) {
                     case 0:
-                        encryptedFields = findEncryptFields(options.schemaPath);
+                        newEncryptedModels = findEncryptFields(options.schemaPath);
                         executionUrl = process.env[(_b = (_a = options.generator) === null || _a === void 0 ? void 0 : _a.config) === null || _b === void 0 ? void 0 : _b.var_env_url];
                         process.env.PRISMA_CRYPTO = executionUrl || process.env.PRISMA_WRITE;
-                        encryptedFieldsJSON = JSON.stringify(encryptedFields, null, 4);
-                        fileContent = "\"use strict\";\n        Object.defineProperty(exports, \"__esModule\", { value: true });\n        exports.prismaEncryptFields = void 0;\n        exports.prismaEncryptFields = ".concat(encryptedFieldsJSON, ";\n");
+                        newEncryptedModelsJSON = JSON.stringify(newEncryptedModels, null, 4);
+                        fileContent = "\"use strict\";\n        Object.defineProperty(exports, \"__esModule\", { value: true });\n        exports.prismaEncryptFields = void 0;\n        exports.prismaEncryptFields = ".concat(newEncryptedModelsJSON, ";\n");
                         if (!node_fs_1.default.existsSync((0, node_path_1.resolve)(__dirname)))
                             return [2 /*return*/, { exitCode: 1 }];
                         return [4 /*yield*/, prisma_client_1.prisma.$queryRaw(client_1.Prisma.sql(templateObject_1 || (templateObject_1 = __makeTemplateObject(["SELECT EXISTS (\n                SELECT FROM information_schema.tables\n                WHERE table_name = '_migrate_encryption'\n                ) AS \"exists\""], ["SELECT EXISTS (\n                SELECT FROM information_schema.tables\n                WHERE table_name = '_migrate_encryption'\n                ) AS \"exists\""]))))];
                     case 1:
-                        result = _e.sent();
+                        result = _g.sent();
                         modelExists = (_c = result[0]) === null || _c === void 0 ? void 0 : _c.exists;
                         if (modelExists) {
                             sdk_1.logger.info('A tabela "_migrate_encryption" já existe no banco.');
@@ -129,62 +129,43 @@ function findEncryptFields(filePath) {
                                 process.exit(1);
                             }
                         }
-                        _e.label = 2;
+                        _g.label = 2;
                     case 2:
-                        _e.trys.push([2, 4, , 5]);
+                        _g.trys.push([2, 4, , 5]);
                         return [4 /*yield*/, prisma_client_1.prisma.$queryRaw(client_1.Prisma.sql(templateObject_2 || (templateObject_2 = __makeTemplateObject(["SELECT * FROM \"_migrate_encryption\" ORDER BY \"created_at\" DESC LIMIT 1;"], ["SELECT * FROM \"_migrate_encryption\" ORDER BY \"created_at\" DESC LIMIT 1;"]))))];
                     case 3:
-                        latestMigration = _e.sent();
+                        latestMigration = _g.sent();
                         sdk_1.logger.info("Registro mais recente:", latestMigration);
                         return [3 /*break*/, 5];
                     case 4:
-                        error_1 = _e.sent();
+                        error_1 = _g.sent();
                         sdk_1.logger.error("Erro ao buscar o registro mais recente:", error_1);
                         process.exit(1);
                         return [3 /*break*/, 5];
                     case 5:
                         // Verificar o token e obter os dados originais
                         try {
-                            newToken = (0, jsonwebtoken_1.sign)(encryptedFields, "prisma-crypto-secret");
+                            newToken = (0, jsonwebtoken_1.sign)(newEncryptedModels, "prisma-crypto-secret");
                             sdk_1.logger.info("newToken:", newToken);
-                            lastEncryptedFields = void 0;
-                            if (latestMigration) {
-                                lastEncryptedFields = (0, jsonwebtoken_1.verify)(newToken, "prisma-crypto-secret");
-                                sdk_1.logger.info("Last Token Content:", lastEncryptedFields);
+                            if (latestMigration[0]) {
+                                console.log("latestMigration[0]?.token:", (_d = latestMigration[0]) === null || _d === void 0 ? void 0 : _d.token);
+                                lastEncryptedModels_1 = (0, jsonwebtoken_1.verify)((_e = latestMigration[0]) === null || _e === void 0 ? void 0 : _e.token, "prisma-crypto-secret");
+                                sdk_1.logger.info("Last Token Content:", lastEncryptedModels_1);
                             }
-                            compareEncryptedFields = function (obj1, obj2) {
-                                var result = {
-                                    add_encryption: [],
-                                    remove_encryption: [],
-                                };
-                                var _loop_1 = function (modelName, fields) {
-                                    var _c, _d, _e;
-                                    var fields2 = obj2[modelName];
-                                    if (!fields2) {
-                                        (_c = result.add_encryption).push.apply(_c, fields);
-                                    }
-                                    else {
-                                        var fieldsToAdd = fields.filter(function (field) {
-                                            return !fields2.some(function (field2) {
-                                                return field.fieldName === field2.fieldName;
-                                            });
-                                        });
-                                        (_d = result.add_encryption).push.apply(_d, fieldsToAdd);
-                                        var fieldsToRemove = fields2.filter(function (field) {
-                                            return !fields.some(function (field2) {
-                                                return field.fieldName === field2.fieldName;
-                                            });
-                                        });
-                                        (_e = result.remove_encryption).push.apply(_e, fieldsToRemove);
-                                    }
-                                };
-                                for (var _i = 0, _a = Object.entries(obj1); _i < _a.length; _i++) {
-                                    var _b = _a[_i], modelName = _b[0], fields = _b[1];
-                                    _loop_1(modelName, fields);
-                                }
-                                return result;
-                            };
-                            _d = compareEncryptedFields(encryptedFields, lastEncryptedFields), add_encryption = _d.add_encryption, remove_encryption = _d.remove_encryption;
+                            _f = Object.keys(newEncryptedModels).reduce(function (acc, curr) {
+                                var _a, _b;
+                                var _c, _d;
+                                var newFields = (_c = newEncryptedModels[curr]) === null || _c === void 0 ? void 0 : _c.map(function (field) { return "".concat(curr, ".").concat(field.fieldName); });
+                                var lastFields = ((_d = lastEncryptedModels_1 === null || lastEncryptedModels_1 === void 0 ? void 0 : lastEncryptedModels_1[curr]) === null || _d === void 0 ? void 0 : _d.map(function (field) { return "".concat(curr, ".").concat(field.fieldName); })) || [];
+                                var fieldsToAdd = newFields.filter(function (field) { return !lastFields.includes(field); });
+                                (_a = acc.add_encryption).push.apply(_a, fieldsToAdd);
+                                var fieldsToRemove = lastFields.filter(function (field) { return !newFields.includes(field); });
+                                (_b = acc.remove_encryption).push.apply(_b, fieldsToRemove);
+                                return acc;
+                            }, {
+                                add_encryption: [],
+                                remove_encryption: [],
+                            }), add_encryption = _f.add_encryption, remove_encryption = _f.remove_encryption;
                             console.log("add_encryption:", add_encryption);
                             console.log("remove_encryption:", remove_encryption);
                         }
