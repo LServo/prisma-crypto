@@ -83,24 +83,13 @@ function findEncryptFields(filePath) {
         };
     },
     onGenerate: function (options) {
-        var _a, _b;
         return __awaiter(this, void 0, void 0, function () {
-            var encryptedFields, encryptedFieldsJSON, fileContent, isPaipe, outputDirectory, outputFilePath;
-            return __generator(this, function (_c) {
+            var encryptedFields, encryptedFieldsJSON, fileContent, outputFilePath;
+            return __generator(this, function (_a) {
                 encryptedFields = findEncryptFields(options.schemaPath);
                 encryptedFieldsJSON = JSON.stringify(encryptedFields, null, 4);
                 fileContent = "\"use strict\";\n        Object.defineProperty(exports, \"__esModule\", { value: true });\n        exports.prismaEncryptFields = void 0;\n        exports.prismaEncryptFields = ".concat(encryptedFieldsJSON, ";\n");
-                isPaipe = ((_b = (_a = options.generator) === null || _a === void 0 ? void 0 : _a.config) === null || _b === void 0 ? void 0 : _b.env) === "paipe";
-                console.log("__dirname:", __dirname);
-                outputDirectory = 
-                // options.generator.output.value ||
-                // process.env.PRISMA_GENERATOR_OUTPUT ||
-                (0, node_path_1.resolve)("node_modules", "".concat(isPaipe ? "@paipe/prisma-crypto" : "prisma-crypto"), "dist");
-                // Verifique se a pasta existe, senão crie-a
-                if (!node_fs_1.default.existsSync(outputDirectory))
-                    node_fs_1.default.mkdirSync(outputDirectory, { recursive: true });
-                console.log("outputDirectory:", outputDirectory);
-                outputFilePath = (0, node_path_1.resolve)(outputDirectory, "encrypted-fields.js");
+                outputFilePath = (0, node_path_1.resolve)(__dirname, "encrypted-fields.js");
                 console.log("outputFilePath:", outputFilePath);
                 node_fs_1.default.writeFileSync(outputFilePath, fileContent, "utf-8");
                 sdk_1.logger.info("Encrypted fields: ".concat(outputFilePath));
