@@ -92,56 +92,70 @@ function findEncryptFields(filePath) {
     },
     onGenerate: function (options) {
         return __awaiter(this, void 0, void 0, function () {
-            var encryptedFields, encryptedFieldsJSON, fileContent, newToken, newTokenContent, latestMigration, error_1, outputFilePath;
+            var encryptedFields, encryptedFieldsJSON, fileContent, newToken, newTokenContent, outputFilePath;
+            var _this = this;
             return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0:
-                        encryptedFields = findEncryptFields(options.schemaPath);
-                        encryptedFieldsJSON = JSON.stringify(encryptedFields, null, 4);
-                        fileContent = "\"use strict\";\n        Object.defineProperty(exports, \"__esModule\", { value: true });\n        exports.prismaEncryptFields = void 0;\n        exports.prismaEncryptFields = ".concat(encryptedFieldsJSON, ";\n");
-                        if (!node_fs_1.default.existsSync((0, node_path_1.resolve)(__dirname)))
-                            return [2 /*return*/, { exitCode: 1 }];
-                        // Verificar o token e obter os dados originais
-                        try {
-                            newToken = (0, jsonwebtoken_1.sign)(encryptedFields, "prisma-crypto-secret");
-                            sdk_1.logger.info("newToken:", newToken);
-                            newTokenContent = (0, jsonwebtoken_1.verify)(newToken, "prisma-crypto-secret");
-                            sdk_1.logger.info("New Token Content:", newTokenContent);
-                        }
-                        catch (error) {
-                            sdk_1.logger.error("Erro ao verificar o token:", error);
-                            process.exit(1);
-                        }
-                        try {
-                            sdk_1.logger.info("Executando o comando prisma db push...");
-                            (0, node_child_process_1.exec)("npx prisma db push");
-                            sdk_1.logger.info("Comando prisma db push executado com sucesso.");
-                        }
-                        catch (error) {
-                            sdk_1.logger.error("Erro ao executar o comando prisma db push:", error);
-                            process.exit(1);
-                        }
-                        _a.label = 1;
-                    case 1:
-                        _a.trys.push([1, 3, , 4]);
-                        return [4 /*yield*/, prisma_client_1.prisma.$queryRaw(client_1.Prisma.sql(templateObject_1 || (templateObject_1 = __makeTemplateObject(["SELECT * FROM \"migrate_encryption\" ORDER BY \"created_at\" DESC LIMIT 1;"], ["SELECT * FROM \"migrate_encryption\" ORDER BY \"created_at\" DESC LIMIT 1;"]))))];
-                    case 2:
-                        latestMigration = _a.sent();
-                        sdk_1.logger.info("Registro mais recente:", latestMigration);
-                        return [3 /*break*/, 4];
-                    case 3:
-                        error_1 = _a.sent();
-                        sdk_1.logger.error("Erro ao buscar o registro mais recente:", error_1);
-                        process.exit(1);
-                        return [3 /*break*/, 4];
-                    case 4:
-                        outputFilePath = (0, node_path_1.resolve)(__dirname, "encrypted-fields.js");
-                        node_fs_1.default.writeFileSync(outputFilePath, fileContent, "utf-8");
-                        sdk_1.logger.info("Encrypted fields: ".concat(outputFilePath));
-                        return [2 /*return*/, {
-                                exitCode: 0,
-                            }];
+                encryptedFields = findEncryptFields(options.schemaPath);
+                encryptedFieldsJSON = JSON.stringify(encryptedFields, null, 4);
+                fileContent = "\"use strict\";\n        Object.defineProperty(exports, \"__esModule\", { value: true });\n        exports.prismaEncryptFields = void 0;\n        exports.prismaEncryptFields = ".concat(encryptedFieldsJSON, ";\n");
+                if (!node_fs_1.default.existsSync((0, node_path_1.resolve)(__dirname)))
+                    return [2 /*return*/, { exitCode: 1 }];
+                // Verificar o token e obter os dados originais
+                try {
+                    newToken = (0, jsonwebtoken_1.sign)(encryptedFields, "prisma-crypto-secret");
+                    sdk_1.logger.info("newToken:", newToken);
+                    newTokenContent = (0, jsonwebtoken_1.verify)(newToken, "prisma-crypto-secret");
+                    sdk_1.logger.info("New Token Content:", newTokenContent);
                 }
+                catch (error) {
+                    sdk_1.logger.error("Erro ao verificar o token:", error);
+                    process.exit(1);
+                }
+                try {
+                    sdk_1.logger.info("Executando o comando prisma db push...");
+                    (0, node_child_process_1.exec)("npx prisma db push", function (error, stdout, stderr) { return __awaiter(_this, void 0, void 0, function () {
+                        var latestMigration, error_1;
+                        return __generator(this, function (_a) {
+                            switch (_a.label) {
+                                case 0:
+                                    if (error) {
+                                        sdk_1.logger.error("error: ".concat(error.message));
+                                        return [2 /*return*/];
+                                    }
+                                    if (stderr) {
+                                        sdk_1.logger.error("stderr: ".concat(stderr));
+                                        return [2 /*return*/];
+                                    }
+                                    sdk_1.logger.info("stdout: ".concat(stdout));
+                                    _a.label = 1;
+                                case 1:
+                                    _a.trys.push([1, 3, , 4]);
+                                    return [4 /*yield*/, prisma_client_1.prisma.$queryRaw(client_1.Prisma.sql(templateObject_1 || (templateObject_1 = __makeTemplateObject(["SELECT * FROM \"migrate_encryption\" ORDER BY \"created_at\" DESC LIMIT 1;"], ["SELECT * FROM \"migrate_encryption\" ORDER BY \"created_at\" DESC LIMIT 1;"]))))];
+                                case 2:
+                                    latestMigration = _a.sent();
+                                    sdk_1.logger.info("Registro mais recente:", latestMigration);
+                                    return [3 /*break*/, 4];
+                                case 3:
+                                    error_1 = _a.sent();
+                                    sdk_1.logger.error("Erro ao buscar o registro mais recente:", error_1);
+                                    process.exit(1);
+                                    return [3 /*break*/, 4];
+                                case 4: return [2 /*return*/];
+                            }
+                        });
+                    }); });
+                    sdk_1.logger.info("Comando prisma db push executado com sucesso.");
+                }
+                catch (error) {
+                    sdk_1.logger.error("Erro ao executar o comando prisma db push:", error);
+                    process.exit(1);
+                }
+                outputFilePath = (0, node_path_1.resolve)(__dirname, "encrypted-fields.js");
+                node_fs_1.default.writeFileSync(outputFilePath, fileContent, "utf-8");
+                sdk_1.logger.info("Encrypted fields: ".concat(outputFilePath));
+                return [2 /*return*/, {
+                        exitCode: 0,
+                    }];
             });
         });
     },

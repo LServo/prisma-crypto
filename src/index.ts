@@ -90,21 +90,34 @@ generatorHandler({
 
         try {
             logger.info("Executando o comando prisma db push...");
-            exec("npx prisma db push");
+            exec("npx prisma db push", async (error, stdout, stderr) => {
+                if (error) {
+                    logger.error(`error: ${error.message}`);
+                    return;
+                }
+                if (stderr) {
+                    logger.error(`stderr: ${stderr}`);
+                    return;
+                }
+                logger.info(`stdout: ${stdout}`);
+
+                try {
+                    const latestMigration = await prisma.$queryRaw(
+                        Prisma.sql`SELECT * FROM "migrate_encryption" ORDER BY "created_at" DESC LIMIT 1;`,
+                    );
+
+                    logger.info("Registro mais recente:", latestMigration);
+                } catch (error) {
+                    logger.error(
+                        "Erro ao buscar o registro mais recente:",
+                        error,
+                    );
+                    process.exit(1);
+                }
+            });
             logger.info("Comando prisma db push executado com sucesso.");
         } catch (error) {
             logger.error("Erro ao executar o comando prisma db push:", error);
-            process.exit(1);
-        }
-
-        try {
-            const latestMigration = await prisma.$queryRaw(
-                Prisma.sql`SELECT * FROM "migrate_encryption" ORDER BY "created_at" DESC LIMIT 1;`,
-            );
-
-            logger.info("Registro mais recente:", latestMigration);
-        } catch (error) {
-            logger.error("Erro ao buscar o registro mais recente:", error);
             process.exit(1);
         }
 
