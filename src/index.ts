@@ -117,9 +117,7 @@ generatorHandler({
             logger.info("Schema Path:", schemaPath);
             try {
                 logger.info("Sincronizando schema do banco...");
-                execSync(`npx prisma db pull --schema=${schemaPath}`, {
-                    stdio: "inherit",
-                });
+                execSync(`npx prisma db pull --schema=${schemaPath}`);
 
                 const modelMigrateEncryption = `\nmodel migrate_encryption {
                     id Int @id @default(autoincrement())
@@ -137,9 +135,6 @@ generatorHandler({
 
                 execSync(
                     `npx prisma db push --skip-generate --schema=${schemaPath}`,
-                    {
-                        stdio: "inherit",
-                    },
                 );
                 logger.info("Sincronização finalizada com sucesso.");
             } catch (error) {
@@ -170,6 +165,7 @@ generatorHandler({
         fs.writeFileSync(outputFilePath, fileContent, "utf-8");
 
         logger.info(`Encrypted fields: ${outputFilePath}`);
+
         return {
             exitCode: 0,
         };
