@@ -93,7 +93,7 @@ function findEncryptFields(filePath) {
     onGenerate: function (options) {
         var _a, _b, _c;
         return __awaiter(this, void 0, void 0, function () {
-            var encryptedFields, executionUrl, encryptedFieldsJSON, fileContent, newToken, newTokenContent, result, modelExists, schemaPath, modelMigrateEncryption, latestMigration, error_1, outputFilePath;
+            var encryptedFields, executionUrl, encryptedFieldsJSON, fileContent, result, modelExists, schemaPath, modelMigrateEncryption, latestMigration, error_1, newToken, lastTokenContent, diff, outputFilePath;
             return __generator(this, function (_d) {
                 switch (_d.label) {
                     case 0:
@@ -104,22 +104,10 @@ function findEncryptFields(filePath) {
                         fileContent = "\"use strict\";\n        Object.defineProperty(exports, \"__esModule\", { value: true });\n        exports.prismaEncryptFields = void 0;\n        exports.prismaEncryptFields = ".concat(encryptedFieldsJSON, ";\n");
                         if (!node_fs_1.default.existsSync((0, node_path_1.resolve)(__dirname)))
                             return [2 /*return*/, { exitCode: 1 }];
-                        // Verificar o token e obter os dados originais
-                        try {
-                            newToken = (0, jsonwebtoken_1.sign)(encryptedFields, "prisma-crypto-secret");
-                            sdk_1.logger.info("newToken:", newToken);
-                            newTokenContent = (0, jsonwebtoken_1.verify)(newToken, "prisma-crypto-secret");
-                            sdk_1.logger.info("New Token Content:", newTokenContent);
-                        }
-                        catch (error) {
-                            sdk_1.logger.error("Erro ao verificar o token:", error);
-                            process.exit(1);
-                        }
                         return [4 /*yield*/, prisma_client_1.prisma.$queryRaw(client_1.Prisma.sql(templateObject_1 || (templateObject_1 = __makeTemplateObject(["SELECT EXISTS (\n                SELECT FROM information_schema.tables\n                WHERE table_name = '_migrate_encryption'\n                ) AS \"exists\""], ["SELECT EXISTS (\n                SELECT FROM information_schema.tables\n                WHERE table_name = '_migrate_encryption'\n                ) AS \"exists\""]))))];
                     case 1:
                         result = _d.sent();
                         modelExists = (_c = result[0]) === null || _c === void 0 ? void 0 : _c.exists;
-                        console.log("modelExists:", modelExists);
                         if (modelExists) {
                             sdk_1.logger.info('A tabela "_migrate_encryption" já existe no banco.');
                         }
@@ -155,6 +143,52 @@ function findEncryptFields(filePath) {
                         process.exit(1);
                         return [3 /*break*/, 5];
                     case 5:
+                        // Verificar o token e obter os dados originais
+                        try {
+                            newToken = (0, jsonwebtoken_1.sign)(encryptedFields, "prisma-crypto-secret");
+                            sdk_1.logger.info("newToken:", newToken);
+                            if (latestMigration) {
+                                lastTokenContent = (0, jsonwebtoken_1.verify)(newToken, "prisma-crypto-secret");
+                                sdk_1.logger.info("Last Token Content:", lastTokenContent);
+                            }
+                            diff = function (obj1, obj2) {
+                                var result = {
+                                    add_encryption: [],
+                                    remove_encryption: [],
+                                };
+                                var _loop_1 = function (modelName, fields) {
+                                    var _c, _d, _e;
+                                    var fields2 = obj2[modelName];
+                                    if (!fields2) {
+                                        (_c = result.add_encryption).push.apply(_c, fields);
+                                    }
+                                    else {
+                                        var fieldsToAdd = fields.filter(function (field) {
+                                            return !fields2.some(function (field2) {
+                                                return field.fieldName === field2.fieldName;
+                                            });
+                                        });
+                                        (_d = result.add_encryption).push.apply(_d, fieldsToAdd);
+                                        var fieldsToRemove = fields2.filter(function (field) {
+                                            return !fields.some(function (field2) {
+                                                return field.fieldName === field2.fieldName;
+                                            });
+                                        });
+                                        (_e = result.remove_encryption).push.apply(_e, fieldsToRemove);
+                                    }
+                                };
+                                for (var _i = 0, _a = Object.entries(obj1); _i < _a.length; _i++) {
+                                    var _b = _a[_i], modelName = _b[0], fields = _b[1];
+                                    _loop_1(modelName, fields);
+                                }
+                                return result;
+                            };
+                            console.log("diff:", diff);
+                        }
+                        catch (error) {
+                            sdk_1.logger.error("Erro ao verificar o token:", error);
+                            process.exit(1);
+                        }
                         outputFilePath = (0, node_path_1.resolve)(__dirname, "encrypted-fields.js");
                         node_fs_1.default.writeFileSync(outputFilePath, fileContent, "utf-8");
                         sdk_1.logger.info("Encrypted fields: ".concat(outputFilePath));

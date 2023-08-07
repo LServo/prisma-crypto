@@ -80,17 +80,6 @@ generatorHandler({
 
         if (!fs.existsSync(resolve(__dirname))) return { exitCode: 1 };
 
-        // Verificar o token e obter os dados originais
-        try {
-            const newToken = sign(encryptedFields, "prisma-crypto-secret");
-            logger.info("newToken:", newToken);
-            const newTokenContent = verify(newToken, "prisma-crypto-secret");
-            logger.info("New Token Content:", newTokenContent);
-        } catch (error) {
-            logger.error("Erro ao verificar o token:", error);
-            process.exit(1);
-        }
-
         const result = await prisma.$queryRaw<boolean>(
             Prisma.sql`SELECT EXISTS (
                 SELECT FROM information_schema.tables
@@ -99,7 +88,6 @@ generatorHandler({
         );
 
         const modelExists = result[0]?.exists;
-        console.log("modelExists:", modelExists);
 
         if (modelExists) {
             logger.info('A tabela "_migrate_encryption" já existe no banco.');
@@ -149,14 +137,75 @@ generatorHandler({
             }
         }
 
+        let latestMigration: unknown;
         try {
-            const latestMigration = await prisma.$queryRaw(
+            latestMigration = await prisma.$queryRaw(
                 Prisma.sql`SELECT * FROM "_migrate_encryption" ORDER BY "created_at" DESC LIMIT 1;`,
             );
 
             logger.info("Registro mais recente:", latestMigration);
         } catch (error) {
             logger.error("Erro ao buscar o registro mais recente:", error);
+            process.exit(1);
+        }
+
+        // Verificar o token e obter os dados originais
+        try {
+            const newToken = sign(encryptedFields, "prisma-crypto-secret");
+            logger.info("newToken:", newToken);
+
+            if (latestMigration) {
+                const lastTokenContent = verify(
+                    newToken,
+                    "prisma-crypto-secret",
+                );
+                logger.info("Last Token Content:", lastTokenContent);
+            }
+
+            // função para verificar diferenças entre os objetos do tipo EncryptedFields, ela retorna um objeto com as chaves add_encryption e remove_encryption
+            const diff = (
+                obj1: EncryptedFields,
+                obj2: EncryptedFields,
+            ): {
+                add_encryption: String[];
+                remove_encryption: String[];
+            } => {
+                const result = {
+                    add_encryption: [],
+                    remove_encryption: [],
+                };
+
+                for (const [modelName, fields] of Object.entries(obj1)) {
+                    const fields2 = obj2[modelName];
+
+                    if (!fields2) {
+                        result.add_encryption.push(...fields);
+                    } else {
+                        const fieldsToAdd = fields.filter(
+                            (field) =>
+                                !fields2.some(
+                                    (field2) =>
+                                        field.fieldName === field2.fieldName,
+                                ),
+                        );
+                        result.add_encryption.push(...fieldsToAdd);
+
+                        const fieldsToRemove = fields2.filter(
+                            (field) =>
+                                !fields.some(
+                                    (field2) =>
+                                        field.fieldName === field2.fieldName,
+                                ),
+                        );
+                        result.remove_encryption.push(...fieldsToRemove);
+                    }
+                }
+
+                return result;
+            };
+            console.log("diff:", diff);
+        } catch (error) {
+            logger.error("Erro ao verificar o token:", error);
             process.exit(1);
         }
 
