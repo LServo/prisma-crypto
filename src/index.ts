@@ -154,16 +154,17 @@ generatorHandler({
             const newToken = sign(encryptedFields, "prisma-crypto-secret");
             logger.info("newToken:", newToken);
 
+            let lastEncryptedFields: EncryptedFields;
             if (latestMigration) {
-                const lastTokenContent = verify(
+                lastEncryptedFields = verify(
                     newToken,
                     "prisma-crypto-secret",
-                );
-                logger.info("Last Token Content:", lastTokenContent);
+                ) as EncryptedFields;
+                logger.info("Last Token Content:", lastEncryptedFields);
             }
 
             // função para verificar diferenças entre os objetos do tipo EncryptedFields, ela retorna um objeto com as chaves add_encryption e remove_encryption
-            const diff = (
+            const compareEncryptedFields = (
                 obj1: EncryptedFields,
                 obj2: EncryptedFields,
             ): {
@@ -203,7 +204,10 @@ generatorHandler({
 
                 return result;
             };
-            console.log("diff:", diff);
+            const { add_encryption, remove_encryption } =
+                compareEncryptedFields(encryptedFields, lastEncryptedFields);
+            console.log("add_encryption:", add_encryption);
+            console.log("remove_encryption:", remove_encryption);
         } catch (error) {
             logger.error("Erro ao verificar o token:", error);
             process.exit(1);

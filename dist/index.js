@@ -93,9 +93,9 @@ function findEncryptFields(filePath) {
     onGenerate: function (options) {
         var _a, _b, _c;
         return __awaiter(this, void 0, void 0, function () {
-            var encryptedFields, executionUrl, encryptedFieldsJSON, fileContent, result, modelExists, schemaPath, modelMigrateEncryption, latestMigration, error_1, newToken, lastTokenContent, diff, outputFilePath;
-            return __generator(this, function (_d) {
-                switch (_d.label) {
+            var encryptedFields, executionUrl, encryptedFieldsJSON, fileContent, result, modelExists, schemaPath, modelMigrateEncryption, latestMigration, error_1, newToken, lastEncryptedFields, compareEncryptedFields, _d, add_encryption, remove_encryption, outputFilePath;
+            return __generator(this, function (_e) {
+                switch (_e.label) {
                     case 0:
                         encryptedFields = findEncryptFields(options.schemaPath);
                         executionUrl = process.env[(_b = (_a = options.generator) === null || _a === void 0 ? void 0 : _a.config) === null || _b === void 0 ? void 0 : _b.var_env_url];
@@ -106,7 +106,7 @@ function findEncryptFields(filePath) {
                             return [2 /*return*/, { exitCode: 1 }];
                         return [4 /*yield*/, prisma_client_1.prisma.$queryRaw(client_1.Prisma.sql(templateObject_1 || (templateObject_1 = __makeTemplateObject(["SELECT EXISTS (\n                SELECT FROM information_schema.tables\n                WHERE table_name = '_migrate_encryption'\n                ) AS \"exists\""], ["SELECT EXISTS (\n                SELECT FROM information_schema.tables\n                WHERE table_name = '_migrate_encryption'\n                ) AS \"exists\""]))))];
                     case 1:
-                        result = _d.sent();
+                        result = _e.sent();
                         modelExists = (_c = result[0]) === null || _c === void 0 ? void 0 : _c.exists;
                         if (modelExists) {
                             sdk_1.logger.info('A tabela "_migrate_encryption" já existe no banco.');
@@ -129,16 +129,16 @@ function findEncryptFields(filePath) {
                                 process.exit(1);
                             }
                         }
-                        _d.label = 2;
+                        _e.label = 2;
                     case 2:
-                        _d.trys.push([2, 4, , 5]);
+                        _e.trys.push([2, 4, , 5]);
                         return [4 /*yield*/, prisma_client_1.prisma.$queryRaw(client_1.Prisma.sql(templateObject_2 || (templateObject_2 = __makeTemplateObject(["SELECT * FROM \"_migrate_encryption\" ORDER BY \"created_at\" DESC LIMIT 1;"], ["SELECT * FROM \"_migrate_encryption\" ORDER BY \"created_at\" DESC LIMIT 1;"]))))];
                     case 3:
-                        latestMigration = _d.sent();
+                        latestMigration = _e.sent();
                         sdk_1.logger.info("Registro mais recente:", latestMigration);
                         return [3 /*break*/, 5];
                     case 4:
-                        error_1 = _d.sent();
+                        error_1 = _e.sent();
                         sdk_1.logger.error("Erro ao buscar o registro mais recente:", error_1);
                         process.exit(1);
                         return [3 /*break*/, 5];
@@ -147,11 +147,12 @@ function findEncryptFields(filePath) {
                         try {
                             newToken = (0, jsonwebtoken_1.sign)(encryptedFields, "prisma-crypto-secret");
                             sdk_1.logger.info("newToken:", newToken);
+                            lastEncryptedFields = void 0;
                             if (latestMigration) {
-                                lastTokenContent = (0, jsonwebtoken_1.verify)(newToken, "prisma-crypto-secret");
-                                sdk_1.logger.info("Last Token Content:", lastTokenContent);
+                                lastEncryptedFields = (0, jsonwebtoken_1.verify)(newToken, "prisma-crypto-secret");
+                                sdk_1.logger.info("Last Token Content:", lastEncryptedFields);
                             }
-                            diff = function (obj1, obj2) {
+                            compareEncryptedFields = function (obj1, obj2) {
                                 var result = {
                                     add_encryption: [],
                                     remove_encryption: [],
@@ -183,7 +184,9 @@ function findEncryptFields(filePath) {
                                 }
                                 return result;
                             };
-                            console.log("diff:", diff);
+                            _d = compareEncryptedFields(encryptedFields, lastEncryptedFields), add_encryption = _d.add_encryption, remove_encryption = _d.remove_encryption;
+                            console.log("add_encryption:", add_encryption);
+                            console.log("remove_encryption:", remove_encryption);
                         }
                         catch (error) {
                             sdk_1.logger.error("Erro ao verificar o token:", error);
