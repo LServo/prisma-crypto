@@ -91,6 +91,7 @@ function findEncryptFields(filePath) {
                 encryptedFieldsJSON = JSON.stringify(encryptedFields, null, 4);
                 fileContent = "\"use strict\";\n        Object.defineProperty(exports, \"__esModule\", { value: true });\n        exports.prismaEncryptFields = void 0;\n        exports.prismaEncryptFields = ".concat(encryptedFieldsJSON, ";\n");
                 isPaipe = ((_b = (_a = options.generator) === null || _a === void 0 ? void 0 : _a.config) === null || _b === void 0 ? void 0 : _b.env) === "paipe";
+                console.log("__dirname:", __dirname);
                 outputDirectory = 
                 // options.generator.output.value ||
                 // process.env.PRISMA_GENERATOR_OUTPUT ||

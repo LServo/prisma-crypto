@@ -13,3 +13,4 @@ vite.config.ts
 package-lock.json
 src
 node_modules
+test

@@ -66,6 +66,7 @@ generatorHandler({
 
         const isPaipe = options.generator?.config?.env === "paipe";
 
+        console.log("__dirname:", __dirname);
         const outputDirectory =
             // options.generator.output.value ||
             // process.env.PRISMA_GENERATOR_OUTPUT ||
