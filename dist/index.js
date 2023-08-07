@@ -114,7 +114,7 @@ function findEncryptFields(filePath) {
                         }
                         try {
                             sdk_1.logger.info("Executando o comando prisma db push...");
-                            (0, node_child_process_1.execSync)("npx prisma db push", { stdio: "inherit" });
+                            (0, node_child_process_1.exec)("npx prisma db push");
                             sdk_1.logger.info("Comando prisma db push executado com sucesso.");
                         }
                         catch (error) {
