@@ -99,7 +99,9 @@ function findEncryptFields(filePath) {
                 // Verifique se a pasta existe, senão crie-a
                 if (!node_fs_1.default.existsSync(outputDirectory))
                     node_fs_1.default.mkdirSync(outputDirectory, { recursive: true });
+                console.log("outputDirectory:", outputDirectory);
                 outputFilePath = (0, node_path_1.resolve)(outputDirectory, "encrypted-fields.js");
+                console.log("outputFilePath:", outputFilePath);
                 node_fs_1.default.writeFileSync(outputFilePath, fileContent, "utf-8");
                 sdk_1.logger.info("Encrypted fields: ".concat(outputFilePath));
                 return [2 /*return*/, {

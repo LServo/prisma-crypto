@@ -80,7 +80,9 @@ generatorHandler({
         if (!fs.existsSync(outputDirectory))
             fs.mkdirSync(outputDirectory, { recursive: true });
 
+        console.log("outputDirectory:", outputDirectory);
         const outputFilePath = resolve(outputDirectory, "encrypted-fields.js");
+        console.log("outputFilePath:", outputFilePath);
 
         fs.writeFileSync(outputFilePath, fileContent, "utf-8");
 
