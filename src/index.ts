@@ -95,7 +95,7 @@ generatorHandler({
             Prisma.sql`SELECT EXISTS (
                 SELECT FROM information_schema.tables
                 WHERE table_name = '_migrate_encryption'
-                )`,
+                ) AS "exists"`,
         );
         console.log("modelExists:", modelExists);
 
