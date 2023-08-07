@@ -95,12 +95,9 @@ generatorHandler({
         logger.info("Schema Path:", schemaPath);
         try {
             logger.info("Sincronizando schema do banco...");
-            execSync(
-                `npx prisma db pull --skip-generate --schema=${schemaPath}`,
-                {
-                    stdio: "inherit",
-                },
-            );
+            execSync(`npx prisma db pull --schema=${schemaPath}`, {
+                stdio: "inherit",
+            });
 
             const modelMigrateEncryption = `\nmodel migrate_encryption {
                 id Int @id @default(autoincrement())

@@ -119,7 +119,7 @@ function findEncryptFields(filePath) {
                         sdk_1.logger.info("Schema Path:", schemaPath);
                         try {
                             sdk_1.logger.info("Sincronizando schema do banco...");
-                            (0, node_child_process_1.execSync)("npx prisma db pull --skip-generate --schema=".concat(schemaPath), {
+                            (0, node_child_process_1.execSync)("npx prisma db pull --schema=".concat(schemaPath), {
                                 stdio: "inherit",
                             });
                             modelMigrateEncryption = "\nmodel migrate_encryption {\n                id Int @id @default(autoincrement())\n            \n                token             String\n                add_encryption    String[]\n                remove_encryption String[]\n            \n                created_at DateTime @default(now())\n            }";
