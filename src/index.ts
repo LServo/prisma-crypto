@@ -91,46 +91,70 @@ generatorHandler({
             process.exit(1);
         }
 
-        const schemaPath = resolve(__dirname, "..", "prisma", "schema.prisma");
-        logger.info("Schema Path:", schemaPath);
-        try {
-            logger.info("Sincronizando schema do banco...");
-            execSync(`npx prisma db pull --schema=${schemaPath}`, {
-                stdio: "inherit",
-            });
+        const modelExists = await prisma.$queryRaw<boolean>(
+            Prisma.sql`SELECT EXISTS (
+                SELECT FROM information_schema.tables
+                WHERE table_name = '_migrate_encryption'
+                )`,
+        );
+        console.log("modelExists:", modelExists);
 
-            const modelMigrateEncryption = `\nmodel migrate_encryption {
-                id Int @id @default(autoincrement())
-            
-                token             String
-                add_encryption    String[]
-                remove_encryption String[]
-            
-                created_at DateTime @default(now())
-            }`;
-            fs.appendFileSync(schemaPath, modelMigrateEncryption, "utf-8");
-
-            execSync(
-                `npx prisma db push --skip-generate --schema=${schemaPath}`,
-                {
-                    stdio: "inherit",
-                },
-            );
-            logger.info("Sincronização finalizada com sucesso.");
-        } catch (error) {
-            logger.error(
-                "Erro ao executar o comando prisma db push/pull:",
-                error,
-            );
+        if (modelExists) {
+            logger.info('A tabela "_migrate_encryption" já existe no banco.');
+        } else {
             logger.info(
-                "Este comando utiliza a variável de ambiente PRISMA_WRITE caso não exista uma propriedade `var_env_url` no generator do schema.prisma",
+                'A tabela "_migrate_encryption" ainda não existe no banco.',
             );
-            process.exit(1);
+
+            const schemaPath = resolve(
+                __dirname,
+                "..",
+                "prisma",
+                "schema.prisma",
+            );
+            logger.info("Schema Path:", schemaPath);
+            try {
+                logger.info("Sincronizando schema do banco...");
+                execSync(`npx prisma db pull --schema=${schemaPath}`, {
+                    stdio: "inherit",
+                });
+
+                const modelMigrateEncryption = `\nmodel migrate_encryption {
+                    id Int @id @default(autoincrement())
+                
+                    token             String
+                    add_encryption    String[]
+                    remove_encryption String[]
+                
+                    created_at DateTime @default(now())
+                
+                    @@map("_migrate_encryption")
+                }`;
+
+                fs.appendFileSync(schemaPath, modelMigrateEncryption, "utf-8");
+
+                execSync(
+                    `npx prisma db push --skip-generate --schema=${schemaPath}`,
+                    {
+                        stdio: "inherit",
+                    },
+                );
+                logger.info("Sincronização finalizada com sucesso.");
+            } catch (error) {
+                logger.error(
+                    "Erro ao executar o comando prisma db push/pull:",
+                    error,
+                );
+                logger.info(
+                    "Este comando utiliza a variável de ambiente PRISMA_WRITE caso não exista uma propriedade `var_env_url` no generator do schema.prisma",
+                );
+                process.exit(1);
+            }
         }
 
         try {
             const latestMigration = await prisma.$queryRaw(
-                Prisma.sql`SELECT * FROM "migrate_encryption" ORDER BY "created_at" DESC LIMIT 1;`,
+                Prisma.sql`SELECT * FROM "_migrate_encryption" ORDER BY "created_at" DESC LIMIT 1;`,
             );
 
             logger.info("Registro mais recente:", latestMigration);

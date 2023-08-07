@@ -93,7 +93,7 @@ function findEncryptFields(filePath) {
     onGenerate: function (options) {
         var _a, _b;
         return __awaiter(this, void 0, void 0, function () {
-            var encryptedFields, executionUrl, encryptedFieldsJSON, fileContent, newToken, newTokenContent, schemaPath, modelMigrateEncryption, latestMigration, error_1, outputFilePath;
+            var encryptedFields, executionUrl, encryptedFieldsJSON, fileContent, newToken, newTokenContent, modelExists, schemaPath, modelMigrateEncryption, latestMigration, error_1, outputFilePath;
             return __generator(this, function (_c) {
                 switch (_c.label) {
                     case 0:
@@ -115,39 +115,49 @@ function findEncryptFields(filePath) {
                             sdk_1.logger.error("Erro ao verificar o token:", error);
                             process.exit(1);
                         }
-                        schemaPath = (0, node_path_1.resolve)(__dirname, "..", "prisma", "schema.prisma");
-                        sdk_1.logger.info("Schema Path:", schemaPath);
-                        try {
-                            sdk_1.logger.info("Sincronizando schema do banco...");
-                            (0, node_child_process_1.execSync)("npx prisma db pull --schema=".concat(schemaPath), {
-                                stdio: "inherit",
-                            });
-                            modelMigrateEncryption = "\nmodel migrate_encryption {\n                id Int @id @default(autoincrement())\n            \n                token             String\n                add_encryption    String[]\n                remove_encryption String[]\n            \n                created_at DateTime @default(now())\n            }";
-                            node_fs_1.default.appendFileSync(schemaPath, modelMigrateEncryption, "utf-8");
-                            (0, node_child_process_1.execSync)("npx prisma db push --skip-generate --schema=".concat(schemaPath), {
-                                stdio: "inherit",
-                            });
-                            sdk_1.logger.info("Sincronização finalizada com sucesso.");
-                        }
-                        catch (error) {
-                            sdk_1.logger.error("Erro ao executar o comando prisma db push/pull:", error);
-                            sdk_1.logger.info("Este comando utiliza a variável de ambiente PRISMA_WRITE caso não exista uma propriedade `var_env_url` no generator do schema.prisma");
-                            process.exit(1);
-                        }
-                        _c.label = 1;
+                        return [4 /*yield*/, prisma_client_1.prisma.$queryRaw(client_1.Prisma.sql(templateObject_1 || (templateObject_1 = __makeTemplateObject(["SELECT EXISTS (\n                SELECT FROM information_schema.tables\n                WHERE table_name = '_migrate_encryption'\n                )"], ["SELECT EXISTS (\n                SELECT FROM information_schema.tables\n                WHERE table_name = '_migrate_encryption'\n                )"]))))];
                     case 1:
-                        _c.trys.push([1, 3, , 4]);
-                        return [4 /*yield*/, prisma_client_1.prisma.$queryRaw(client_1.Prisma.sql(templateObject_1 || (templateObject_1 = __makeTemplateObject(["SELECT * FROM \"migrate_encryption\" ORDER BY \"created_at\" DESC LIMIT 1;"], ["SELECT * FROM \"migrate_encryption\" ORDER BY \"created_at\" DESC LIMIT 1;"]))))];
+                        modelExists = _c.sent();
+                        console.log("modelExists:", modelExists);
+                        if (modelExists) {
+                            sdk_1.logger.info('A tabela "_migrate_encryption" já existe no banco.');
+                        }
+                        else {
+                            sdk_1.logger.info('A tabela "_migrate_encryption" ainda não existe no banco.');
+                            schemaPath = (0, node_path_1.resolve)(__dirname, "..", "prisma", "schema.prisma");
+                            sdk_1.logger.info("Schema Path:", schemaPath);
+                            try {
+                                sdk_1.logger.info("Sincronizando schema do banco...");
+                                (0, node_child_process_1.execSync)("npx prisma db pull --schema=".concat(schemaPath), {
+                                    stdio: "inherit",
+                                });
+                                modelMigrateEncryption = "\nmodel migrate_encryption {\n                    id Int @id @default(autoincrement())\n                \n                    token             String\n                    add_encryption    String[]\n                    remove_encryption String[]\n                \n                    created_at DateTime @default(now())\n                \n                    @@map(\"_migrate_encryption\")\n                }";
+                                node_fs_1.default.appendFileSync(schemaPath, modelMigrateEncryption, "utf-8");
+                                (0, node_child_process_1.execSync)("npx prisma db push --skip-generate --schema=".concat(schemaPath), {
+                                    stdio: "inherit",
+                                });
+                                sdk_1.logger.info("Sincronização finalizada com sucesso.");
+                            }
+                            catch (error) {
+                                sdk_1.logger.error("Erro ao executar o comando prisma db push/pull:", error);
+                                sdk_1.logger.info("Este comando utiliza a variável de ambiente PRISMA_WRITE caso não exista uma propriedade `var_env_url` no generator do schema.prisma");
+                                process.exit(1);
+                            }
+                        }
+                        _c.label = 2;
                     case 2:
+                        _c.trys.push([2, 4, , 5]);
+                        return [4 /*yield*/, prisma_client_1.prisma.$queryRaw(client_1.Prisma.sql(templateObject_2 || (templateObject_2 = __makeTemplateObject(["SELECT * FROM \"_migrate_encryption\" ORDER BY \"created_at\" DESC LIMIT 1;"], ["SELECT * FROM \"_migrate_encryption\" ORDER BY \"created_at\" DESC LIMIT 1;"]))))];
+                    case 3:
                         latestMigration = _c.sent();
                         sdk_1.logger.info("Registro mais recente:", latestMigration);
-                        return [3 /*break*/, 4];
-                    case 3:
+                        return [3 /*break*/, 5];
+                    case 4:
                         error_1 = _c.sent();
                         sdk_1.logger.error("Erro ao buscar o registro mais recente:", error_1);
                         process.exit(1);
-                        return [3 /*break*/, 4];
-                    case 4:
+                        return [3 /*break*/, 5];
+                    case 5:
                         outputFilePath = (0, node_path_1.resolve)(__dirname, "encrypted-fields.js");
                         node_fs_1.default.writeFileSync(outputFilePath, fileContent, "utf-8");
                         sdk_1.logger.info("Encrypted fields: ".concat(outputFilePath));
@@ -159,4 +169,4 @@ function findEncryptFields(filePath) {
         });
     },
 });
-var templateObject_1;
+var templateObject_1, templateObject_2;
