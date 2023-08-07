@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 
 import { sign, verify } from "jsonwebtoken";
-import { exec } from "node:child_process";
+import { execSync } from "node:child_process";
 import fs from "node:fs";
 import { resolve } from "node:path";
 
@@ -88,36 +88,30 @@ generatorHandler({
             process.exit(1);
         }
 
+        const schemaPath = resolve(__dirname, "..", "prisma", "schema.prisma");
+        logger.info("schemaPath:", schemaPath);
         try {
             logger.info("Executando o comando prisma db push...");
-            exec("npx prisma db push", async (error, stdout, stderr) => {
-                if (error) {
-                    logger.error(`error: ${error.message}`);
-                    return;
-                }
-                if (stderr) {
-                    logger.error(`stderr: ${stderr}`);
-                    return;
-                }
-                logger.info(`stdout: ${stdout}`);
-
-                try {
-                    const latestMigration = await prisma.$queryRaw(
-                        Prisma.sql`SELECT * FROM "migrate_encryption" ORDER BY "created_at" DESC LIMIT 1;`,
-                    );
-
-                    logger.info("Registro mais recente:", latestMigration);
-                } catch (error) {
-                    logger.error(
-                        "Erro ao buscar o registro mais recente:",
-                        error,
-                    );
-                    process.exit(1);
-                }
-            });
+            execSync(
+                `npx prisma db push --skip-generate --schema=${schemaPath}`,
+                {
+                    stdio: "inherit",
+                },
+            );
             logger.info("Comando prisma db push executado com sucesso.");
         } catch (error) {
             logger.error("Erro ao executar o comando prisma db push:", error);
+            process.exit(1);
+        }
+
+        try {
+            const latestMigration = await prisma.$queryRaw(
+                Prisma.sql`SELECT * FROM "migrate_encryption" ORDER BY "created_at" DESC LIMIT 1;`,
+            );
+
+            logger.info("Registro mais recente:", latestMigration);
+        } catch (error) {
+            logger.error("Erro ao buscar o registro mais recente:", error);
             process.exit(1);
         }
 
