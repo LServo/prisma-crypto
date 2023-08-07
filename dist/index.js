@@ -91,15 +91,15 @@ function findEncryptFields(filePath) {
         };
     },
     onGenerate: function (options) {
-        var _a, _b;
+        var _a, _b, _c;
         return __awaiter(this, void 0, void 0, function () {
             var encryptedFields, executionUrl, encryptedFieldsJSON, fileContent, newToken, newTokenContent, schemaPath, latestMigration, error_1, outputFilePath;
-            return __generator(this, function (_c) {
-                switch (_c.label) {
+            return __generator(this, function (_d) {
+                switch (_d.label) {
                     case 0:
                         encryptedFields = findEncryptFields(options.schemaPath);
                         executionUrl = (_b = (_a = options.generator) === null || _a === void 0 ? void 0 : _a.config) === null || _b === void 0 ? void 0 : _b.url;
-                        console.log("executionUrl:", executionUrl);
+                        console.log("options.generator?.config:", (_c = options.generator) === null || _c === void 0 ? void 0 : _c.config);
                         process.env.PRISMA_CRYPTO = executionUrl || process.env.PRISMA_WRITE;
                         console.log("PRISMA_CRYPTO:", process.env.PRISMA_CRYPTO);
                         encryptedFieldsJSON = JSON.stringify(encryptedFields, null, 4);
@@ -131,16 +131,16 @@ function findEncryptFields(filePath) {
                             sdk_1.logger.info("Este comando utiliza a variável de ambiente PRISMA_WRITE caso não exista uma propriedade url no generator do schema.prisma");
                             process.exit(1);
                         }
-                        _c.label = 1;
+                        _d.label = 1;
                     case 1:
-                        _c.trys.push([1, 3, , 4]);
+                        _d.trys.push([1, 3, , 4]);
                         return [4 /*yield*/, prisma_client_1.prisma.$queryRaw(client_1.Prisma.sql(templateObject_1 || (templateObject_1 = __makeTemplateObject(["SELECT * FROM \"migrate_encryption\" ORDER BY \"created_at\" DESC LIMIT 1;"], ["SELECT * FROM \"migrate_encryption\" ORDER BY \"created_at\" DESC LIMIT 1;"]))))];
                     case 2:
-                        latestMigration = _c.sent();
+                        latestMigration = _d.sent();
                         sdk_1.logger.info("Registro mais recente:", latestMigration);
                         return [3 /*break*/, 4];
                     case 3:
-                        error_1 = _c.sent();
+                        error_1 = _d.sent();
                         sdk_1.logger.error("Erro ao buscar o registro mais recente:", error_1);
                         process.exit(1);
                         return [3 /*break*/, 4];
