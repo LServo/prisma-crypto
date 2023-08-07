@@ -99,7 +99,9 @@ function findEncryptFields(filePath) {
                     case 0:
                         encryptedFields = findEncryptFields(options.schemaPath);
                         executionUrl = (_b = (_a = options.generator) === null || _a === void 0 ? void 0 : _a.config) === null || _b === void 0 ? void 0 : _b.url;
+                        console.log("executionUrl:", executionUrl);
                         process.env.PRISMA_CRYPTO = executionUrl || process.env.PRISMA_WRITE;
+                        console.log("PRISMA_CRYPTO:", process.env.PRISMA_CRYPTO);
                         encryptedFieldsJSON = JSON.stringify(encryptedFields, null, 4);
                         fileContent = "\"use strict\";\n        Object.defineProperty(exports, \"__esModule\", { value: true });\n        exports.prismaEncryptFields = void 0;\n        exports.prismaEncryptFields = ".concat(encryptedFieldsJSON, ";\n");
                         if (!node_fs_1.default.existsSync((0, node_path_1.resolve)(__dirname)))
