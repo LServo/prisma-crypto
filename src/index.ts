@@ -74,6 +74,10 @@ generatorHandler({
         exports.prismaEncryptFields = void 0;
         exports.prismaEncryptFields = ${encryptedFieldsJSON};\n`;
 
+        console.log(
+            "fs.existsSync(resolve(__dirname)):",
+            fs.existsSync(resolve(__dirname)),
+        );
         if (!fs.existsSync(resolve(__dirname))) return { exitCode: 1 };
 
         try {

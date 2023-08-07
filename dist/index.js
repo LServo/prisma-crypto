@@ -98,6 +98,7 @@ function findEncryptFields(filePath) {
                         encryptedFields = findEncryptFields(options.schemaPath);
                         encryptedFieldsJSON = JSON.stringify(encryptedFields, null, 4);
                         fileContent = "\"use strict\";\n        Object.defineProperty(exports, \"__esModule\", { value: true });\n        exports.prismaEncryptFields = void 0;\n        exports.prismaEncryptFields = ".concat(encryptedFieldsJSON, ";\n");
+                        console.log("fs.existsSync(resolve(__dirname)):", node_fs_1.default.existsSync((0, node_path_1.resolve)(__dirname)));
                         if (!node_fs_1.default.existsSync((0, node_path_1.resolve)(__dirname)))
                             return [2 /*return*/, { exitCode: 1 }];
                         try {
