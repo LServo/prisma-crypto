@@ -101,6 +101,9 @@ generatorHandler({
             logger.info("Comando prisma db push executado com sucesso.");
         } catch (error) {
             logger.error("Erro ao executar o comando prisma db push:", error);
+            logger.info(
+                "Este comando utiliza a variável de ambiente PRISMA_WRITE",
+            );
             process.exit(1);
         }
 

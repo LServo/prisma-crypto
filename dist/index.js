@@ -123,6 +123,7 @@ function findEncryptFields(filePath) {
                         }
                         catch (error) {
                             sdk_1.logger.error("Erro ao executar o comando prisma db push:", error);
+                            sdk_1.logger.info("Este comando utiliza a variável de ambiente PRISMA_WRITE");
                             process.exit(1);
                         }
                         _a.label = 1;
