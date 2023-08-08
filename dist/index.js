@@ -53,6 +53,7 @@ var node_path_1 = require("node:path");
 var client_1 = require("@prisma/client");
 var generator_helper_1 = require("@prisma/generator-helper");
 var sdk_1 = require("@prisma/sdk");
+var encryption_methods_1 = require("./encryption-methods");
 var prisma_client_1 = require("./prisma-client");
 var prisma_client_2 = require("./prisma-client");
 Object.defineProperty(exports, "prisma", { enumerable: true, get: function () { return prisma_client_2.prisma; } });
@@ -141,7 +142,7 @@ function findEncryptFields(filePath) {
                         process.exit(1);
                         return [3 /*break*/, 5];
                     case 5:
-                        _j.trys.push([5, 8, , 9]);
+                        _j.trys.push([5, 9, , 10]);
                         newToken = (0, jsonwebtoken_1.sign)(newEncryptedModels, "prisma-crypto-secret");
                         if (latestMigration[0]) {
                             lastEncryptedModels_1 = (0, jsonwebtoken_1.verify)((_e = latestMigration[0]) === null || _e === void 0 ? void 0 : _e.token, "prisma-crypto-secret");
@@ -161,52 +162,29 @@ function findEncryptFields(filePath) {
                             remove_encryption: [],
                         }), add_encryption = _h.add_encryption, remove_encryption = _h.remove_encryption;
                         hasChanges = add_encryption.length || remove_encryption.length;
-                        if (!hasChanges) return [3 /*break*/, 7];
+                        if (!hasChanges) return [3 /*break*/, 8];
                         sdk_1.logger.info("Changes found!");
                         sdk_1.logger.info("Managing encryption...");
                         // criar função para aplicar ou remover a criptografia com base add_encryption e remove_encryption
-                        // const managingEncryption = async (
-                        //     fields: String[],
-                        //     action: "add" | "remove",
-                        // ) => {
-                        //     const fieldsToManage = fields.map((field) => {
-                        //         const [model, fieldName] = field.split(".");
-                        //         return { model, fieldName };
-                        //     });
-                        //     const managing = fieldsToManage.map(async (field) => {
-                        //         const { model, fieldName } = field;
-                        //         const tableName = `"${model}"`;
-                        //         const columnName = `"${fieldName}"`;
-                        //         const result = await prisma.$queryRaw(
-                        //             Prisma.sql`SELECT EXISTS (
-                        //                 SELECT FROM information_schema.columns
-                        //                 WHERE table_name = ${tableName}
-                        //                 AND column_name = ${columnName}
-                        //                 ) AS "exists"`,
-                        //         );
-                        //         const columnExists = result[0]?.exists;
-                        //         if (columnExists) {
-                        //             logger.info(
-                        //                 `The column ${tableName}.${columnName} already exists in the database.`,
-                        //             );
-                        //         }
-                        //     });
-                        // };
+                        return [4 /*yield*/, encryption_methods_1.EncryptionMethods.managingDatabaseEncryption(add_encryption, "add")];
+                    case 6:
+                        // criar função para aplicar ou remover a criptografia com base add_encryption e remove_encryption
+                        _j.sent();
                         sdk_1.logger.info("Saving current state...");
                         return [4 /*yield*/, prisma_client_1.prisma.$queryRaw(client_1.Prisma.sql(templateObject_3 || (templateObject_3 = __makeTemplateObject(["INSERT INTO \"_migrate_encryption\" (\"token\", \"add_encryption\", \"remove_encryption\") VALUES (", ", ", ", ", ") RETURNING *;"], ["INSERT INTO \"_migrate_encryption\" (\"token\", \"add_encryption\", \"remove_encryption\") VALUES (", ", ", ", ", ") RETURNING *;"])), newToken, add_encryption, remove_encryption))];
-                    case 6:
+                    case 7:
                         newMigration = _j.sent();
                         sdk_1.logger.info("newMigration:", newMigration[0]); //remover
                         sdk_1.logger.info("Added Encryption:", (_f = newMigration[0]) === null || _f === void 0 ? void 0 : _f.add_encryption);
                         sdk_1.logger.info("Removed Encryption:", (_g = newMigration[0]) === null || _g === void 0 ? void 0 : _g.remove_encryption);
-                        _j.label = 7;
-                    case 7: return [3 /*break*/, 9];
-                    case 8:
+                        _j.label = 8;
+                    case 8: return [3 /*break*/, 10];
+                    case 9:
                         error_2 = _j.sent();
                         sdk_1.logger.error("Erro ao verificar o token:", error_2);
                         process.exit(1);
-                        return [3 /*break*/, 9];
-                    case 9:
+                        return [3 /*break*/, 10];
+                    case 10:
                         encryptedModelsFilePath = (0, node_path_1.resolve)(__dirname, "encrypted-models.js");
                         newEncryptedModelsJSON = JSON.stringify(newEncryptedModels, null, 4);
                         readEncryptedModelsFile = node_fs_1.default.readFileSync(encryptedModelsFilePath, "utf8");

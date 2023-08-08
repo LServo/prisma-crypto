@@ -1,5 +1,9 @@
 import { createHash, createCipheriv, createDecipheriv } from "node:crypto";
 
+import { Prisma } from "@prisma/client";
+import { logger } from "@prisma/sdk";
+
+import { prisma } from "./prisma-client";
 import { PrismaCrypto } from "./prisma-crypto";
 
 class EncryptionMethods implements PrismaCrypto.EncryptionMethods {
@@ -244,6 +248,76 @@ class EncryptionMethods implements PrismaCrypto.EncryptionMethods {
         stringToDecrypt,
     }: PrismaCrypto.DecryptData.Input): PrismaCrypto.DecryptData.Output {
         return EncryptionMethods.decryptData({ stringToDecrypt });
+    }
+
+    static async managingDatabaseEncryption(
+        fields: String[],
+        action: "add" | "remove",
+    ) {
+        console.log("action:", action);
+        const fieldsToManage = fields.map((field) => {
+            const [model, fieldName] = field.split(".");
+            return { model, fieldName };
+        });
+
+        fieldsToManage.forEach(async (field) => {
+            const { model: tableName, fieldName: columnName } = field;
+
+            const result = await prisma.$queryRaw(
+                Prisma.sql`SELECT EXISTS (
+                    SELECT FROM information_schema.columns
+                    WHERE table_name = ${tableName}
+                    AND column_name = ${columnName}
+                    ) AS "exists"`,
+            );
+
+            const columnExists = result[0]?.exists;
+
+            if (!columnExists) {
+                logger.error(
+                    `The column ${tableName}.${columnName} does not exists in the database.`,
+                );
+                process.exit(1);
+            }
+
+            const columnType = await prisma.$queryRaw(
+                Prisma.sql`SELECT data_type FROM information_schema.columns WHERE table_name = ${tableName} AND column_name = ${columnName};`,
+            );
+
+            const columnDataType = columnType[0]?.data_type;
+
+            if (columnDataType !== "text") {
+                logger.error(
+                    `The column ${tableName}.${columnName} is not of type "text".`,
+                );
+                process.exit(1);
+            }
+            // encontre a primary key da tabela
+            const getModelPrimaryKey = await prisma.$queryRaw(
+                Prisma.sql`SELECT column_name FROM information_schema.key_column_usage WHERE table_name = ${tableName} AND constraint_name = '${tableName}_pkey';`,
+            );
+            console.log("getModelPrimaryKey:", getModelPrimaryKey);
+
+            const primaryKeyColumnName = getModelPrimaryKey[0]?.column_name;
+            console.log("primaryKeyColumnName:", primaryKeyColumnName);
+
+            // modificar todos os registros da coluna criptografando um a um utilizando o método `EncryptionMethods.encryptData`
+            const allEntries: any[] = await prisma.$queryRaw(
+                Prisma.sql`SELECT ${primaryKeyColumnName}, ${columnName} FROM ${tableName};`,
+            );
+            console.log("allEntries:", allEntries);
+
+            // prisma.$transaction(
+            //     allEntries.map((entry) => {
+            //         const { id, [columnName]: value } = entry;
+            //         const encryptedValue = EncryptionMethods.encryptData({
+            //             stringToEncrypt: value,
+            //         })?.encryptedString;
+
+            //         return Prisma.sql`UPDATE ${tableName} SET ${columnName} = ${encryptedValue} WHERE id = ${id};`;
+            //     }
+            // ));
+        });
     }
 }
 

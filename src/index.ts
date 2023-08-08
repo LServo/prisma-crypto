@@ -10,6 +10,7 @@ import { Prisma } from "@prisma/client";
 import { generatorHandler, GeneratorOptions } from "@prisma/generator-helper";
 import { logger } from "@prisma/sdk";
 
+import { EncryptionMethods } from "./encryption-methods";
 import { prisma } from "./prisma-client";
 import { PrismaCrypto } from "./prisma-crypto";
 export { prisma } from "./prisma-client";
@@ -189,38 +190,10 @@ generatorHandler({
                 logger.info("Managing encryption...");
                 // criar função para aplicar ou remover a criptografia com base add_encryption e remove_encryption
 
-                // const managingEncryption = async (
-                //     fields: String[],
-                //     action: "add" | "remove",
-                // ) => {
-                //     const fieldsToManage = fields.map((field) => {
-                //         const [model, fieldName] = field.split(".");
-                //         return { model, fieldName };
-                //     });
-
-                //     const managing = fieldsToManage.map(async (field) => {
-                //         const { model, fieldName } = field;
-                //         const tableName = `"${model}"`;
-                //         const columnName = `"${fieldName}"`;
-
-                //         const result = await prisma.$queryRaw(
-                //             Prisma.sql`SELECT EXISTS (
-                //                 SELECT FROM information_schema.columns
-                //                 WHERE table_name = ${tableName}
-                //                 AND column_name = ${columnName}
-                //                 ) AS "exists"`,
-                //         );
-
-                //         const columnExists = result[0]?.exists;
-
-                //         if (columnExists) {
-                //             logger.info(
-                //                 `The column ${tableName}.${columnName} already exists in the database.`,
-                //             );
-                //         }
-                //     });
-                // };
-
+                await EncryptionMethods.managingDatabaseEncryption(
+                    add_encryption,
+                    "add",
+                );
                 logger.info("Saving current state...");
                 const newMigration =
                     await prisma.$queryRaw<PrismaCrypto.MigrateEncryption>(
