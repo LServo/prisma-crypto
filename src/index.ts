@@ -11,32 +11,17 @@ import { generatorHandler, GeneratorOptions } from "@prisma/generator-helper";
 import { logger } from "@prisma/sdk";
 
 import { prisma } from "./prisma-client";
+import { PrismaCrypto } from "./prisma-crypto";
 export { prisma } from "./prisma-client";
 
-interface EncryptedFields {
-    fieldName: string;
-    typeName: string;
-}
-interface EncryptedModels {
-    [modelName: string]: EncryptedFields[];
-}
-
-interface MigrateEncryption {
-    id: number;
-    token: string;
-    add_encryption: string[];
-    remove_encryption: string[];
-    created_at: Date;
-}
-
-function findEncryptFields(filePath: string): EncryptedModels {
+function findEncryptFields(filePath: string): PrismaCrypto.PrismaEncryptModels {
     const fileContent = fs.readFileSync(filePath, "utf-8");
     const lines = fileContent.split("\n");
 
     const commentRegex = /\/\/.*?@encrypt\b/;
     const modelRegex = /^\s*model\s+(\w+)/;
 
-    const modelsEncryptedFields = {} satisfies EncryptedModels;
+    const modelsEncryptedFields = {} satisfies PrismaCrypto.PrismaEncryptModels;
 
     let currentModel: string = null;
 
@@ -152,7 +137,7 @@ generatorHandler({
             }
         }
 
-        let latestMigration: MigrateEncryption[];
+        let latestMigration: PrismaCrypto.MigrateEncryption[];
         try {
             latestMigration = await prisma.$queryRaw(
                 Prisma.sql`SELECT * FROM "_migrate_encryption" ORDER BY "created_at" DESC LIMIT 1;`,
@@ -167,15 +152,13 @@ generatorHandler({
         // Verificar o token e obter os dados originais
         try {
             const newToken = sign(newEncryptedModels, "prisma-crypto-secret");
-            logger.info("newToken:", newToken); //remover
 
-            let lastEncryptedModels: EncryptedModels;
+            let lastEncryptedModels: PrismaCrypto.PrismaEncryptModels;
             if (latestMigration[0]) {
                 lastEncryptedModels = verify(
                     latestMigration[0]?.token,
                     "prisma-crypto-secret",
-                ) as EncryptedModels;
-                logger.info("Last Token Content:", lastEncryptedModels); //remover
+                ) as PrismaCrypto.PrismaEncryptModels;
             }
 
             const { add_encryption, remove_encryption } = Object.keys(
@@ -212,9 +195,48 @@ generatorHandler({
                 add_encryption.length || remove_encryption.length;
 
             if (hasChanges) {
-                const newMigration = await prisma.$queryRaw<MigrateEncryption>(
-                    Prisma.sql`INSERT INTO "_migrate_encryption" ("token", "add_encryption", "remove_encryption") VALUES (${newToken}, ${add_encryption}, ${remove_encryption}) RETURNING *;`,
-                );
+                logger.info("Changes found!");
+
+                logger.info("Managing encryption...");
+                // criar função para aplicar ou remover a criptografia com base add_encryption e remove_encryption
+
+                // const managingEncryption = async (
+                //     fields: String[],
+                //     action: "add" | "remove",
+                // ) => {
+                //     const fieldsToManage = fields.map((field) => {
+                //         const [model, fieldName] = field.split(".");
+                //         return { model, fieldName };
+                //     });
+
+                //     const managing = fieldsToManage.map(async (field) => {
+                //         const { model, fieldName } = field;
+                //         const tableName = `"${model}"`;
+                //         const columnName = `"${fieldName}"`;
+
+                //         const result = await prisma.$queryRaw(
+                //             Prisma.sql`SELECT EXISTS (
+                //                 SELECT FROM information_schema.columns
+                //                 WHERE table_name = ${tableName}
+                //                 AND column_name = ${columnName}
+                //                 ) AS "exists"`,
+                //         );
+
+                //         const columnExists = result[0]?.exists;
+
+                //         if (columnExists) {
+                //             logger.info(
+                //                 `The column ${tableName}.${columnName} already exists in the database.`,
+                //             );
+                //         }
+                //     });
+                // };
+
+                logger.info("Saving current state...");
+                const newMigration =
+                    await prisma.$queryRaw<PrismaCrypto.MigrateEncryption>(
+                        Prisma.sql`INSERT INTO "_migrate_encryption" ("token", "add_encryption", "remove_encryption") VALUES (${newToken}, ${add_encryption}, ${remove_encryption}) RETURNING *;`,
+                    );
                 logger.info("newMigration:", newMigration); //remover
                 logger.info("Added Encryption:", newMigration?.add_encryption);
                 logger.info(

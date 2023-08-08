@@ -145,10 +145,8 @@ function findEncryptFields(filePath) {
                     case 5:
                         _g.trys.push([5, 8, , 9]);
                         newToken = (0, jsonwebtoken_1.sign)(newEncryptedModels, "prisma-crypto-secret");
-                        sdk_1.logger.info("newToken:", newToken); //remover
                         if (latestMigration[0]) {
                             lastEncryptedModels_1 = (0, jsonwebtoken_1.verify)((_e = latestMigration[0]) === null || _e === void 0 ? void 0 : _e.token, "prisma-crypto-secret");
-                            sdk_1.logger.info("Last Token Content:", lastEncryptedModels_1); //remover
                         }
                         _f = Object.keys(newEncryptedModels).reduce(function (acc, curr) {
                             var _a, _b;
@@ -166,6 +164,37 @@ function findEncryptFields(filePath) {
                         }), add_encryption = _f.add_encryption, remove_encryption = _f.remove_encryption;
                         hasChanges = add_encryption.length || remove_encryption.length;
                         if (!hasChanges) return [3 /*break*/, 7];
+                        sdk_1.logger.info("Changes found!");
+                        sdk_1.logger.info("Managing encryption...");
+                        // criar função para aplicar ou remover a criptografia com base add_encryption e remove_encryption
+                        // const managingEncryption = async (
+                        //     fields: String[],
+                        //     action: "add" | "remove",
+                        // ) => {
+                        //     const fieldsToManage = fields.map((field) => {
+                        //         const [model, fieldName] = field.split(".");
+                        //         return { model, fieldName };
+                        //     });
+                        //     const managing = fieldsToManage.map(async (field) => {
+                        //         const { model, fieldName } = field;
+                        //         const tableName = `"${model}"`;
+                        //         const columnName = `"${fieldName}"`;
+                        //         const result = await prisma.$queryRaw(
+                        //             Prisma.sql`SELECT EXISTS (
+                        //                 SELECT FROM information_schema.columns
+                        //                 WHERE table_name = ${tableName}
+                        //                 AND column_name = ${columnName}
+                        //                 ) AS "exists"`,
+                        //         );
+                        //         const columnExists = result[0]?.exists;
+                        //         if (columnExists) {
+                        //             logger.info(
+                        //                 `The column ${tableName}.${columnName} already exists in the database.`,
+                        //             );
+                        //         }
+                        //     });
+                        // };
+                        sdk_1.logger.info("Saving current state...");
                         return [4 /*yield*/, prisma_client_1.prisma.$queryRaw(client_1.Prisma.sql(templateObject_3 || (templateObject_3 = __makeTemplateObject(["INSERT INTO \"_migrate_encryption\" (\"token\", \"add_encryption\", \"remove_encryption\") VALUES (", ", ", ", ", ") RETURNING *;"], ["INSERT INTO \"_migrate_encryption\" (\"token\", \"add_encryption\", \"remove_encryption\") VALUES (", ", ", ", ", ") RETURNING *;"])), newToken, add_encryption, remove_encryption))];
                     case 6:
                         newMigration = _g.sent();

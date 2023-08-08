@@ -1,4 +1,5 @@
 "use strict";
+/* eslint-disable no-case-declarations */
 var __assign = (this && this.__assign) || function () {
     __assign = Object.assign || function(t) {
         for (var s, i = 1, n = arguments.length; i < n; i++) {
@@ -48,128 +49,11 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.prisma = void 0;
-/* eslint-disable no-case-declarations */
-var node_crypto_1 = require("node:crypto");
 var client_1 = require("@prisma/client");
 // eslint-disable-next-line import/no-unresolved, import/extensions
 var encrypted_fields_1 = require("./encrypted-fields");
-// Função para gerar um hash fixo a partir dos dados (utilizando SHA-256)
-function generateHash(data) {
-    var hash = (0, node_crypto_1.createHash)("sha256");
-    hash.update(data, "utf8");
-    return hash.digest();
-}
-// Função para criptografar os dados e retornar uma string codificada
-function encryptData(data) {
-    var fixedIV = generateHash(data);
-    var cipher = (0, node_crypto_1.createCipheriv)("aes-256-gcm", process.env.SECRET_KEY, fixedIV);
-    var encrypted = Buffer.concat([
-        cipher.update(data, "utf8"),
-        cipher.final(),
-    ]);
-    var tag = cipher.getAuthTag();
-    // Combine o IV, a tag e o texto cifrado em uma única string codificada
-    var encryptedData = Buffer.concat([fixedIV, tag, encrypted]).toString("base64");
-    return encryptedData;
-}
-// Função para descriptografar os dados a partir da string codificada
-function decryptData(encryptedData) {
-    var encryptedBuffer = Buffer.from(encryptedData, "base64");
-    // Extraia o IV, a tag e o texto cifrado da string codificada
-    var iv = encryptedBuffer.subarray(0, 32);
-    var tag = encryptedBuffer.subarray(32, 48);
-    var encrypted = encryptedBuffer.subarray(48);
-    var decipher = (0, node_crypto_1.createDecipheriv)("aes-256-gcm", process.env.SECRET_KEY, iv);
-    decipher.setAuthTag(tag);
-    var decrypted = Buffer.concat([
-        decipher.update(encrypted),
-        decipher.final(),
-    ]);
-    return decrypted.toString("utf8");
-}
-function manageEncryption(fields, data, mode) {
-    fields.forEach(function (field) {
-        var fieldName = field.fieldName;
-        var fieldValue = data[fieldName];
-        if (!fieldValue)
-            return;
-        // console.log(`data[${fieldName}]:`, data[fieldName]);
-        var isArray = Array.isArray(fieldValue);
-        var isString = typeof fieldValue === "string";
-        switch (isArray) {
-            case false:
-                switch (isString) {
-                    case false:
-                        Object.keys(fieldValue).forEach(function (key) {
-                            var allowedKeys = ["equals", "not"];
-                            var forbiddenKeys = [
-                                "contains",
-                                "startsWith",
-                                "endsWith",
-                                "in",
-                                "notIn",
-                                "lt",
-                                "lte",
-                                "gt",
-                                "gte",
-                            ];
-                            if (forbiddenKeys.includes(key))
-                                throw new Error("The key \"".concat(key, "\" is not allowed for the field \"").concat(fieldName, "\". Encrypted fields cannot be used with the following keys: ").concat(forbiddenKeys.join(", ")));
-                            if (!allowedKeys.includes(key))
-                                return; // Caso não tenha nenhum valor proibido, mas também não tenha nenhum permitido, como é o caso do "mode", então, retornamos sem fazer nada
-                            if (!data[fieldName][key])
-                                return;
-                            // eslint-disable-next-line no-param-reassign
-                            data[fieldName][key] =
-                                mode === "encrypt"
-                                    ? encryptData(data[fieldName][key])
-                                    : decryptData(data[fieldName][key]);
-                        });
-                        break;
-                    case true:
-                        // eslint-disable-next-line no-param-reassign
-                        data[fieldName] =
-                            mode === "encrypt"
-                                ? encryptData(data[fieldName])
-                                : decryptData(data[fieldName]);
-                        break;
-                    default:
-                }
-                break;
-            case true:
-                // eslint-disable-next-line no-param-reassign
-                data[fieldName] = data[fieldName].map(function (item) {
-                    return mode === "encrypt" ? encryptData(item) : decryptData(item);
-                });
-                break;
-            default:
-                break;
-        }
-        // console.log(`data[${fieldName}]:`, data[fieldName]);
-    });
-}
-function resolveEncryptedArgs(args, fields) {
-    // console.log("args before:", ConvertToJson(args));
-    var _a;
-    var where = args.where;
-    var _b = (_a = where) !== null && _a !== void 0 ? _a : {}, AND = _b.AND, NOT = _b.NOT, OR = _b.OR;
-    // criptografar a pesquisa para o banco de dados passando o argumento where
-    var manageArrayEncryption = function (array) {
-        array.forEach(function (item) {
-            if (item && typeof item === "object")
-                manageEncryption(fields, item, "encrypt");
-        });
-    };
-    if (where)
-        manageEncryption(fields, where, "encrypt");
-    if (AND)
-        manageArrayEncryption(AND);
-    if (NOT)
-        manageArrayEncryption(NOT);
-    if (OR)
-        manageArrayEncryption(OR);
-    // console.log("args after:", ConvertToJson(args));
-}
+var encryption_methods_1 = require("./encryption-methods");
+var _a = new encryption_methods_1.EncryptionMethods(), manageEncryption = _a.manageEncryption, resolveEncryptedArgs = _a.resolveEncryptedArgs;
 var prisma = new client_1.PrismaClient({
     datasources: {
         db: {
@@ -221,62 +105,96 @@ var writeReplicaPrisma = new client_1.PrismaClient({
             // Métodos de escrita personalizados
             create: function (_a) {
                 var args = _a.args, model = _a.model, query = _a.query;
-                // console.log("args:", ConvertToJson(args));
-                var data = args.data;
-                var fields = encrypted_fields_1.prismaEncryptFields[model];
-                if (fields)
-                    manageEncryption(fields, data, "encrypt");
+                var dataToEncrypt = args.data;
+                var fieldsToManage = encrypted_fields_1.prismaEncryptModels[model];
+                if (fieldsToManage)
+                    manageEncryption({
+                        fieldsToManage: fieldsToManage,
+                        dataToEncrypt: dataToEncrypt,
+                        manageMode: "encrypt",
+                    });
                 return query(__assign({}, args));
             },
             update: function (_a) {
                 var args = _a.args, model = _a.model, query = _a.query;
-                var data = args.data;
-                var fields = encrypted_fields_1.prismaEncryptFields[model];
-                if (fields) {
-                    resolveEncryptedArgs(args, fields);
-                    manageEncryption(fields, data, "encrypt");
+                var dataToEncrypt = args.data;
+                var fieldsToManage = encrypted_fields_1.prismaEncryptModels[model];
+                if (fieldsToManage) {
+                    resolveEncryptedArgs({
+                        whereArgs: args,
+                        fieldsToManage: fieldsToManage,
+                    });
+                    manageEncryption({
+                        fieldsToManage: fieldsToManage,
+                        dataToEncrypt: dataToEncrypt,
+                        manageMode: "encrypt",
+                    });
                 }
                 return query(__assign({}, args));
             },
             createMany: function (_a) {
                 var args = _a.args, model = _a.model, query = _a.query;
-                var data = args.data;
-                var fields = encrypted_fields_1.prismaEncryptFields[model];
-                if (fields) {
-                    if (Array.isArray(data))
-                        data.forEach(function (entry) {
-                            manageEncryption(fields, entry, "encrypt");
+                var dataToEncrypt = args.data;
+                var fieldsToManage = encrypted_fields_1.prismaEncryptModels[model];
+                if (fieldsToManage) {
+                    if (Array.isArray(dataToEncrypt))
+                        dataToEncrypt.forEach(function (entry) {
+                            manageEncryption({
+                                fieldsToManage: fieldsToManage,
+                                dataToEncrypt: entry,
+                                manageMode: "encrypt",
+                            });
                         });
                     else
-                        manageEncryption(fields, data, "encrypt");
+                        manageEncryption({
+                            fieldsToManage: fieldsToManage,
+                            dataToEncrypt: dataToEncrypt,
+                            manageMode: "encrypt",
+                        });
                 }
                 return query(__assign({}, args));
             },
             updateMany: function (_a) {
                 var args = _a.args, model = _a.model, query = _a.query;
-                var data = args.data;
-                var fields = encrypted_fields_1.prismaEncryptFields[model];
-                if (fields) {
-                    resolveEncryptedArgs(args, fields);
-                    if (Array.isArray(data))
-                        data.forEach(function (entry) {
-                            manageEncryption(fields, entry, "encrypt");
+                var dataToEncrypt = args.data, whereArgs = args.where;
+                var fieldsToManage = encrypted_fields_1.prismaEncryptModels[model];
+                if (fieldsToManage) {
+                    resolveEncryptedArgs({ whereArgs: whereArgs, fieldsToManage: fieldsToManage });
+                    if (Array.isArray(dataToEncrypt))
+                        dataToEncrypt.forEach(function (entry) {
+                            manageEncryption({
+                                fieldsToManage: fieldsToManage,
+                                dataToEncrypt: entry,
+                                manageMode: "encrypt",
+                            });
                         });
                     else
-                        manageEncryption(fields, data, "encrypt");
+                        manageEncryption({
+                            fieldsToManage: fieldsToManage,
+                            dataToEncrypt: dataToEncrypt,
+                            manageMode: "encrypt",
+                        });
                 }
                 return query(__assign({}, args));
             },
             upsert: function (_a) {
                 var args = _a.args, model = _a.model, query = _a.query;
-                var create = args.create, update = args.update;
-                var fields = encrypted_fields_1.prismaEncryptFields[model];
-                if (fields) {
-                    resolveEncryptedArgs(args, fields);
+                var create = args.create, update = args.update, whereArgs = args.where;
+                var fieldsToManage = encrypted_fields_1.prismaEncryptModels[model];
+                if (fieldsToManage) {
+                    resolveEncryptedArgs({ whereArgs: whereArgs, fieldsToManage: fieldsToManage });
                     if (create)
-                        manageEncryption(fields, create, "encrypt");
+                        manageEncryption({
+                            fieldsToManage: fieldsToManage,
+                            dataToEncrypt: create,
+                            manageMode: "encrypt",
+                        });
                     if (update)
-                        manageEncryption(fields, update, "encrypt");
+                        manageEncryption({
+                            fieldsToManage: fieldsToManage,
+                            dataToEncrypt: update,
+                            manageMode: "encrypt",
+                        });
                 }
                 return query(__assign({}, args));
             },
@@ -296,29 +214,35 @@ var readReplicaPrisma = new client_1.PrismaClient({
             $allOperations: function (_a) {
                 var args = _a.args, model = _a.model, query = _a.query;
                 return __awaiter(this, void 0, void 0, function () {
-                    var fields, result;
+                    var whereArgs, fieldsToManage, result;
                     return __generator(this, function (_b) {
                         switch (_b.label) {
                             case 0:
-                                fields = encrypted_fields_1.prismaEncryptFields[model];
-                                // criptografar a pesquisa para o banco de dados passando
-                                if (fields)
-                                    resolveEncryptedArgs(args, fields);
+                                whereArgs = args.where;
+                                fieldsToManage = encrypted_fields_1.prismaEncryptModels[model];
+                                if (fieldsToManage)
+                                    resolveEncryptedArgs({ whereArgs: whereArgs, fieldsToManage: fieldsToManage });
                                 return [4 /*yield*/, query(args)];
                             case 1:
                                 result = _b.sent();
-                                // console.log("result before:", result);
                                 // descriptografar os campos criptografados no resultado da pesquisa
-                                if (fields && result) {
+                                if (fieldsToManage && result) {
                                     if (Array.isArray(result))
                                         // caso seja utilizado o findMany
                                         result.forEach(function (entry) {
-                                            manageEncryption(fields, entry, "decrypt");
+                                            manageEncryption({
+                                                fieldsToManage: fieldsToManage,
+                                                dataToEncrypt: entry,
+                                                manageMode: "decrypt",
+                                            });
                                         });
                                     else
-                                        manageEncryption(fields, result, "decrypt");
+                                        manageEncryption({
+                                            fieldsToManage: fieldsToManage,
+                                            dataToEncrypt: result,
+                                            manageMode: "decrypt",
+                                        });
                                 }
-                                // console.log("result after:", result);
                                 return [2 /*return*/, result];
                         }
                     });

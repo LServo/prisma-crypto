@@ -1,8 +1,3 @@
-interface IPrismaEncryptFields {
-    [key: string]: {
-        fieldName: string;
-        typeName: string;
-    }[];
-}
+import { PrismaCrypto } from "./prisma-crypto";
 
-export const prismaEncryptFields: IPrismaEncryptFields = {};
+export const prismaEncryptModels: PrismaCrypto.PrismaEncryptModels = {};
