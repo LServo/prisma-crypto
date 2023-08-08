@@ -237,11 +237,14 @@ generatorHandler({
                     await prisma.$queryRaw<PrismaCrypto.MigrateEncryption>(
                         Prisma.sql`INSERT INTO "_migrate_encryption" ("token", "add_encryption", "remove_encryption") VALUES (${newToken}, ${add_encryption}, ${remove_encryption}) RETURNING *;`,
                     );
-                logger.info("newMigration:", newMigration); //remover
-                logger.info("Added Encryption:", newMigration?.add_encryption);
+                logger.info("newMigration:", newMigration[0]); //remover
+                logger.info(
+                    "Added Encryption:",
+                    newMigration[0]?.add_encryption,
+                );
                 logger.info(
                     "Removed Encryption:",
-                    newMigration?.remove_encryption,
+                    newMigration[0]?.remove_encryption,
                 );
             }
         } catch (error) {

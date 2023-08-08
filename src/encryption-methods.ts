@@ -60,7 +60,10 @@ class EncryptionMethods implements PrismaCrypto.EncryptionMethods {
             const fieldValue = dataToEncrypt[fieldName];
             if (!fieldValue) return;
 
-            // console.log(`data[${fieldName}]:`, data[fieldName]);
+            console.log(
+                `dataToEncrypt[${fieldName}]:`,
+                dataToEncrypt[fieldName],
+            );
 
             const isArray = Array.isArray(fieldValue);
             const isString = typeof fieldValue === "string";
@@ -136,7 +139,10 @@ class EncryptionMethods implements PrismaCrypto.EncryptionMethods {
                     break;
             }
 
-            // console.log(`data[${fieldName}]:`, data[fieldName]);
+            console.log(
+                `dataToEncrypt[${fieldName}]:`,
+                dataToEncrypt[fieldName],
+            );
         });
 
         return {};

@@ -52,7 +52,7 @@ var EncryptionMethods = /** @class */ (function () {
             var fieldValue = dataToEncrypt[fieldName];
             if (!fieldValue)
                 return;
-            // console.log(`data[${fieldName}]:`, data[fieldName]);
+            console.log("dataToEncrypt[".concat(fieldName, "]:"), dataToEncrypt[fieldName]);
             var isArray = Array.isArray(fieldValue);
             var isString = typeof fieldValue === "string";
             switch (isArray) {
@@ -114,7 +114,7 @@ var EncryptionMethods = /** @class */ (function () {
                 default:
                     break;
             }
-            // console.log(`data[${fieldName}]:`, data[fieldName]);
+            console.log("dataToEncrypt[".concat(fieldName, "]:"), dataToEncrypt[fieldName]);
         });
         return {};
     };

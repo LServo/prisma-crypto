@@ -53,6 +53,9 @@ var client_1 = require("@prisma/client");
 // eslint-disable-next-line import/no-unresolved, import/extensions
 var encrypted_fields_1 = require("./encrypted-fields");
 var encryption_methods_1 = require("./encryption-methods");
+var convertToJson = function (variable) {
+    return JSON.stringify(variable, null, 2);
+};
 var _a = new encryption_methods_1.EncryptionMethods(), manageEncryption = _a.manageEncryption, resolveEncryptedArgs = _a.resolveEncryptedArgs;
 var prisma = new client_1.PrismaClient({
     datasources: {
@@ -105,14 +108,18 @@ var writeReplicaPrisma = new client_1.PrismaClient({
             // Métodos de escrita personalizados
             create: function (_a) {
                 var args = _a.args, model = _a.model, query = _a.query;
+                console.log("args before:", convertToJson(args));
                 var dataToEncrypt = args.data;
+                console.log("dataToEncrypt:", convertToJson(dataToEncrypt));
                 var fieldsToManage = encrypted_fields_1.prismaEncryptModels[model];
+                console.log("fieldsToManage:", convertToJson(fieldsToManage));
                 if (fieldsToManage)
                     manageEncryption({
                         fieldsToManage: fieldsToManage,
                         dataToEncrypt: dataToEncrypt,
                         manageMode: "encrypt",
                     });
+                console.log("args after:", convertToJson(args));
                 return query(__assign({}, args));
             },
             update: function (_a) {

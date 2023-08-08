@@ -7,6 +7,10 @@ import { prismaEncryptModels } from "./encrypted-fields";
 import { EncryptionMethods } from "./encryption-methods";
 import { PrismaCrypto } from "./prisma-crypto";
 
+const convertToJson = (variable: any): string => {
+    return JSON.stringify(variable, null, 2);
+};
+
 const {
     manageEncryption,
     resolveEncryptedArgs,
@@ -71,8 +75,11 @@ const writeReplicaPrisma = new PrismaClient({
         $allModels: {
             // Métodos de escrita personalizados
             create({ args, model, query }) {
+                console.log("args before:", convertToJson(args));
                 const { data: dataToEncrypt } = args;
+                console.log("dataToEncrypt:", convertToJson(dataToEncrypt));
                 const fieldsToManage = prismaEncryptModels[model];
+                console.log("fieldsToManage:", convertToJson(fieldsToManage));
 
                 if (fieldsToManage)
                     manageEncryption({
@@ -80,6 +87,8 @@ const writeReplicaPrisma = new PrismaClient({
                         dataToEncrypt,
                         manageMode: "encrypt",
                     });
+
+                console.log("args after:", convertToJson(args));
 
                 return query({ ...args });
             },
