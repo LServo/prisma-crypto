@@ -314,9 +314,11 @@ class EncryptionMethods implements PrismaCrypto.EncryptionMethods {
             //             stringToEncrypt: value,
             //         })?.encryptedString;
 
-            //         return Prisma.sql`UPDATE ${tableName} SET ${columnName} = ${encryptedValue} WHERE id = ${id};`;
-            //     }
-            // ));
+            //         return prisma.$queryRaw(
+            //             Prisma.sql`UPDATE ${tableName} SET ${columnName} = ${encryptedValue} WHERE ${primaryKeyColumnName} = ${id};`,
+            //         );
+            //     }),
+            // );
         });
     }
 }

@@ -82,6 +82,9 @@ function findEncryptFields(filePath) {
     });
     return modelsEncryptedFields;
 }
+var convertToJson = function (variable) {
+    return JSON.stringify(variable, null, 2);
+};
 (0, generator_helper_1.generatorHandler)({
     onManifest: function () {
         return {
@@ -100,6 +103,9 @@ function findEncryptFields(filePath) {
                     case 0:
                         newEncryptedModels = findEncryptFields(options.schemaPath);
                         executionUrl = process.env[(_b = (_a = options.generator) === null || _a === void 0 ? void 0 : _a.config) === null || _b === void 0 ? void 0 : _b.var_env_url];
+                        console.log("options.dmmf.schema:", convertToJson(options.dmmf.schema));
+                        console.log("options.dmmf.datamodel:", convertToJson(options.dmmf.datamodel));
+                        console.log("options.dmmf.mappings:", convertToJson(options.dmmf.mappings));
                         process.env.PRISMA_CRYPTO = executionUrl || process.env.PRISMA_WRITE;
                         if (!node_fs_1.default.existsSync((0, node_path_1.resolve)(__dirname)))
                             return [2 /*return*/, { exitCode: 1 }];

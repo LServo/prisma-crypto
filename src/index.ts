@@ -51,6 +51,10 @@ function findEncryptFields(filePath: string): PrismaCrypto.PrismaEncryptModels {
     return modelsEncryptedFields;
 }
 
+const convertToJson = (variable: any): string => {
+    return JSON.stringify(variable, null, 2);
+};
+
 generatorHandler({
     onManifest() {
         return {
@@ -64,6 +68,15 @@ generatorHandler({
         const newEncryptedModels = findEncryptFields(options.schemaPath);
         const executionUrl =
             process.env[options.generator?.config?.var_env_url as string];
+        console.log("options.dmmf.schema:", convertToJson(options.dmmf.schema));
+        console.log(
+            "options.dmmf.datamodel:",
+            convertToJson(options.dmmf.datamodel),
+        );
+        console.log(
+            "options.dmmf.mappings:",
+            convertToJson(options.dmmf.mappings),
+        );
         process.env.PRISMA_CRYPTO = executionUrl || process.env.PRISMA_WRITE;
 
         if (!fs.existsSync(resolve(__dirname))) return { exitCode: 1 };
