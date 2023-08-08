@@ -65,17 +65,6 @@ generatorHandler({
             process.env[options.generator?.config?.var_env_url as string];
         process.env.PRISMA_CRYPTO = executionUrl || process.env.PRISMA_WRITE;
 
-        const newEncryptedModelsJSON = JSON.stringify(
-            newEncryptedModels,
-            null,
-            4,
-        );
-
-        const fileContent = `"use strict";
-        Object.defineProperty(exports, "__esModule", { value: true });
-        exports.prismaEncryptFields = void 0;
-        exports.prismaEncryptFields = ${newEncryptedModelsJSON};\n`;
-
         if (!fs.existsSync(resolve(__dirname))) return { exitCode: 1 };
 
         const result = await prisma.$queryRaw<boolean>(
@@ -252,11 +241,30 @@ generatorHandler({
             process.exit(1);
         }
 
-        const outputFilePath = resolve(__dirname, "encrypted-fields.js");
+        const encryptedModelsFilePath = resolve(
+            __dirname,
+            "encrypted-models.js",
+        );
 
-        fs.writeFileSync(outputFilePath, fileContent, "utf-8");
+        const newEncryptedModelsJSON = JSON.stringify(
+            newEncryptedModels,
+            null,
+            4,
+        );
 
-        logger.info(`Encrypted fields: ${outputFilePath}`);
+        const readEncryptedModelsFile = fs.readFileSync(
+            encryptedModelsFilePath,
+            "utf8",
+        );
+        const parseToString = `${readEncryptedModelsFile}`;
+        const addModels = parseToString.replace(
+            /exports.prismaEncryptModels = {}/g,
+            `exports.prismaEncryptModels = ${newEncryptedModelsJSON}`,
+        );
+
+        fs.writeFileSync(encryptedModelsFilePath, addModels, "utf-8");
+
+        logger.info(`Encrypted fields: ${encryptedModelsFilePath}`);
 
         return {
             exitCode: 0,

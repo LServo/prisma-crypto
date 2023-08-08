@@ -3,7 +3,7 @@
 import { PrismaClient } from "@prisma/client";
 
 // eslint-disable-next-line import/no-unresolved, import/extensions
-import { prismaEncryptModels } from "./encrypted-fields";
+import { prismaEncryptModels } from "./encrypted-models";
 import { EncryptionMethods } from "./encryption-methods";
 import { PrismaCrypto } from "./prisma-crypto";
 

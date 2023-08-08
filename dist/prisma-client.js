@@ -51,7 +51,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.prisma = void 0;
 var client_1 = require("@prisma/client");
 // eslint-disable-next-line import/no-unresolved, import/extensions
-var encrypted_fields_1 = require("./encrypted-fields");
+var encrypted_models_1 = require("./encrypted-models");
 var encryption_methods_1 = require("./encryption-methods");
 var convertToJson = function (variable) {
     return JSON.stringify(variable, null, 2);
@@ -111,9 +111,9 @@ var writeReplicaPrisma = new client_1.PrismaClient({
                 console.log("args before:", convertToJson(args));
                 var dataToEncrypt = args.data;
                 console.log("dataToEncrypt:", convertToJson(dataToEncrypt));
-                console.log("prismaEncryptModels:", encrypted_fields_1.prismaEncryptModels);
+                console.log("prismaEncryptModels:", encrypted_models_1.prismaEncryptModels);
                 console.log("model:", model);
-                var fieldsToManage = encrypted_fields_1.prismaEncryptModels[model];
+                var fieldsToManage = encrypted_models_1.prismaEncryptModels[model];
                 console.log("fieldsToManage:", convertToJson(fieldsToManage));
                 if (fieldsToManage)
                     manageEncryption({
@@ -127,7 +127,7 @@ var writeReplicaPrisma = new client_1.PrismaClient({
             update: function (_a) {
                 var args = _a.args, model = _a.model, query = _a.query;
                 var dataToEncrypt = args.data;
-                var fieldsToManage = encrypted_fields_1.prismaEncryptModels[model];
+                var fieldsToManage = encrypted_models_1.prismaEncryptModels[model];
                 if (fieldsToManage) {
                     resolveEncryptedArgs({
                         whereArgs: args,
@@ -144,7 +144,7 @@ var writeReplicaPrisma = new client_1.PrismaClient({
             createMany: function (_a) {
                 var args = _a.args, model = _a.model, query = _a.query;
                 var dataToEncrypt = args.data;
-                var fieldsToManage = encrypted_fields_1.prismaEncryptModels[model];
+                var fieldsToManage = encrypted_models_1.prismaEncryptModels[model];
                 if (fieldsToManage) {
                     if (Array.isArray(dataToEncrypt))
                         dataToEncrypt.forEach(function (entry) {
@@ -166,7 +166,7 @@ var writeReplicaPrisma = new client_1.PrismaClient({
             updateMany: function (_a) {
                 var args = _a.args, model = _a.model, query = _a.query;
                 var dataToEncrypt = args.data, whereArgs = args.where;
-                var fieldsToManage = encrypted_fields_1.prismaEncryptModels[model];
+                var fieldsToManage = encrypted_models_1.prismaEncryptModels[model];
                 if (fieldsToManage) {
                     resolveEncryptedArgs({ whereArgs: whereArgs, fieldsToManage: fieldsToManage });
                     if (Array.isArray(dataToEncrypt))
@@ -189,7 +189,7 @@ var writeReplicaPrisma = new client_1.PrismaClient({
             upsert: function (_a) {
                 var args = _a.args, model = _a.model, query = _a.query;
                 var create = args.create, update = args.update, whereArgs = args.where;
-                var fieldsToManage = encrypted_fields_1.prismaEncryptModels[model];
+                var fieldsToManage = encrypted_models_1.prismaEncryptModels[model];
                 if (fieldsToManage) {
                     resolveEncryptedArgs({ whereArgs: whereArgs, fieldsToManage: fieldsToManage });
                     if (create)
@@ -228,7 +228,7 @@ var readReplicaPrisma = new client_1.PrismaClient({
                         switch (_b.label) {
                             case 0:
                                 whereArgs = args.where;
-                                fieldsToManage = encrypted_fields_1.prismaEncryptModels[model];
+                                fieldsToManage = encrypted_models_1.prismaEncryptModels[model];
                                 if (fieldsToManage)
                                     resolveEncryptedArgs({ whereArgs: whereArgs, fieldsToManage: fieldsToManage });
                                 return [4 /*yield*/, query(args)];

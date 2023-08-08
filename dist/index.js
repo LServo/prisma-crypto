@@ -93,15 +93,13 @@ function findEncryptFields(filePath) {
     onGenerate: function (options) {
         var _a, _b, _c, _d, _e, _f, _g;
         return __awaiter(this, void 0, void 0, function () {
-            var newEncryptedModels, executionUrl, newEncryptedModelsJSON, fileContent, result, modelExists, schemaPath, modelMigrateEncryption, latestMigration, error_1, newToken, lastEncryptedModels_1, _h, add_encryption, remove_encryption, hasChanges, newMigration, error_2, outputFilePath;
+            var newEncryptedModels, executionUrl, result, modelExists, schemaPath, modelMigrateEncryption, latestMigration, error_1, newToken, lastEncryptedModels_1, _h, add_encryption, remove_encryption, hasChanges, newMigration, error_2, encryptedModelsFilePath, newEncryptedModelsJSON, readEncryptedModelsFile, parseToString, addModels;
             return __generator(this, function (_j) {
                 switch (_j.label) {
                     case 0:
                         newEncryptedModels = findEncryptFields(options.schemaPath);
                         executionUrl = process.env[(_b = (_a = options.generator) === null || _a === void 0 ? void 0 : _a.config) === null || _b === void 0 ? void 0 : _b.var_env_url];
                         process.env.PRISMA_CRYPTO = executionUrl || process.env.PRISMA_WRITE;
-                        newEncryptedModelsJSON = JSON.stringify(newEncryptedModels, null, 4);
-                        fileContent = "\"use strict\";\n        Object.defineProperty(exports, \"__esModule\", { value: true });\n        exports.prismaEncryptFields = void 0;\n        exports.prismaEncryptFields = ".concat(newEncryptedModelsJSON, ";\n");
                         if (!node_fs_1.default.existsSync((0, node_path_1.resolve)(__dirname)))
                             return [2 /*return*/, { exitCode: 1 }];
                         return [4 /*yield*/, prisma_client_1.prisma.$queryRaw(client_1.Prisma.sql(templateObject_1 || (templateObject_1 = __makeTemplateObject(["SELECT EXISTS (\n                SELECT FROM information_schema.tables\n                WHERE table_name = '_migrate_encryption'\n                ) AS \"exists\""], ["SELECT EXISTS (\n                SELECT FROM information_schema.tables\n                WHERE table_name = '_migrate_encryption'\n                ) AS \"exists\""]))))];
@@ -209,9 +207,13 @@ function findEncryptFields(filePath) {
                         process.exit(1);
                         return [3 /*break*/, 9];
                     case 9:
-                        outputFilePath = (0, node_path_1.resolve)(__dirname, "encrypted-fields.js");
-                        node_fs_1.default.writeFileSync(outputFilePath, fileContent, "utf-8");
-                        sdk_1.logger.info("Encrypted fields: ".concat(outputFilePath));
+                        encryptedModelsFilePath = (0, node_path_1.resolve)(__dirname, "encrypted-models.js");
+                        newEncryptedModelsJSON = JSON.stringify(newEncryptedModels, null, 4);
+                        readEncryptedModelsFile = node_fs_1.default.readFileSync(encryptedModelsFilePath, "utf8");
+                        parseToString = "".concat(readEncryptedModelsFile);
+                        addModels = parseToString.replace(/exports.prismaEncryptModels = {}/g, "exports.prismaEncryptModels = ".concat(newEncryptedModelsJSON));
+                        node_fs_1.default.writeFileSync(encryptedModelsFilePath, addModels, "utf-8");
+                        sdk_1.logger.info("Encrypted fields: ".concat(encryptedModelsFilePath));
                         return [2 /*return*/, {
                                 exitCode: 0,
                             }];
