@@ -5,15 +5,18 @@ var node_crypto_1 = require("node:crypto");
 var EncryptionMethods = /** @class */ (function () {
     function EncryptionMethods() {
     }
-    EncryptionMethods.prototype.generateHash = function (_a) {
+    EncryptionMethods.generateHash = function (_a) {
         var stringToGenerateHash = _a.stringToGenerateHash;
         var hash = (0, node_crypto_1.createHash)("sha256");
         hash.update(stringToGenerateHash, "utf8");
         var generatedHash = hash.digest();
         return { generatedHash: generatedHash };
     };
-    EncryptionMethods.prototype.resolveEncryptedArgs = function (_a) {
-        var _this = this;
+    EncryptionMethods.prototype.generateHash = function (_a) {
+        var stringToGenerateHash = _a.stringToGenerateHash;
+        return EncryptionMethods.generateHash({ stringToGenerateHash: stringToGenerateHash });
+    };
+    EncryptionMethods.resolveEncryptedArgs = function (_a) {
         var _b;
         var whereArgs = _a.whereArgs, fieldsToManage = _a.fieldsToManage;
         // console.log("args before:", ConvertToJson(args));
@@ -22,7 +25,7 @@ var EncryptionMethods = /** @class */ (function () {
         var manageArrayEncryption = function (array) {
             array.forEach(function (item) {
                 if (item && typeof item === "object")
-                    _this.manageEncryption({
+                    EncryptionMethods.manageEncryption({
                         fieldsToManage: fieldsToManage,
                         dataToEncrypt: item,
                         manageMode: "encrypt",
@@ -30,7 +33,7 @@ var EncryptionMethods = /** @class */ (function () {
             });
         };
         if (whereArgs)
-            this.manageEncryption({
+            EncryptionMethods.manageEncryption({
                 fieldsToManage: fieldsToManage,
                 dataToEncrypt: whereArgs,
                 manageMode: "encrypt",
@@ -44,8 +47,14 @@ var EncryptionMethods = /** @class */ (function () {
         // console.log("args after:", ConvertToJson(args));
         return {};
     };
-    EncryptionMethods.prototype.manageEncryption = function (_a) {
-        var _this = this;
+    EncryptionMethods.prototype.resolveEncryptedArgs = function (_a) {
+        var whereArgs = _a.whereArgs, fieldsToManage = _a.fieldsToManage;
+        return EncryptionMethods.resolveEncryptedArgs({
+            whereArgs: whereArgs,
+            fieldsToManage: fieldsToManage,
+        });
+    };
+    EncryptionMethods.manageEncryption = function (_a) {
         var dataToEncrypt = _a.dataToEncrypt, fieldsToManage = _a.fieldsToManage, manageMode = _a.manageMode;
         fieldsToManage.forEach(function (field) {
             var fieldName = field.fieldName;
@@ -81,10 +90,10 @@ var EncryptionMethods = /** @class */ (function () {
                                 // eslint-disable-next-line no-param-reassign
                                 dataToEncrypt[fieldName][key] =
                                     manageMode === "encrypt"
-                                        ? _this.encryptData({
+                                        ? EncryptionMethods.encryptData({
                                             stringToEncrypt: dataToEncrypt[fieldName][key],
                                         })
-                                        : _this.decryptData({
+                                        : EncryptionMethods.decryptData({
                                             stringToDecrypt: dataToEncrypt[fieldName][key],
                                         });
                             });
@@ -93,10 +102,10 @@ var EncryptionMethods = /** @class */ (function () {
                             // eslint-disable-next-line no-param-reassign
                             dataToEncrypt[fieldName] =
                                 manageMode === "encrypt"
-                                    ? _this.encryptData({
+                                    ? EncryptionMethods.encryptData({
                                         stringToEncrypt: dataToEncrypt[fieldName],
                                     })
-                                    : _this.decryptData({
+                                    : EncryptionMethods.decryptData({
                                         stringToDecrypt: dataToEncrypt[fieldName],
                                     });
                             break;
@@ -107,8 +116,12 @@ var EncryptionMethods = /** @class */ (function () {
                     // eslint-disable-next-line no-param-reassign
                     dataToEncrypt[fieldName] = dataToEncrypt[fieldName].map(function (item) {
                         return manageMode === "encrypt"
-                            ? _this.encryptData({ stringToEncrypt: item })
-                            : _this.decryptData({ stringToDecrypt: item });
+                            ? EncryptionMethods.encryptData({
+                                stringToEncrypt: item,
+                            })
+                            : EncryptionMethods.decryptData({
+                                stringToDecrypt: item,
+                            });
                     });
                     break;
                 default:
@@ -118,11 +131,19 @@ var EncryptionMethods = /** @class */ (function () {
         });
         return {};
     };
-    EncryptionMethods.prototype.encryptData = function (_a) {
+    EncryptionMethods.prototype.manageEncryption = function (_a) {
+        var manageMode = _a.manageMode, dataToEncrypt = _a.dataToEncrypt, fieldsToManage = _a.fieldsToManage;
+        return EncryptionMethods.manageEncryption({
+            manageMode: manageMode,
+            dataToEncrypt: dataToEncrypt,
+            fieldsToManage: fieldsToManage,
+        });
+    };
+    EncryptionMethods.encryptData = function (_a) {
         var stringToEncrypt = _a.stringToEncrypt;
         console.log("encryptData");
         console.log("stringToEncrypt:", stringToEncrypt);
-        var fixedIV = this.generateHash({
+        var fixedIV = EncryptionMethods.generateHash({
             stringToGenerateHash: stringToEncrypt,
         }).generatedHash;
         var cipher = (0, node_crypto_1.createCipheriv)("aes-256-gcm", process.env.SECRET_KEY, fixedIV);
@@ -139,7 +160,11 @@ var EncryptionMethods = /** @class */ (function () {
         ]).toString("base64");
         return { encryptedString: encryptedString };
     };
-    EncryptionMethods.prototype.decryptData = function (_a) {
+    EncryptionMethods.prototype.encryptData = function (_a) {
+        var stringToEncrypt = _a.stringToEncrypt;
+        return EncryptionMethods.encryptData({ stringToEncrypt: stringToEncrypt });
+    };
+    EncryptionMethods.decryptData = function (_a) {
         var stringToDecrypt = _a.stringToDecrypt;
         console.log("decryptData");
         console.log("stringToDecrypt:", stringToDecrypt);
@@ -156,6 +181,10 @@ var EncryptionMethods = /** @class */ (function () {
         ]);
         var decryptedString = decrypted.toString("utf8");
         return { decryptedString: decryptedString };
+    };
+    EncryptionMethods.prototype.decryptData = function (_a) {
+        var stringToDecrypt = _a.stringToDecrypt;
+        return EncryptionMethods.decryptData({ stringToDecrypt: stringToDecrypt });
     };
     return EncryptionMethods;
 }());

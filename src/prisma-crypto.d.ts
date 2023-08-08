@@ -173,7 +173,7 @@ export namespace PrismaCrypto {
          * @param stringToGenerateHash Dados a serem criptografados
          * @returns Hash gerado a partir dos dados, em formato de buffer
          */
-        private generateHash({
+        generateHash({
             stringToGenerateHash,
         }: GenerateHash.Input): GenerateHash.Output;
 
@@ -182,18 +182,14 @@ export namespace PrismaCrypto {
          * @param stringToEncrypt Dados a serem criptografados
          * @returns String codificada com os dados criptografados
          */
-        private encryptData({
-            stringToEncrypt,
-        }: EncryptData.Input): EncryptData.Output;
+        encryptData({ stringToEncrypt }: EncryptData.Input): EncryptData.Output;
 
         /**
          * @description Descriptografar os dados a partir da string codificada
          * @param stringToDecrypt String codificada com os dados criptografados
          * @returns Dados descriptografados
          */
-        private decryptData({
-            stringToDecrypt,
-        }: DecryptData.Input): DecryptData.Output;
+        decryptData({ stringToDecrypt }: DecryptData.Input): DecryptData.Output;
 
         /**
          * @description Criptografar argumentos de leitura que também estão criptografados no banco para se utilizar de leitura determinística

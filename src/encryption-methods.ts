@@ -3,7 +3,7 @@ import { createHash, createCipheriv, createDecipheriv } from "node:crypto";
 import { PrismaCrypto } from "./prisma-crypto";
 
 class EncryptionMethods implements PrismaCrypto.EncryptionMethods {
-    generateHash({
+    static generateHash({
         stringToGenerateHash,
     }: PrismaCrypto.GenerateHash.Input): PrismaCrypto.GenerateHash.Output {
         const hash = createHash("sha256");
@@ -13,8 +13,13 @@ class EncryptionMethods implements PrismaCrypto.EncryptionMethods {
 
         return { generatedHash };
     }
+    generateHash({
+        stringToGenerateHash,
+    }: PrismaCrypto.GenerateHash.Input): PrismaCrypto.GenerateHash.Output {
+        return EncryptionMethods.generateHash({ stringToGenerateHash });
+    }
 
-    resolveEncryptedArgs({
+    static resolveEncryptedArgs({
         whereArgs,
         fieldsToManage,
     }: PrismaCrypto.ResolveEncryptedArgs.Input): PrismaCrypto.ResolveEncryptedArgs.Output {
@@ -27,7 +32,7 @@ class EncryptionMethods implements PrismaCrypto.EncryptionMethods {
         const manageArrayEncryption = (array: unknown[]) => {
             array.forEach((item) => {
                 if (item && typeof item === "object")
-                    this.manageEncryption({
+                    EncryptionMethods.manageEncryption({
                         fieldsToManage,
                         dataToEncrypt: item,
                         manageMode: "encrypt",
@@ -36,7 +41,7 @@ class EncryptionMethods implements PrismaCrypto.EncryptionMethods {
         };
 
         if (whereArgs)
-            this.manageEncryption({
+            EncryptionMethods.manageEncryption({
                 fieldsToManage,
                 dataToEncrypt: whereArgs,
                 manageMode: "encrypt",
@@ -49,8 +54,17 @@ class EncryptionMethods implements PrismaCrypto.EncryptionMethods {
 
         return {};
     }
+    resolveEncryptedArgs({
+        whereArgs,
+        fieldsToManage,
+    }: PrismaCrypto.ResolveEncryptedArgs.Input): PrismaCrypto.ResolveEncryptedArgs.Output {
+        return EncryptionMethods.resolveEncryptedArgs({
+            whereArgs,
+            fieldsToManage,
+        });
+    }
 
-    manageEncryption({
+    static manageEncryption({
         dataToEncrypt,
         fieldsToManage,
         manageMode,
@@ -99,11 +113,11 @@ class EncryptionMethods implements PrismaCrypto.EncryptionMethods {
                                 // eslint-disable-next-line no-param-reassign
                                 dataToEncrypt[fieldName][key] =
                                     manageMode === "encrypt"
-                                        ? this.encryptData({
+                                        ? EncryptionMethods.encryptData({
                                               stringToEncrypt:
                                                   dataToEncrypt[fieldName][key],
                                           })
-                                        : this.decryptData({
+                                        : EncryptionMethods.decryptData({
                                               stringToDecrypt:
                                                   dataToEncrypt[fieldName][key],
                                           });
@@ -113,11 +127,11 @@ class EncryptionMethods implements PrismaCrypto.EncryptionMethods {
                             // eslint-disable-next-line no-param-reassign
                             dataToEncrypt[fieldName] =
                                 manageMode === "encrypt"
-                                    ? this.encryptData({
+                                    ? EncryptionMethods.encryptData({
                                           stringToEncrypt:
                                               dataToEncrypt[fieldName],
                                       })
-                                    : this.decryptData({
+                                    : EncryptionMethods.decryptData({
                                           stringToDecrypt:
                                               dataToEncrypt[fieldName],
                                       });
@@ -131,8 +145,12 @@ class EncryptionMethods implements PrismaCrypto.EncryptionMethods {
                     dataToEncrypt[fieldName] = dataToEncrypt[fieldName].map(
                         (item: string) =>
                             manageMode === "encrypt"
-                                ? this.encryptData({ stringToEncrypt: item })
-                                : this.decryptData({ stringToDecrypt: item }),
+                                ? EncryptionMethods.encryptData({
+                                      stringToEncrypt: item,
+                                  })
+                                : EncryptionMethods.decryptData({
+                                      stringToDecrypt: item,
+                                  }),
                     );
                     break;
                 default:
@@ -147,13 +165,24 @@ class EncryptionMethods implements PrismaCrypto.EncryptionMethods {
 
         return {};
     }
+    manageEncryption({
+        manageMode,
+        dataToEncrypt,
+        fieldsToManage,
+    }: PrismaCrypto.ManageEncryption.Input): PrismaCrypto.ManageEncryption.Output {
+        return EncryptionMethods.manageEncryption({
+            manageMode,
+            dataToEncrypt,
+            fieldsToManage,
+        });
+    }
 
-    encryptData({
+    static encryptData({
         stringToEncrypt,
     }: PrismaCrypto.EncryptData.Input): PrismaCrypto.EncryptData.Output {
         console.log("encryptData");
         console.log("stringToEncrypt:", stringToEncrypt);
-        const { generatedHash: fixedIV } = this.generateHash({
+        const { generatedHash: fixedIV } = EncryptionMethods.generateHash({
             stringToGenerateHash: stringToEncrypt,
         });
         const cipher = createCipheriv(
@@ -177,8 +206,13 @@ class EncryptionMethods implements PrismaCrypto.EncryptionMethods {
 
         return { encryptedString };
     }
+    encryptData({
+        stringToEncrypt,
+    }: PrismaCrypto.EncryptData.Input): PrismaCrypto.EncryptData.Output {
+        return EncryptionMethods.encryptData({ stringToEncrypt });
+    }
 
-    decryptData({
+    static decryptData({
         stringToDecrypt,
     }: PrismaCrypto.DecryptData.Input): PrismaCrypto.DecryptData.Output {
         console.log("decryptData");
@@ -205,6 +239,11 @@ class EncryptionMethods implements PrismaCrypto.EncryptionMethods {
         const decryptedString = decrypted.toString("utf8");
 
         return { decryptedString };
+    }
+    decryptData({
+        stringToDecrypt,
+    }: PrismaCrypto.DecryptData.Input): PrismaCrypto.DecryptData.Output {
+        return EncryptionMethods.decryptData({ stringToDecrypt });
     }
 }
 

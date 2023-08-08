@@ -5,16 +5,10 @@ import { PrismaClient } from "@prisma/client";
 // eslint-disable-next-line import/no-unresolved, import/extensions
 import { prismaEncryptModels } from "./encrypted-models";
 import { EncryptionMethods } from "./encryption-methods";
-import { PrismaCrypto } from "./prisma-crypto";
 
 const convertToJson = (variable: any): string => {
     return JSON.stringify(variable, null, 2);
 };
-
-const {
-    manageEncryption,
-    resolveEncryptedArgs,
-}: PrismaCrypto.EncryptionMethods = new EncryptionMethods();
 
 const prisma = new PrismaClient({
     datasources: {
@@ -84,7 +78,7 @@ const writeReplicaPrisma = new PrismaClient({
                 console.log("fieldsToManage:", convertToJson(fieldsToManage));
 
                 if (fieldsToManage)
-                    manageEncryption({
+                    EncryptionMethods.manageEncryption({
                         fieldsToManage,
                         dataToEncrypt,
                         manageMode: "encrypt",
@@ -100,11 +94,11 @@ const writeReplicaPrisma = new PrismaClient({
                 const fieldsToManage = prismaEncryptModels[model];
 
                 if (fieldsToManage) {
-                    resolveEncryptedArgs({
+                    EncryptionMethods.resolveEncryptedArgs({
                         whereArgs: args,
                         fieldsToManage,
                     });
-                    manageEncryption({
+                    EncryptionMethods.manageEncryption({
                         fieldsToManage,
                         dataToEncrypt,
                         manageMode: "encrypt",
@@ -121,14 +115,14 @@ const writeReplicaPrisma = new PrismaClient({
                 if (fieldsToManage) {
                     if (Array.isArray(dataToEncrypt))
                         dataToEncrypt.forEach((entry: unknown) => {
-                            manageEncryption({
+                            EncryptionMethods.manageEncryption({
                                 fieldsToManage,
                                 dataToEncrypt: entry,
                                 manageMode: "encrypt",
                             });
                         });
                     else
-                        manageEncryption({
+                        EncryptionMethods.manageEncryption({
                             fieldsToManage,
                             dataToEncrypt,
                             manageMode: "encrypt",
@@ -143,18 +137,21 @@ const writeReplicaPrisma = new PrismaClient({
                 const fieldsToManage = prismaEncryptModels[model];
 
                 if (fieldsToManage) {
-                    resolveEncryptedArgs({ whereArgs, fieldsToManage });
+                    EncryptionMethods.resolveEncryptedArgs({
+                        whereArgs,
+                        fieldsToManage,
+                    });
 
                     if (Array.isArray(dataToEncrypt))
                         dataToEncrypt.forEach((entry: unknown) => {
-                            manageEncryption({
+                            EncryptionMethods.manageEncryption({
                                 fieldsToManage,
                                 dataToEncrypt: entry,
                                 manageMode: "encrypt",
                             });
                         });
                     else
-                        manageEncryption({
+                        EncryptionMethods.manageEncryption({
                             fieldsToManage,
                             dataToEncrypt,
                             manageMode: "encrypt",
@@ -169,17 +166,20 @@ const writeReplicaPrisma = new PrismaClient({
                 const fieldsToManage = prismaEncryptModels[model];
 
                 if (fieldsToManage) {
-                    resolveEncryptedArgs({ whereArgs, fieldsToManage });
+                    EncryptionMethods.resolveEncryptedArgs({
+                        whereArgs,
+                        fieldsToManage,
+                    });
 
                     if (create)
-                        manageEncryption({
+                        EncryptionMethods.manageEncryption({
                             fieldsToManage,
                             dataToEncrypt: create,
                             manageMode: "encrypt",
                         });
 
                     if (update)
-                        manageEncryption({
+                        EncryptionMethods.manageEncryption({
                             fieldsToManage,
                             dataToEncrypt: update,
                             manageMode: "encrypt",
@@ -207,7 +207,10 @@ const readReplicaPrisma = new PrismaClient({
                 const fieldsToManage = prismaEncryptModels[model];
 
                 if (fieldsToManage)
-                    resolveEncryptedArgs({ whereArgs, fieldsToManage });
+                    EncryptionMethods.resolveEncryptedArgs({
+                        whereArgs,
+                        fieldsToManage,
+                    });
 
                 const result = await query(args);
 
@@ -216,14 +219,14 @@ const readReplicaPrisma = new PrismaClient({
                     if (Array.isArray(result))
                         // caso seja utilizado o findMany
                         result.forEach((entry: unknown) => {
-                            manageEncryption({
+                            EncryptionMethods.manageEncryption({
                                 fieldsToManage,
                                 dataToEncrypt: entry,
                                 manageMode: "decrypt",
                             });
                         });
                     else
-                        manageEncryption({
+                        EncryptionMethods.manageEncryption({
                             fieldsToManage,
                             dataToEncrypt: result,
                             manageMode: "decrypt",
