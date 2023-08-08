@@ -156,7 +156,10 @@ generatorHandler({
                 Prisma.sql`SELECT * FROM "_migrate_encryption" ORDER BY "created_at" DESC LIMIT 1;`,
             );
 
-            logger.info("Registro mais recente:", latestMigration);
+            logger.info(
+                "Registro mais recente:",
+                latestMigration[0]?.created_at,
+            );
         } catch (error) {
             logger.error("Erro ao buscar o registro mais recente:", error);
             process.exit(1);
@@ -211,6 +214,11 @@ generatorHandler({
             );
             console.log("add_encryption:", add_encryption);
             console.log("remove_encryption:", remove_encryption);
+
+            const newMigration = await prisma.$queryRaw<MigrateEncryption>(
+                Prisma.sql`INSERT INTO "_migrate_encryption" ("token", "add_encryption", "remove_encryption") VALUES (${newToken}, ${add_encryption}, ${remove_encryption}) RETURNING *;`,
+            );
+            console.log("newMigration:", newMigration);
         } catch (error) {
             logger.error("Erro ao verificar o token:", error);
             process.exit(1);
