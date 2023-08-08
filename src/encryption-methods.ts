@@ -151,6 +151,8 @@ class EncryptionMethods implements PrismaCrypto.EncryptionMethods {
     encryptData({
         stringToEncrypt,
     }: PrismaCrypto.EncryptData.Input): PrismaCrypto.EncryptData.Output {
+        console.log("encryptData");
+        console.log("stringToEncrypt:", stringToEncrypt);
         const { generatedHash: fixedIV } = this.generateHash({
             stringToGenerateHash: stringToEncrypt,
         });
@@ -179,6 +181,8 @@ class EncryptionMethods implements PrismaCrypto.EncryptionMethods {
     decryptData({
         stringToDecrypt,
     }: PrismaCrypto.DecryptData.Input): PrismaCrypto.DecryptData.Output {
+        console.log("decryptData");
+        console.log("stringToDecrypt:", stringToDecrypt);
         const encryptedBuffer = Buffer.from(stringToDecrypt, "base64");
 
         // Extraia o IV, a tag e o texto cifrado da string codificada

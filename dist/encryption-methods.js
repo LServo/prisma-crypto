@@ -120,6 +120,8 @@ var EncryptionMethods = /** @class */ (function () {
     };
     EncryptionMethods.prototype.encryptData = function (_a) {
         var stringToEncrypt = _a.stringToEncrypt;
+        console.log("encryptData");
+        console.log("stringToEncrypt:", stringToEncrypt);
         var fixedIV = this.generateHash({
             stringToGenerateHash: stringToEncrypt,
         }).generatedHash;
@@ -139,6 +141,8 @@ var EncryptionMethods = /** @class */ (function () {
     };
     EncryptionMethods.prototype.decryptData = function (_a) {
         var stringToDecrypt = _a.stringToDecrypt;
+        console.log("decryptData");
+        console.log("stringToDecrypt:", stringToDecrypt);
         var encryptedBuffer = Buffer.from(stringToDecrypt, "base64");
         // Extraia o IV, a tag e o texto cifrado da string codificada
         var iv = encryptedBuffer.subarray(0, 32);
