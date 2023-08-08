@@ -78,6 +78,8 @@ const writeReplicaPrisma = new PrismaClient({
                 console.log("args before:", convertToJson(args));
                 const { data: dataToEncrypt } = args;
                 console.log("dataToEncrypt:", convertToJson(dataToEncrypt));
+                console.log("prismaEncryptModels:", prismaEncryptModels);
+                console.log("model:", model);
                 const fieldsToManage = prismaEncryptModels[model];
                 console.log("fieldsToManage:", convertToJson(fieldsToManage));
 
