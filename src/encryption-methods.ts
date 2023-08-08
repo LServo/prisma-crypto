@@ -116,11 +116,11 @@ class EncryptionMethods implements PrismaCrypto.EncryptionMethods {
                                         ? EncryptionMethods.encryptData({
                                               stringToEncrypt:
                                                   dataToEncrypt[fieldName][key],
-                                          })
+                                          })?.encryptedString
                                         : EncryptionMethods.decryptData({
                                               stringToDecrypt:
                                                   dataToEncrypt[fieldName][key],
-                                          });
+                                          })?.decryptedString;
                             });
                             break;
                         case true:
@@ -130,11 +130,11 @@ class EncryptionMethods implements PrismaCrypto.EncryptionMethods {
                                     ? EncryptionMethods.encryptData({
                                           stringToEncrypt:
                                               dataToEncrypt[fieldName],
-                                      })
+                                      })?.encryptedString
                                     : EncryptionMethods.decryptData({
                                           stringToDecrypt:
                                               dataToEncrypt[fieldName],
-                                      });
+                                      })?.decryptedString;
                             break;
                         default:
                     }
@@ -147,10 +147,10 @@ class EncryptionMethods implements PrismaCrypto.EncryptionMethods {
                             manageMode === "encrypt"
                                 ? EncryptionMethods.encryptData({
                                       stringToEncrypt: item,
-                                  })
+                                  })?.encryptedString
                                 : EncryptionMethods.decryptData({
                                       stringToDecrypt: item,
-                                  }),
+                                  })?.decryptedString,
                     );
                     break;
                 default:

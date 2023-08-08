@@ -57,6 +57,7 @@ var EncryptionMethods = /** @class */ (function () {
     EncryptionMethods.manageEncryption = function (_a) {
         var dataToEncrypt = _a.dataToEncrypt, fieldsToManage = _a.fieldsToManage, manageMode = _a.manageMode;
         fieldsToManage.forEach(function (field) {
+            var _a, _b;
             var fieldName = field.fieldName;
             var fieldValue = dataToEncrypt[fieldName];
             if (!fieldValue)
@@ -69,6 +70,7 @@ var EncryptionMethods = /** @class */ (function () {
                     switch (isString) {
                         case false:
                             Object.keys(fieldValue).forEach(function (key) {
+                                var _a, _b;
                                 var allowedKeys = ["equals", "not"];
                                 var forbiddenKeys = [
                                     "contains",
@@ -90,24 +92,24 @@ var EncryptionMethods = /** @class */ (function () {
                                 // eslint-disable-next-line no-param-reassign
                                 dataToEncrypt[fieldName][key] =
                                     manageMode === "encrypt"
-                                        ? EncryptionMethods.encryptData({
+                                        ? (_a = EncryptionMethods.encryptData({
                                             stringToEncrypt: dataToEncrypt[fieldName][key],
-                                        })
-                                        : EncryptionMethods.decryptData({
+                                        })) === null || _a === void 0 ? void 0 : _a.encryptedString
+                                        : (_b = EncryptionMethods.decryptData({
                                             stringToDecrypt: dataToEncrypt[fieldName][key],
-                                        });
+                                        })) === null || _b === void 0 ? void 0 : _b.decryptedString;
                             });
                             break;
                         case true:
                             // eslint-disable-next-line no-param-reassign
                             dataToEncrypt[fieldName] =
                                 manageMode === "encrypt"
-                                    ? EncryptionMethods.encryptData({
+                                    ? (_a = EncryptionMethods.encryptData({
                                         stringToEncrypt: dataToEncrypt[fieldName],
-                                    })
-                                    : EncryptionMethods.decryptData({
+                                    })) === null || _a === void 0 ? void 0 : _a.encryptedString
+                                    : (_b = EncryptionMethods.decryptData({
                                         stringToDecrypt: dataToEncrypt[fieldName],
-                                    });
+                                    })) === null || _b === void 0 ? void 0 : _b.decryptedString;
                             break;
                         default:
                     }
@@ -115,13 +117,14 @@ var EncryptionMethods = /** @class */ (function () {
                 case true:
                     // eslint-disable-next-line no-param-reassign
                     dataToEncrypt[fieldName] = dataToEncrypt[fieldName].map(function (item) {
+                        var _a, _b;
                         return manageMode === "encrypt"
-                            ? EncryptionMethods.encryptData({
+                            ? (_a = EncryptionMethods.encryptData({
                                 stringToEncrypt: item,
-                            })
-                            : EncryptionMethods.decryptData({
+                            })) === null || _a === void 0 ? void 0 : _a.encryptedString
+                            : (_b = EncryptionMethods.decryptData({
                                 stringToDecrypt: item,
-                            });
+                            })) === null || _b === void 0 ? void 0 : _b.decryptedString;
                     });
                     break;
                 default:
