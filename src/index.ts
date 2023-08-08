@@ -103,10 +103,12 @@ generatorHandler({
         const modelExists = result[0]?.exists;
 
         if (modelExists) {
-            logger.info('A tabela "_migrate_encryption" já existe no banco.');
+            logger.info(
+                "The table `_migrate_encryption` already exists in the database.",
+            );
         } else {
             logger.info(
-                'A tabela "_migrate_encryption" ainda não existe no banco.',
+                "The table `_migrate_encryption` does not yet exist in the database.",
             );
 
             const schemaPath = resolve(
@@ -117,7 +119,7 @@ generatorHandler({
             );
             logger.info("Schema Path:", schemaPath);
             try {
-                logger.info("Sincronizando schema do banco...");
+                logger.info("Synchronizing database schema...");
                 execSync(`npx prisma db pull --schema=${schemaPath}`);
 
                 const modelMigrateEncryption = `\nmodel migrate_encryption {
@@ -137,14 +139,14 @@ generatorHandler({
                 execSync(
                     `npx prisma db push --skip-generate --schema=${schemaPath}`,
                 );
-                logger.info("Sincronização finalizada com sucesso.");
+                logger.info("Synchronization completed successfully.");
             } catch (error) {
                 logger.error(
-                    "Erro ao executar o comando prisma db push/pull:",
+                    "Error when executing `prisma db push/pull` command:",
                     error,
                 );
                 logger.info(
-                    "Este comando utiliza a variável de ambiente PRISMA_WRITE caso não exista uma propriedade `var_env_url` no generator do schema.prisma",
+                    "This command uses the `PRISMA_WRITE` environment variable if there is no `var_env_url` property in the generator of schema.prisma",
                 );
                 process.exit(1);
             }
@@ -156,31 +158,24 @@ generatorHandler({
                 Prisma.sql`SELECT * FROM "_migrate_encryption" ORDER BY "created_at" DESC LIMIT 1;`,
             );
 
-            logger.info(
-                "Registro mais recente:",
-                latestMigration[0]?.created_at,
-            );
+            logger.info("Most recent record:", latestMigration[0]?.created_at);
         } catch (error) {
-            logger.error("Erro ao buscar o registro mais recente:", error);
+            logger.error("Error fetching the most recent record:", error);
             process.exit(1);
         }
 
         // Verificar o token e obter os dados originais
         try {
             const newToken = sign(newEncryptedModels, "prisma-crypto-secret");
-            logger.info("newToken:", newToken);
+            logger.info("newToken:", newToken); //remover
 
             let lastEncryptedModels: EncryptedModels;
             if (latestMigration[0]) {
-                console.log(
-                    "latestMigration[0]?.token:",
-                    latestMigration[0]?.token,
-                );
                 lastEncryptedModels = verify(
                     latestMigration[0]?.token,
                     "prisma-crypto-secret",
                 ) as EncryptedModels;
-                logger.info("Last Token Content:", lastEncryptedModels);
+                logger.info("Last Token Content:", lastEncryptedModels); //remover
             }
 
             const { add_encryption, remove_encryption } = Object.keys(
@@ -212,13 +207,21 @@ generatorHandler({
                     remove_encryption: [] as String[],
                 },
             );
-            console.log("add_encryption:", add_encryption);
-            console.log("remove_encryption:", remove_encryption);
 
-            const newMigration = await prisma.$queryRaw<MigrateEncryption>(
-                Prisma.sql`INSERT INTO "_migrate_encryption" ("token", "add_encryption", "remove_encryption") VALUES (${newToken}, ${add_encryption}, ${remove_encryption}) RETURNING *;`,
-            );
-            console.log("newMigration:", newMigration);
+            const hasChanges =
+                add_encryption.length || remove_encryption.length;
+
+            if (hasChanges) {
+                const newMigration = await prisma.$queryRaw<MigrateEncryption>(
+                    Prisma.sql`INSERT INTO "_migrate_encryption" ("token", "add_encryption", "remove_encryption") VALUES (${newToken}, ${add_encryption}, ${remove_encryption}) RETURNING *;`,
+                );
+                logger.info("newMigration:", newMigration); //remover
+                logger.info("Added Encryption:", newMigration?.add_encryption);
+                logger.info(
+                    "Removed Encryption:",
+                    newMigration?.remove_encryption,
+                );
+            }
         } catch (error) {
             logger.error("Erro ao verificar o token:", error);
             process.exit(1);
