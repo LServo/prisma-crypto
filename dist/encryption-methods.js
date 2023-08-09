@@ -234,7 +234,7 @@ var EncryptionMethods = /** @class */ (function () {
     EncryptionMethods.managingDatabaseEncryption = function (fields, fieldsDbName, action) {
         var _a, _b, _c;
         return __awaiter(this, void 0, void 0, function () {
-            var actualField, actualFieldDbName, _d, tableName, columnName, tableNameDbname, result, columnExists, columnType, columnDataType, isArrayColumn, isTextColumn, getModelPrimaryKey, primaryKeyColumnName, allEntries;
+            var actualField, actualFieldDbName, _d, schemaTableName, columnName, dbTableName, result, columnExists, columnType, columnDataType, isArrayColumn, isTextColumn, getModelPrimaryKey, primaryKeyColumnName, allEntries;
             var _e;
             return __generator(this, function (_f) {
                 switch (_f.label) {
@@ -245,23 +245,23 @@ var EncryptionMethods = /** @class */ (function () {
                         actualFieldDbName = fieldsDbName.shift();
                         if (!actualField)
                             return [2 /*return*/];
-                        _d = actualField.split("."), tableName = _d[0], columnName = _d[1];
-                        tableNameDbname = actualFieldDbName.split(".")[0];
+                        _d = actualField.split("."), schemaTableName = _d[0], columnName = _d[1];
+                        dbTableName = actualFieldDbName.split(".")[0];
                         return [4 /*yield*/, prisma_client_1.prisma
-                                .$queryRaw(client_1.Prisma.sql(templateObject_1 || (templateObject_1 = __makeTemplateObject(["SELECT EXISTS (\n                    SELECT FROM information_schema.columns\n                    WHERE table_name = ", "\n                    AND column_name = ", "\n                    ) AS \"exists\""], ["SELECT EXISTS (\n                    SELECT FROM information_schema.columns\n                    WHERE table_name = ", "\n                    AND column_name = ", "\n                    ) AS \"exists\""])), tableNameDbname, columnName))
+                                .$queryRaw(client_1.Prisma.sql(templateObject_1 || (templateObject_1 = __makeTemplateObject(["SELECT EXISTS (\n                    SELECT FROM information_schema.columns\n                    WHERE table_name = ", "\n                    AND column_name = ", "\n                    ) AS \"exists\""], ["SELECT EXISTS (\n                    SELECT FROM information_schema.columns\n                    WHERE table_name = ", "\n                    AND column_name = ", "\n                    ) AS \"exists\""])), dbTableName, columnName))
                                 .catch(function (error) {
-                                throw new Error("Error when executing the query to check if the column ".concat(tableNameDbname, ".").concat(columnName, " exists: ").concat(error));
+                                throw new Error("Error when executing the query to check if the column ".concat(dbTableName, ".").concat(columnName, " exists: ").concat(error));
                             })];
                     case 1:
                         result = _f.sent();
                         columnExists = (_a = result[0]) === null || _a === void 0 ? void 0 : _a.exists;
                         if (!columnExists) {
-                            throw new Error("The column ".concat(tableNameDbname, ".").concat(columnName, " does not exists in the database."));
+                            throw new Error("The column ".concat(dbTableName, ".").concat(columnName, " does not exists in the database."));
                         }
                         return [4 /*yield*/, prisma_client_1.prisma
-                                .$queryRaw(client_1.Prisma.sql(templateObject_2 || (templateObject_2 = __makeTemplateObject(["SELECT data_type FROM information_schema.columns WHERE table_name = ", " AND column_name = ", ";"], ["SELECT data_type FROM information_schema.columns WHERE table_name = ", " AND column_name = ", ";"])), tableNameDbname, columnName))
+                                .$queryRaw(client_1.Prisma.sql(templateObject_2 || (templateObject_2 = __makeTemplateObject(["SELECT data_type FROM information_schema.columns WHERE table_name = ", " AND column_name = ", ";"], ["SELECT data_type FROM information_schema.columns WHERE table_name = ", " AND column_name = ", ";"])), dbTableName, columnName))
                                 .catch(function (error) {
-                                throw new Error("Error when executing the query to get the column type of ".concat(tableNameDbname, ".").concat(columnName, ": ").concat(error));
+                                throw new Error("Error when executing the query to get the column type of ".concat(dbTableName, ".").concat(columnName, ": ").concat(error));
                             })];
                     case 2:
                         columnType = _f.sent();
@@ -269,25 +269,25 @@ var EncryptionMethods = /** @class */ (function () {
                         isArrayColumn = columnDataType === "ARRAY";
                         isTextColumn = columnDataType === "text";
                         if (!isTextColumn && !isArrayColumn) {
-                            throw new Error("The column ".concat(tableNameDbname, ".").concat(columnName, " is not of type \"text\"."));
+                            throw new Error("The column ".concat(dbTableName, ".").concat(columnName, " is not of type \"text\"."));
                         }
                         return [4 /*yield*/, prisma_client_1.prisma
-                                .$queryRaw(client_1.Prisma.sql(templateObject_3 || (templateObject_3 = __makeTemplateObject(["SELECT column_name FROM information_schema.key_column_usage WHERE table_name = ", " AND constraint_name = ", ";"], ["SELECT column_name FROM information_schema.key_column_usage WHERE table_name = ", " AND constraint_name = ", ";"])), tableNameDbname, tableNameDbname + "_pkey"))
+                                .$queryRaw(client_1.Prisma.sql(templateObject_3 || (templateObject_3 = __makeTemplateObject(["SELECT column_name FROM information_schema.key_column_usage WHERE table_name = ", " AND constraint_name = ", ";"], ["SELECT column_name FROM information_schema.key_column_usage WHERE table_name = ", " AND constraint_name = ", ";"])), dbTableName, dbTableName + "_pkey"))
                                 .catch(function (error) {
-                                throw new Error("Error when executing the query to get the primary key of ".concat(tableNameDbname, ": ").concat(error));
+                                throw new Error("Error when executing the query to get the primary key of ".concat(dbTableName, ": ").concat(error));
                             })];
                     case 3:
                         getModelPrimaryKey = _f.sent();
                         primaryKeyColumnName = (_c = getModelPrimaryKey[0]) === null || _c === void 0 ? void 0 : _c.column_name;
-                        console.log("tableName:", tableName);
+                        console.log("schemaTableName:", schemaTableName);
                         console.log("primaryKeyColumnName:", primaryKeyColumnName);
                         console.log("columnName:", columnName);
-                        return [4 /*yield*/, prisma_client_1.prisma[tableName]
+                        return [4 /*yield*/, prisma_client_1.prisma[schemaTableName]
                                 .findMany({
                                 select: (_e = {}, _e[primaryKeyColumnName] = true, _e[columnName] = true, _e),
                             })
                                 .catch(function (error) {
-                                throw new Error("Error when executing the query to get all entries of ".concat(tableName, ": ").concat(error));
+                                throw new Error("Error when executing the query to get all entries of ".concat(schemaTableName, ": ").concat(error));
                             })];
                     case 4:
                         allEntries = _f.sent();

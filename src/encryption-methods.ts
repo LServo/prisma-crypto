@@ -260,20 +260,20 @@ class EncryptionMethods implements PrismaCrypto.EncryptionMethods {
         const actualFieldDbName = fieldsDbName.shift();
         if (!actualField) return;
 
-        const [tableName, columnName] = actualField.split(".");
-        const [tableNameDbname] = actualFieldDbName.split(".");
+        const [schemaTableName, columnName] = actualField.split(".");
+        const [dbTableName] = actualFieldDbName.split(".");
 
         const result = await prisma
             .$queryRaw(
                 Prisma.sql`SELECT EXISTS (
                     SELECT FROM information_schema.columns
-                    WHERE table_name = ${tableNameDbname}
+                    WHERE table_name = ${dbTableName}
                     AND column_name = ${columnName}
                     ) AS "exists"`,
             )
             .catch((error) => {
                 throw new Error(
-                    `Error when executing the query to check if the column ${tableNameDbname}.${columnName} exists: ${error}`,
+                    `Error when executing the query to check if the column ${dbTableName}.${columnName} exists: ${error}`,
                 );
             });
 
@@ -281,17 +281,17 @@ class EncryptionMethods implements PrismaCrypto.EncryptionMethods {
 
         if (!columnExists) {
             throw new Error(
-                `The column ${tableNameDbname}.${columnName} does not exists in the database.`,
+                `The column ${dbTableName}.${columnName} does not exists in the database.`,
             );
         }
 
         const columnType = await prisma
             .$queryRaw(
-                Prisma.sql`SELECT data_type FROM information_schema.columns WHERE table_name = ${tableNameDbname} AND column_name = ${columnName};`,
+                Prisma.sql`SELECT data_type FROM information_schema.columns WHERE table_name = ${dbTableName} AND column_name = ${columnName};`,
             )
             .catch((error) => {
                 throw new Error(
-                    `Error when executing the query to get the column type of ${tableNameDbname}.${columnName}: ${error}`,
+                    `Error when executing the query to get the column type of ${dbTableName}.${columnName}: ${error}`,
                 );
             });
 
@@ -301,37 +301,37 @@ class EncryptionMethods implements PrismaCrypto.EncryptionMethods {
 
         if (!isTextColumn && !isArrayColumn) {
             throw new Error(
-                `The column ${tableNameDbname}.${columnName} is not of type "text".`,
+                `The column ${dbTableName}.${columnName} is not of type "text".`,
             );
         }
 
         const getModelPrimaryKey = await prisma
             .$queryRaw(
-                Prisma.sql`SELECT column_name FROM information_schema.key_column_usage WHERE table_name = ${tableNameDbname} AND constraint_name = ${
-                    tableNameDbname + "_pkey"
+                Prisma.sql`SELECT column_name FROM information_schema.key_column_usage WHERE table_name = ${dbTableName} AND constraint_name = ${
+                    dbTableName + "_pkey"
                 };`,
             )
             .catch((error) => {
                 throw new Error(
-                    `Error when executing the query to get the primary key of ${tableNameDbname}: ${error}`,
+                    `Error when executing the query to get the primary key of ${dbTableName}: ${error}`,
                 );
             });
 
         /**
-         * As queries utilizando a api do prisma precisam ser com o nome do model que foi escrito no schema.prisma, por isso, daqui pra baixo não utilizaremos o tableNameDbname, mas sim o tableName
+         * As queries utilizando a api do prisma precisam ser com o nome do model que foi escrito no schema.prisma, por isso, daqui pra baixo não utilizaremos o dbTableName, mas sim o schemaTableName
          */
         const primaryKeyColumnName = getModelPrimaryKey[0]?.column_name;
-        console.log("tableName:", tableName);
+        console.log("schemaTableName:", schemaTableName);
         console.log("primaryKeyColumnName:", primaryKeyColumnName);
         console.log("columnName:", columnName);
 
-        const allEntries = await prisma[tableName]
+        const allEntries = await prisma[schemaTableName]
             .findMany({
                 select: { [primaryKeyColumnName]: true, [columnName]: true },
             })
             .catch((error) => {
                 throw new Error(
-                    `Error when executing the query to get all entries of ${tableName}: ${error}`,
+                    `Error when executing the query to get all entries of ${schemaTableName}: ${error}`,
                 );
             });
         console.log("allEntries:", allEntries);
