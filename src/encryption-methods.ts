@@ -251,26 +251,29 @@ class EncryptionMethods implements PrismaCrypto.EncryptionMethods {
 
     static async managingDatabaseEncryption(
         fields: String[],
+        fieldsDbName: String[],
         action: "add" | "remove",
     ): Promise<void> {
         console.log("action:", action);
         console.log("index:", fields.length);
         const actualField = fields.shift();
+        const actualFieldDbName = fieldsDbName.shift();
         if (!actualField) return;
 
         const [tableName, columnName] = actualField.split(".");
+        const [tableNameDbname] = actualFieldDbName.split(".");
 
         const result = await prisma
             .$queryRaw(
                 Prisma.sql`SELECT EXISTS (
                     SELECT FROM information_schema.columns
-                    WHERE table_name = ${tableName}
+                    WHERE table_name = ${tableNameDbname}
                     AND column_name = ${columnName}
                     ) AS "exists"`,
             )
             .catch((error) => {
                 throw new Error(
-                    `Error when executing the query to check if the column ${tableName}.${columnName} exists: ${error}`,
+                    `Error when executing the query to check if the column ${tableNameDbname}.${columnName} exists: ${error}`,
                 );
             });
 
@@ -278,17 +281,17 @@ class EncryptionMethods implements PrismaCrypto.EncryptionMethods {
 
         if (!columnExists) {
             throw new Error(
-                `The column ${tableName}.${columnName} does not exists in the database.`,
+                `The column ${tableNameDbname}.${columnName} does not exists in the database.`,
             );
         }
 
         const columnType = await prisma
             .$queryRaw(
-                Prisma.sql`SELECT data_type FROM information_schema.columns WHERE table_name = ${tableName} AND column_name = ${columnName};`,
+                Prisma.sql`SELECT data_type FROM information_schema.columns WHERE table_name = ${tableNameDbname} AND column_name = ${columnName};`,
             )
             .catch((error) => {
                 throw new Error(
-                    `Error when executing the query to get the column type of ${tableName}.${columnName}: ${error}`,
+                    `Error when executing the query to get the column type of ${tableNameDbname}.${columnName}: ${error}`,
                 );
             });
 
@@ -298,22 +301,25 @@ class EncryptionMethods implements PrismaCrypto.EncryptionMethods {
 
         if (!isTextColumn && !isArrayColumn) {
             throw new Error(
-                `The column ${tableName}.${columnName} is not of type "text".`,
+                `The column ${tableNameDbname}.${columnName} is not of type "text".`,
             );
         }
 
         const getModelPrimaryKey = await prisma
             .$queryRaw(
-                Prisma.sql`SELECT column_name FROM information_schema.key_column_usage WHERE table_name = ${tableName} AND constraint_name = ${
-                    tableName + "_pkey"
+                Prisma.sql`SELECT column_name FROM information_schema.key_column_usage WHERE table_name = ${tableNameDbname} AND constraint_name = ${
+                    tableNameDbname + "_pkey"
                 };`,
             )
             .catch((error) => {
                 throw new Error(
-                    `Error when executing the query to get the primary key of ${tableName}: ${error}`,
+                    `Error when executing the query to get the primary key of ${tableNameDbname}: ${error}`,
                 );
             });
 
+        /**
+         * As queries utilizando a api do prisma precisam ser com o nome do model que foi escrito no schema.prisma, por isso, daqui pra baixo não utilizaremos o tableNameDbname, mas sim o tableName
+         */
         const primaryKeyColumnName = getModelPrimaryKey[0]?.column_name;
         console.log("tableName:", tableName);
         console.log("primaryKeyColumnName:", primaryKeyColumnName);
@@ -331,7 +337,7 @@ class EncryptionMethods implements PrismaCrypto.EncryptionMethods {
         console.log("allEntries:", allEntries);
 
         if (fields.length > 0)
-            await this.managingDatabaseEncryption(fields, "add");
+            await this.managingDatabaseEncryption(fields, fieldsDbName, "add");
 
         // modificar todos os registros da coluna criptografando um a um utilizando o método `EncryptionMethods.encryptData`
         // prisma.$transaction(

@@ -22,7 +22,10 @@ export { prisma } from "./prisma-client";
 function findEncryptFields(
     filePath: string,
     modelsInfo: DMMF.Model[],
-): PrismaCrypto.PrismaEncryptModels {
+): {
+    modelsEncryptedFields: PrismaCrypto.PrismaEncryptModels;
+    modelsEncryptedFieldsDbName: PrismaCrypto.PrismaEncryptModels;
+} {
     const fileContent = fs.readFileSync(filePath, "utf-8");
     const lines = fileContent.split("\n");
 
@@ -30,14 +33,20 @@ function findEncryptFields(
     const modelRegex = /^\s*model\s+(\w+)/;
 
     const modelsEncryptedFields = {} satisfies PrismaCrypto.PrismaEncryptModels;
+    const modelsEncryptedFieldsDbName =
+        {} satisfies PrismaCrypto.PrismaEncryptModels;
 
     let currentModel: string = null;
+    let currentModelDbName: string = null;
 
     lines.forEach((line) => {
         const modelMatch = line.match(modelRegex);
         if (modelMatch) {
             [, currentModel] = modelMatch;
-            currentModel = getDbName({ modelName: currentModel, modelsInfo });
+            currentModelDbName = getDbName({
+                modelName: currentModel,
+                modelsInfo,
+            });
         }
 
         const commentMatch = line.match(commentRegex);
@@ -53,12 +62,18 @@ function findEncryptFields(
 
             if (!modelsEncryptedFields[currentModel])
                 modelsEncryptedFields[currentModel] = [];
+            if (!modelsEncryptedFields[currentModelDbName])
+                modelsEncryptedFields[currentModelDbName] = [];
 
             modelsEncryptedFields[currentModel].push({ fieldName, typeName });
+            modelsEncryptedFields[currentModelDbName].push({
+                fieldName,
+                typeName,
+            });
         }
     });
 
-    return modelsEncryptedFields;
+    return { modelsEncryptedFields, modelsEncryptedFieldsDbName };
 }
 
 // função que recebe um nome de model do schema.prisma e retorna o nome do model no banco de dados
@@ -90,7 +105,10 @@ generatorHandler({
         };
     },
     async onGenerate(options: GeneratorOptions) {
-        const newEncryptedModels = findEncryptFields(
+        const {
+            modelsEncryptedFields: newEncryptedModels,
+            modelsEncryptedFieldsDbName: newEncryptedModelsDbName,
+        } = findEncryptFields(
             options.schemaPath,
             options.dmmf.datamodel.models,
         );
@@ -173,45 +191,70 @@ generatorHandler({
         }
 
         try {
-            const newToken = sign(newEncryptedModels, "prisma-crypto-secret");
+            const newToken = sign(
+                {
+                    encryptedModels: newEncryptedModels,
+                    encryptedModelsDbName: newEncryptedModelsDbName,
+                },
+                "prisma-crypto-secret",
+            );
 
-            let lastEncryptedModels: PrismaCrypto.PrismaEncryptModels;
+            let lastEncryptedModels: {
+                encryptedModels: PrismaCrypto.PrismaEncryptModels;
+                encryptedModelsDbName: PrismaCrypto.PrismaEncryptModels;
+            };
             if (latestMigration[0]) {
                 lastEncryptedModels = verify(
                     latestMigration[0]?.token,
                     "prisma-crypto-secret",
-                ) as PrismaCrypto.PrismaEncryptModels;
+                ) as {
+                    encryptedModels: PrismaCrypto.PrismaEncryptModels;
+                    encryptedModelsDbName: PrismaCrypto.PrismaEncryptModels;
+                };
             }
 
-            const { add_encryption, remove_encryption } = Object.keys(
-                newEncryptedModels,
-            ).reduce(
-                (acc, curr) => {
-                    let newFields = newEncryptedModels[curr]?.map(
-                        (field) => `${curr}.${field.fieldName}`,
-                    );
-                    const lastFields =
-                        lastEncryptedModels?.[curr]?.map(
+            const getEncryptionChanges = (
+                newModels: PrismaCrypto.PrismaEncryptModels,
+                oldModels: PrismaCrypto.PrismaEncryptModels,
+            ) =>
+                Object.keys(newModels).reduce(
+                    (acc, curr) => {
+                        const newFields = newModels[curr]?.map(
                             (field) => `${curr}.${field.fieldName}`,
-                        ) || [];
+                        );
+                        const lastFields =
+                            oldModels[curr]?.map(
+                                (field) => `${curr}.${field.fieldName}`,
+                            ) || [];
 
-                    const fieldsToAdd = newFields.filter(
-                        (field) => !lastFields.includes(field),
-                    );
-                    acc.add_encryption.push(...fieldsToAdd);
+                        const fieldsToAdd = newFields.filter(
+                            (field) => !lastFields.includes(field),
+                        );
+                        acc.add_encryption.push(...fieldsToAdd);
 
-                    const fieldsToRemove = lastFields.filter(
-                        (field) => !newFields.includes(field),
-                    );
-                    acc.remove_encryption.push(...fieldsToRemove);
+                        const fieldsToRemove = lastFields.filter(
+                            (field) => !newFields.includes(field),
+                        );
+                        acc.remove_encryption.push(...fieldsToRemove);
 
-                    return acc;
-                },
-                {
-                    add_encryption: [] as String[],
-                    remove_encryption: [] as String[],
-                },
+                        return acc;
+                    },
+                    {
+                        add_encryption: [] as String[],
+                        remove_encryption: [] as String[],
+                    },
+                );
+
+            const { add_encryption, remove_encryption } = getEncryptionChanges(
+                newEncryptedModels,
+                lastEncryptedModels?.encryptedModels,
             );
+
+            const { add_encryption: add_encryption_db_name } =
+                getEncryptionChanges(
+                    newEncryptedModelsDbName,
+                    lastEncryptedModels?.encryptedModelsDbName,
+                );
 
             const hasChanges =
                 add_encryption.length || remove_encryption.length;
@@ -225,9 +268,14 @@ generatorHandler({
                 try {
                     const deepClonedAddEncryption = JSON.parse(
                         JSON.stringify(add_encryption),
-                    );
+                    ) as String[];
+                    const deepClonedAddEncryptionDbName = JSON.parse(
+                        JSON.stringify(add_encryption_db_name),
+                    ) as String[];
+
                     await EncryptionMethods.managingDatabaseEncryption(
                         deepClonedAddEncryption,
+                        deepClonedAddEncryptionDbName,
                         "add",
                     );
                 } catch (error) {
