@@ -223,6 +223,9 @@ generatorHandler({
                 // criar função para aplicar ou remover a criptografia com base add_encryption e remove_encryption
 
                 try {
+                    const deepClonedAddEncryption = JSON.parse(
+                        JSON.stringify(add_encryption),
+                    );
                     await EncryptionMethods.managingDatabaseEncryption(
                         add_encryption,
                         "add",

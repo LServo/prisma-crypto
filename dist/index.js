@@ -107,7 +107,7 @@ var getDbName = function (_a) {
     onGenerate: function (options) {
         var _a, _b, _c, _d, _e, _f, _g;
         return __awaiter(this, void 0, void 0, function () {
-            var newEncryptedModels, executionUrl, result, modelExists, schemaPath, modelMigrateEncryption, latestMigration, error_1, newToken, lastEncryptedModels_1, _h, add_encryption, remove_encryption, hasChanges, error_2, newMigration, error_3, encryptedModelsFilePath, newEncryptedModelsJSON, readEncryptedModelsFile, parseToString, addModels;
+            var newEncryptedModels, executionUrl, result, modelExists, schemaPath, modelMigrateEncryption, latestMigration, error_1, newToken, lastEncryptedModels_1, _h, add_encryption, remove_encryption, hasChanges, deepClonedAddEncryption, error_2, newMigration, error_3, encryptedModelsFilePath, newEncryptedModelsJSON, readEncryptedModelsFile, parseToString, addModels;
             return __generator(this, function (_j) {
                 switch (_j.label) {
                     case 0:
@@ -181,6 +181,7 @@ var getDbName = function (_a) {
                         _j.label = 6;
                     case 6:
                         _j.trys.push([6, 8, , 9]);
+                        deepClonedAddEncryption = JSON.parse(JSON.stringify(add_encryption));
                         return [4 /*yield*/, encryption_methods_1.EncryptionMethods.managingDatabaseEncryption(add_encryption, "add")];
                     case 7:
                         _j.sent();

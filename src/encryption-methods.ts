@@ -254,104 +254,103 @@ class EncryptionMethods implements PrismaCrypto.EncryptionMethods {
         action: "add" | "remove",
     ): Promise<void> {
         console.log("action:", action);
-        const fieldsToManage = fields.map((field) => {
-            const [model, fieldName] = field.split(".");
-            return { model, fieldName };
-        });
+        console.log("index:", fields.length);
+        const actualField = fields.shift();
+        if (!actualField) return;
 
-        fieldsToManage.forEach(async (field, index) => {
-            console.log("index:", index);
-            const { model: tableName, fieldName: columnName } = field;
+        const [tableName, columnName] = actualField.split(".");
 
-            const result = await prisma
-                .$queryRaw(
-                    Prisma.sql`SELECT EXISTS (
+        const result = await prisma
+            .$queryRaw(
+                Prisma.sql`SELECT EXISTS (
                     SELECT FROM information_schema.columns
                     WHERE table_name = ${tableName}
                     AND column_name = ${columnName}
                     ) AS "exists"`,
-                )
-                .catch((error) => {
-                    throw new Error(
-                        `Error when executing the query to check if the column ${tableName}.${columnName} exists: ${error}`,
-                    );
-                });
-
-            const columnExists = result[0]?.exists;
-
-            if (!columnExists) {
+            )
+            .catch((error) => {
                 throw new Error(
-                    `The column ${tableName}.${columnName} does not exists in the database.`,
+                    `Error when executing the query to check if the column ${tableName}.${columnName} exists: ${error}`,
                 );
-            }
+            });
 
-            const columnType = await prisma
-                .$queryRaw(
-                    Prisma.sql`SELECT data_type FROM information_schema.columns WHERE table_name = ${tableName} AND column_name = ${columnName};`,
-                )
-                .catch((error) => {
-                    throw new Error(
-                        `Error when executing the query to get the column type of ${tableName}.${columnName}: ${error}`,
-                    );
-                });
+        const columnExists = result[0]?.exists;
 
-            const columnDataType = columnType[0]?.data_type;
-            const isArrayColumn = columnDataType === "ARRAY";
-            const isTextColumn = columnDataType === "text";
+        if (!columnExists) {
+            throw new Error(
+                `The column ${tableName}.${columnName} does not exists in the database.`,
+            );
+        }
 
-            if (!isTextColumn && !isArrayColumn) {
+        const columnType = await prisma
+            .$queryRaw(
+                Prisma.sql`SELECT data_type FROM information_schema.columns WHERE table_name = ${tableName} AND column_name = ${columnName};`,
+            )
+            .catch((error) => {
                 throw new Error(
-                    `The column ${tableName}.${columnName} is not of type "text".`,
+                    `Error when executing the query to get the column type of ${tableName}.${columnName}: ${error}`,
                 );
-            }
-            // encontre a primary key da tabela
-            console.log(
-                "Prisma.sql: getModelPrimaryKey:",
-                `SELECT column_name FROM information_schema.key_column_usage WHERE table_name = '${tableName}' AND constraint_name = '${tableName}_pkey';`,
+            });
+
+        const columnDataType = columnType[0]?.data_type;
+        const isArrayColumn = columnDataType === "ARRAY";
+        const isTextColumn = columnDataType === "text";
+
+        if (!isTextColumn && !isArrayColumn) {
+            throw new Error(
+                `The column ${tableName}.${columnName} is not of type "text".`,
             );
-            const getModelPrimaryKey = await prisma
-                .$queryRaw(
-                    Prisma.sql`SELECT column_name FROM information_schema.key_column_usage WHERE table_name = '${tableName}' AND constraint_name = '${tableName}_pkey';`,
-                )
-                .catch((error) => {
-                    throw new Error(
-                        `Error when executing the query to get the primary key of ${tableName}: ${error}`,
-                    );
-                });
-            console.log("getModelPrimaryKey:", getModelPrimaryKey);
+        }
+        // encontre a primary key da tabela
+        console.log(
+            "Prisma.sql: getModelPrimaryKey:",
+            `SELECT column_name FROM information_schema.key_column_usage WHERE table_name = '${tableName}' AND constraint_name = '${tableName}_pkey';`,
+        );
+        const getModelPrimaryKey = await prisma
+            .$queryRaw(
+                Prisma.sql`SELECT column_name FROM information_schema.key_column_usage WHERE table_name = '${tableName}' AND constraint_name = '${tableName}_pkey';`,
+            )
+            .catch((error) => {
+                throw new Error(
+                    `Error when executing the query to get the primary key of ${tableName}: ${error}`,
+                );
+            });
+        console.log("getModelPrimaryKey:", getModelPrimaryKey);
 
-            const primaryKeyColumnName = getModelPrimaryKey[0]?.column_name;
-            console.log("primaryKeyColumnName:", primaryKeyColumnName);
+        const primaryKeyColumnName = getModelPrimaryKey[0]?.column_name;
+        console.log("primaryKeyColumnName:", primaryKeyColumnName);
 
-            // modificar todos os registros da coluna criptografando um a um utilizando o método `EncryptionMethods.encryptData`
-            console.log(
-                "Prisma.sql: allEntries:",
-                `SELECT ${primaryKeyColumnName}, ${columnName} FROM ${tableName};`,
-            );
-            const allEntries = await prisma
-                .$queryRaw(
-                    Prisma.sql`SELECT ${primaryKeyColumnName}, ${columnName} FROM ${tableName};`,
-                )
-                .catch((error) => {
-                    throw new Error(
-                        `Error when executing the query to get all entries of ${tableName}: ${error}`,
-                    );
-                });
-            console.log("allEntries:", allEntries);
+        console.log(
+            "Prisma.sql: allEntries:",
+            `SELECT ${primaryKeyColumnName}, ${columnName} FROM ${tableName};`,
+        );
+        const allEntries = await prisma
+            .$queryRaw(
+                Prisma.sql`SELECT ${primaryKeyColumnName}, ${columnName} FROM ${tableName};`,
+            )
+            .catch((error) => {
+                throw new Error(
+                    `Error when executing the query to get all entries of ${tableName}: ${error}`,
+                );
+            });
+        console.log("allEntries:", allEntries);
 
-            // prisma.$transaction(
-            //     allEntries.map((entry) => {
-            //         const { id, [columnName]: value } = entry;
-            //         const encryptedValue = EncryptionMethods.encryptData({
-            //             stringToEncrypt: value,
-            //         })?.encryptedString;
+        if (fields.length > 0)
+            await this.managingDatabaseEncryption(fields, "add");
 
-            //         return prisma.$queryRaw(
-            //             Prisma.sql`UPDATE ${tableName} SET ${columnName} = ${encryptedValue} WHERE ${primaryKeyColumnName} = ${id};`,
-            //         );
-            //     }),
-            // );
-        });
+        // modificar todos os registros da coluna criptografando um a um utilizando o método `EncryptionMethods.encryptData`
+        // prisma.$transaction(
+        //     allEntries.map((entry) => {
+        //         const { id, [columnName]: value } = entry;
+        //         const encryptedValue = EncryptionMethods.encryptData({
+        //             stringToEncrypt: value,
+        //         })?.encryptedString;
+
+        //         return prisma.$queryRaw(
+        //             Prisma.sql`UPDATE ${tableName} SET ${columnName} = ${encryptedValue} WHERE ${primaryKeyColumnName} = ${id};`,
+        //         );
+        //     }),
+        // );
     }
 }
 
