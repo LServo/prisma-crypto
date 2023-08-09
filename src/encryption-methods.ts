@@ -259,6 +259,7 @@ class EncryptionMethods implements PrismaCrypto.EncryptionMethods {
             const [model, fieldName] = field.split(".");
             return { model, fieldName };
         });
+        console.log("fieldsToManage:", fieldsToManage);
 
         fieldsToManage.forEach(async (field) => {
             const { model: tableName, fieldName: columnName } = field;

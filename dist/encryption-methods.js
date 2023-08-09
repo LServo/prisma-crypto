@@ -242,6 +242,7 @@ var EncryptionMethods = /** @class */ (function () {
                     var _a = field.split("."), model = _a[0], fieldName = _a[1];
                     return { model: model, fieldName: fieldName };
                 });
+                console.log("fieldsToManage:", fieldsToManage);
                 fieldsToManage.forEach(function (field) { return __awaiter(_this, void 0, void 0, function () {
                     var tableName, columnName, result, columnExists, columnType, columnDataType, getModelPrimaryKey, primaryKeyColumnName, allEntries;
                     var _a, _b, _c;

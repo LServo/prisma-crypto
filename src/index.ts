@@ -69,25 +69,16 @@ const getDbName = ({
     modelName: string;
     modelsInfo: DMMF.Model[];
 }): string => {
-    console.log("modelName:", modelName);
-    const findModelInfo = modelsInfo.find((model) => {
-        console.log("model.name:", model.name);
-        return model.name === modelName;
-    });
-    console.log("findModelInfo:", findModelInfo);
+    const findModelInfo = modelsInfo.find((model) => model.name === modelName);
 
     const modelDbName = findModelInfo?.dbName || modelName;
     if (!modelDbName) {
         logger.error(`Model ${modelName} not found in the database.`);
-        process.exit(1); // Encerra o processo com um código de erro (1)
+        process.exit(1);
     }
 
     return modelDbName;
 };
-
-// const convertToJson = (variable: any): string => {
-//     return JSON.stringify(variable, null, 2);
-// };
 
 generatorHandler({
     onManifest() {
@@ -181,7 +172,6 @@ generatorHandler({
             process.exit(1);
         }
 
-        // Verificar o token e obter os dados originais
         try {
             const newToken = sign(newEncryptedModels, "prisma-crypto-secret");
 
@@ -225,10 +215,7 @@ generatorHandler({
 
             const hasChanges =
                 add_encryption.length || remove_encryption.length;
-            console.log("add_encryption.length:", add_encryption.length);
-            console.log("remove_encryption.length:", remove_encryption.length);
 
-            console.log("hasChanges:", hasChanges);
             if (hasChanges) {
                 logger.info("Changes found!");
 
@@ -239,19 +226,19 @@ generatorHandler({
                     add_encryption,
                     "add",
                 );
+
                 logger.info("Saving current state...");
                 const newMigration =
                     await prisma.$queryRaw<PrismaCrypto.MigrateEncryption>(
                         Prisma.sql`INSERT INTO "_migrate_encryption" ("token", "add_encryption", "remove_encryption") VALUES (${newToken}, ${add_encryption}, ${remove_encryption}) RETURNING *;`,
                     );
-                logger.info("newMigration:", newMigration[0]); //remover
                 logger.info(
                     "Added Encryption:",
                     JSON.stringify(newMigration[0]?.add_encryption),
                 );
                 logger.info(
                     "Removed Encryption:",
-                    newMigration[0]?.remove_encryption,
+                    JSON.stringify(newMigration[0]?.remove_encryption),
                 );
             }
         } catch (error) {

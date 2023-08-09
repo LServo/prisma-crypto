@@ -87,22 +87,14 @@ function findEncryptFields(filePath, modelsInfo) {
 // função que recebe um nome de model do schema.prisma e retorna o nome do model no banco de dados
 var getDbName = function (_a) {
     var modelName = _a.modelName, modelsInfo = _a.modelsInfo;
-    console.log("modelName:", modelName);
-    var findModelInfo = modelsInfo.find(function (model) {
-        console.log("model.name:", model.name);
-        return model.name === modelName;
-    });
-    console.log("findModelInfo:", findModelInfo);
+    var findModelInfo = modelsInfo.find(function (model) { return model.name === modelName; });
     var modelDbName = (findModelInfo === null || findModelInfo === void 0 ? void 0 : findModelInfo.dbName) || modelName;
     if (!modelDbName) {
         sdk_1.logger.error("Model ".concat(modelName, " not found in the database."));
-        process.exit(1); // Encerra o processo com um código de erro (1)
+        process.exit(1);
     }
     return modelDbName;
 };
-// const convertToJson = (variable: any): string => {
-//     return JSON.stringify(variable, null, 2);
-// };
 (0, generator_helper_1.generatorHandler)({
     onManifest: function () {
         return {
@@ -183,9 +175,6 @@ var getDbName = function (_a) {
                             remove_encryption: [],
                         }), add_encryption = _h.add_encryption, remove_encryption = _h.remove_encryption;
                         hasChanges = add_encryption.length || remove_encryption.length;
-                        console.log("add_encryption.length:", add_encryption.length);
-                        console.log("remove_encryption.length:", remove_encryption.length);
-                        console.log("hasChanges:", hasChanges);
                         if (!hasChanges) return [3 /*break*/, 8];
                         sdk_1.logger.info("Changes found!");
                         sdk_1.logger.info("Managing encryption...");
@@ -198,9 +187,8 @@ var getDbName = function (_a) {
                         return [4 /*yield*/, prisma_client_1.prisma.$queryRaw(client_1.Prisma.sql(templateObject_3 || (templateObject_3 = __makeTemplateObject(["INSERT INTO \"_migrate_encryption\" (\"token\", \"add_encryption\", \"remove_encryption\") VALUES (", ", ", ", ", ") RETURNING *;"], ["INSERT INTO \"_migrate_encryption\" (\"token\", \"add_encryption\", \"remove_encryption\") VALUES (", ", ", ", ", ") RETURNING *;"])), newToken, add_encryption, remove_encryption))];
                     case 7:
                         newMigration = _j.sent();
-                        sdk_1.logger.info("newMigration:", newMigration[0]); //remover
                         sdk_1.logger.info("Added Encryption:", JSON.stringify((_f = newMigration[0]) === null || _f === void 0 ? void 0 : _f.add_encryption));
-                        sdk_1.logger.info("Removed Encryption:", (_g = newMigration[0]) === null || _g === void 0 ? void 0 : _g.remove_encryption);
+                        sdk_1.logger.info("Removed Encryption:", JSON.stringify((_g = newMigration[0]) === null || _g === void 0 ? void 0 : _g.remove_encryption));
                         _j.label = 8;
                     case 8: return [3 /*break*/, 10];
                     case 9:
