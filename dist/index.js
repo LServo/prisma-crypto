@@ -66,8 +66,10 @@ function findEncryptFields(filePath, modelsInfo) {
     var currentModel = null;
     lines.forEach(function (line) {
         var modelMatch = line.match(modelRegex);
-        if (modelMatch)
+        if (modelMatch) {
             currentModel = modelMatch[1];
+            currentModel = getDbName({ modelName: currentModel, modelsInfo: modelsInfo });
+        }
         var commentMatch = line.match(commentRegex);
         if (commentMatch && currentModel) {
             var _a = line.split(/\s+/).filter(Boolean), fieldName = _a[0], typeName = _a[1];
@@ -75,7 +77,6 @@ function findEncryptFields(filePath, modelsInfo) {
                 sdk_1.logger.error("@encrypt is only supported for String fields. Field ".concat(currentModel, ".").concat(fieldName, " is ").concat(typeName, "."));
                 process.exit(1); // Encerra o processo com um código de erro (1)
             }
-            currentModel = getDbName({ modelName: currentModel, modelsInfo: modelsInfo });
             if (!modelsEncryptedFields[currentModel])
                 modelsEncryptedFields[currentModel] = [];
             modelsEncryptedFields[currentModel].push({ fieldName: fieldName, typeName: typeName });

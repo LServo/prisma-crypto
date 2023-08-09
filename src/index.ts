@@ -35,7 +35,10 @@ function findEncryptFields(
 
     lines.forEach((line) => {
         const modelMatch = line.match(modelRegex);
-        if (modelMatch) [, currentModel] = modelMatch;
+        if (modelMatch) {
+            [, currentModel] = modelMatch;
+            currentModel = getDbName({ modelName: currentModel, modelsInfo });
+        }
 
         const commentMatch = line.match(commentRegex);
         if (commentMatch && currentModel) {
@@ -47,8 +50,6 @@ function findEncryptFields(
                 );
                 process.exit(1); // Encerra o processo com um código de erro (1)
             }
-
-            currentModel = getDbName({ modelName: currentModel, modelsInfo });
 
             if (!modelsEncryptedFields[currentModel])
                 modelsEncryptedFields[currentModel] = [];
