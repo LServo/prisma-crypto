@@ -93,7 +93,7 @@ var getDbName = function (_a) {
         return model.name === modelName;
     });
     console.log("findModelInfo:", findModelInfo);
-    var modelDbName = findModelInfo === null || findModelInfo === void 0 ? void 0 : findModelInfo.dbName;
+    var modelDbName = (findModelInfo === null || findModelInfo === void 0 ? void 0 : findModelInfo.dbName) || modelName;
     if (!modelDbName) {
         sdk_1.logger.error("Model ".concat(modelName, " not found in the database."));
         process.exit(1); // Encerra o processo com um código de erro (1)

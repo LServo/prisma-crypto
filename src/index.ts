@@ -76,7 +76,7 @@ const getDbName = ({
     });
     console.log("findModelInfo:", findModelInfo);
 
-    const modelDbName = findModelInfo?.dbName;
+    const modelDbName = findModelInfo?.dbName || modelName;
     if (!modelDbName) {
         logger.error(`Model ${modelName} not found in the database.`);
         process.exit(1); // Encerra o processo com um código de erro (1)
