@@ -43,7 +43,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.EncryptionMethods = void 0;
 var node_crypto_1 = require("node:crypto");
 var client_1 = require("@prisma/client");
-var sdk_1 = require("@prisma/sdk");
 var prisma_client_1 = require("./prisma-client");
 var EncryptionMethods = /** @class */ (function () {
     function EncryptionMethods() {
@@ -243,39 +242,57 @@ var EncryptionMethods = /** @class */ (function () {
                     return { model: model, fieldName: fieldName };
                 });
                 fieldsToManage.forEach(function (field) { return __awaiter(_this, void 0, void 0, function () {
-                    var tableName, columnName, result, columnExists, columnType, columnDataType, getModelPrimaryKey, primaryKeyColumnName, allEntries;
+                    var tableName, columnName, result, columnExists, columnType, columnDataType, isArrayColumn, isTextColumn, getModelPrimaryKey, primaryKeyColumnName, allEntries;
                     var _a, _b, _c;
                     return __generator(this, function (_d) {
                         switch (_d.label) {
                             case 0:
                                 tableName = field.model, columnName = field.fieldName;
-                                return [4 /*yield*/, prisma_client_1.prisma.$queryRaw(client_1.Prisma.sql(templateObject_1 || (templateObject_1 = __makeTemplateObject(["SELECT EXISTS (\n                    SELECT FROM information_schema.columns\n                    WHERE table_name = ", "\n                    AND column_name = ", "\n                    ) AS \"exists\""], ["SELECT EXISTS (\n                    SELECT FROM information_schema.columns\n                    WHERE table_name = ", "\n                    AND column_name = ", "\n                    ) AS \"exists\""])), tableName, columnName))];
+                                return [4 /*yield*/, prisma_client_1.prisma
+                                        .$queryRaw(client_1.Prisma.sql(templateObject_1 || (templateObject_1 = __makeTemplateObject(["SELECT EXISTS (\n                    SELECT FROM information_schema.columns\n                    WHERE table_name = ", "\n                    AND column_name = ", "\n                    ) AS \"exists\""], ["SELECT EXISTS (\n                    SELECT FROM information_schema.columns\n                    WHERE table_name = ", "\n                    AND column_name = ", "\n                    ) AS \"exists\""])), tableName, columnName))
+                                        .catch(function (error) {
+                                        throw new Error("Error when executing the query to check if the column ".concat(tableName, ".").concat(columnName, " exists: ").concat(error));
+                                    })];
                             case 1:
                                 result = _d.sent();
                                 console.log("result:", result);
                                 columnExists = (_a = result[0]) === null || _a === void 0 ? void 0 : _a.exists;
                                 console.log("columnExists:", columnExists);
                                 if (!columnExists) {
-                                    sdk_1.logger.error("The column ".concat(tableName, ".").concat(columnName, " does not exists in the database."));
-                                    process.exit(1);
+                                    throw new Error("The column ".concat(tableName, ".").concat(columnName, " does not exists in the database."));
                                 }
-                                return [4 /*yield*/, prisma_client_1.prisma.$queryRaw(client_1.Prisma.sql(templateObject_2 || (templateObject_2 = __makeTemplateObject(["SELECT data_type FROM information_schema.columns WHERE table_name = ", " AND column_name = ", ";"], ["SELECT data_type FROM information_schema.columns WHERE table_name = ", " AND column_name = ", ";"])), tableName, columnName))];
+                                return [4 /*yield*/, prisma_client_1.prisma
+                                        .$queryRaw(client_1.Prisma.sql(templateObject_2 || (templateObject_2 = __makeTemplateObject(["SELECT data_type FROM information_schema.columns WHERE table_name = ", " AND column_name = ", ";"], ["SELECT data_type FROM information_schema.columns WHERE table_name = ", " AND column_name = ", ";"])), tableName, columnName))
+                                        .catch(function (error) {
+                                        throw new Error("Error when executing the query to get the column type of ".concat(tableName, ".").concat(columnName, ": ").concat(error));
+                                    })];
                             case 2:
                                 columnType = _d.sent();
                                 console.log("columnType:", columnType);
                                 columnDataType = (_b = columnType[0]) === null || _b === void 0 ? void 0 : _b.data_type;
+                                isArrayColumn = columnDataType === "ARRAY";
+                                console.log("isArrayColumn:", isArrayColumn);
+                                isTextColumn = columnDataType === "text";
+                                console.log("isTextColumn:", isTextColumn);
                                 console.log("columnDataType:", columnDataType);
-                                if (columnDataType !== "text") {
-                                    sdk_1.logger.error("The column ".concat(tableName, ".").concat(columnName, " is not of type \"text\"."));
-                                    process.exit(1);
+                                if (!isTextColumn && !isArrayColumn) {
+                                    throw new Error("The column ".concat(tableName, ".").concat(columnName, " is not of type \"text\"."));
                                 }
-                                return [4 /*yield*/, prisma_client_1.prisma.$queryRaw(client_1.Prisma.sql(templateObject_3 || (templateObject_3 = __makeTemplateObject(["SELECT column_name FROM information_schema.key_column_usage WHERE table_name = ", " AND constraint_name = '", "_pkey';"], ["SELECT column_name FROM information_schema.key_column_usage WHERE table_name = ", " AND constraint_name = '", "_pkey';"])), tableName, tableName))];
+                                return [4 /*yield*/, prisma_client_1.prisma
+                                        .$queryRaw(client_1.Prisma.sql(templateObject_3 || (templateObject_3 = __makeTemplateObject(["SELECT column_name FROM information_schema.key_column_usage WHERE table_name = ", " AND constraint_name = '", "_pkey';"], ["SELECT column_name FROM information_schema.key_column_usage WHERE table_name = ", " AND constraint_name = '", "_pkey';"])), tableName, tableName))
+                                        .catch(function (error) {
+                                        throw new Error("Error when executing the query to get the primary key of ".concat(tableName, ": ").concat(error));
+                                    })];
                             case 3:
                                 getModelPrimaryKey = _d.sent();
                                 console.log("getModelPrimaryKey:", getModelPrimaryKey);
                                 primaryKeyColumnName = (_c = getModelPrimaryKey[0]) === null || _c === void 0 ? void 0 : _c.column_name;
                                 console.log("primaryKeyColumnName:", primaryKeyColumnName);
-                                return [4 /*yield*/, prisma_client_1.prisma.$queryRaw(client_1.Prisma.sql(templateObject_4 || (templateObject_4 = __makeTemplateObject(["SELECT ", ", ", " FROM ", ";"], ["SELECT ", ", ", " FROM ", ";"])), primaryKeyColumnName, columnName, tableName))];
+                                return [4 /*yield*/, prisma_client_1.prisma
+                                        .$queryRaw(client_1.Prisma.sql(templateObject_4 || (templateObject_4 = __makeTemplateObject(["SELECT ", ", ", " FROM ", ";"], ["SELECT ", ", ", " FROM ", ";"])), primaryKeyColumnName, columnName, tableName))
+                                        .catch(function (error) {
+                                        throw new Error("Error when executing the query to get all entries of ".concat(tableName, ": ").concat(error));
+                                    })];
                             case 4:
                                 allEntries = _d.sent();
                                 console.log("allEntries:", allEntries);
