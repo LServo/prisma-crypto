@@ -302,6 +302,8 @@ var EncryptionMethods = /** @class */ (function () {
                             var _d = entry, _e = primaryKeyColumnName, id = _d[_e], _f = columnName, value = _d[_f];
                             console.log("primaryKeyColumnName:", primaryKeyColumnName);
                             console.log("columnName:", columnName);
+                            if (!value)
+                                return;
                             var encryptedValue = (_c = EncryptionMethods.encryptData({
                                 stringToEncrypt: value,
                             })) === null || _c === void 0 ? void 0 : _c.encryptedString;
