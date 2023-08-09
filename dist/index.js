@@ -57,7 +57,7 @@ var encryption_methods_1 = require("./encryption-methods");
 var prisma_client_1 = require("./prisma-client");
 var prisma_client_2 = require("./prisma-client");
 Object.defineProperty(exports, "prisma", { enumerable: true, get: function () { return prisma_client_2.prisma; } });
-function findEncryptFields(filePath) {
+function findEncryptFields(filePath, modelsInfo) {
     var fileContent = node_fs_1.default.readFileSync(filePath, "utf-8");
     var lines = fileContent.split("\n");
     var commentRegex = /\/\/.*?@encrypt\b/;
@@ -75,6 +75,7 @@ function findEncryptFields(filePath) {
                 sdk_1.logger.error("@encrypt is only supported for String fields. Field ".concat(currentModel, ".").concat(fieldName, " is ").concat(typeName, "."));
                 process.exit(1); // Encerra o processo com um código de erro (1)
             }
+            currentModel = getDbName({ modelName: currentModel, modelsInfo: modelsInfo });
             if (!modelsEncryptedFields[currentModel])
                 modelsEncryptedFields[currentModel] = [];
             modelsEncryptedFields[currentModel].push({ fieldName: fieldName, typeName: typeName });
@@ -82,6 +83,12 @@ function findEncryptFields(filePath) {
     });
     return modelsEncryptedFields;
 }
+// função que recebe um nome de model do schema.prisma e retorna o nome do model no banco de dados
+var getDbName = function (_a) {
+    var modelName = _a.modelName, modelsInfo = _a.modelsInfo;
+    var model = modelsInfo.find(function (model) { return model.name === modelName; });
+    return model.dbName;
+};
 var convertToJson = function (variable) {
     return JSON.stringify(variable, null, 2);
 };
@@ -101,11 +108,8 @@ var convertToJson = function (variable) {
             return __generator(this, function (_j) {
                 switch (_j.label) {
                     case 0:
-                        newEncryptedModels = findEncryptFields(options.schemaPath);
+                        newEncryptedModels = findEncryptFields(options.schemaPath, options.dmmf.datamodel.models);
                         executionUrl = process.env[(_b = (_a = options.generator) === null || _a === void 0 ? void 0 : _a.config) === null || _b === void 0 ? void 0 : _b.var_env_url];
-                        console.log("options.dmmf.schema:", convertToJson(options.dmmf.schema));
-                        console.log("options.dmmf.datamodel:", convertToJson(options.dmmf.datamodel));
-                        console.log("options.dmmf.mappings:", convertToJson(options.dmmf.mappings));
                         process.env.PRISMA_CRYPTO = executionUrl || process.env.PRISMA_WRITE;
                         if (!node_fs_1.default.existsSync((0, node_path_1.resolve)(__dirname)))
                             return [2 /*return*/, { exitCode: 1 }];
@@ -181,7 +185,7 @@ var convertToJson = function (variable) {
                     case 7:
                         newMigration = _j.sent();
                         sdk_1.logger.info("newMigration:", newMigration[0]); //remover
-                        sdk_1.logger.info("Added Encryption:", (_f = newMigration[0]) === null || _f === void 0 ? void 0 : _f.add_encryption);
+                        sdk_1.logger.info("Added Encryption:", convertToJson((_f = newMigration[0]) === null || _f === void 0 ? void 0 : _f.add_encryption));
                         sdk_1.logger.info("Removed Encryption:", (_g = newMigration[0]) === null || _g === void 0 ? void 0 : _g.remove_encryption);
                         _j.label = 8;
                     case 8: return [3 /*break*/, 10];

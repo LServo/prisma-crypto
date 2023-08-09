@@ -7,7 +7,11 @@ import fs from "node:fs";
 import { resolve } from "node:path";
 
 import { Prisma } from "@prisma/client";
-import { generatorHandler, GeneratorOptions } from "@prisma/generator-helper";
+import {
+    DMMF,
+    generatorHandler,
+    GeneratorOptions,
+} from "@prisma/generator-helper";
 import { logger } from "@prisma/sdk";
 
 import { EncryptionMethods } from "./encryption-methods";
@@ -15,7 +19,10 @@ import { prisma } from "./prisma-client";
 import { PrismaCrypto } from "./prisma-crypto";
 export { prisma } from "./prisma-client";
 
-function findEncryptFields(filePath: string): PrismaCrypto.PrismaEncryptModels {
+function findEncryptFields(
+    filePath: string,
+    modelsInfo: DMMF.Model[],
+): PrismaCrypto.PrismaEncryptModels {
     const fileContent = fs.readFileSync(filePath, "utf-8");
     const lines = fileContent.split("\n");
 
@@ -41,6 +48,8 @@ function findEncryptFields(filePath: string): PrismaCrypto.PrismaEncryptModels {
                 process.exit(1); // Encerra o processo com um código de erro (1)
             }
 
+            currentModel = getDbName({ modelName: currentModel, modelsInfo });
+
             if (!modelsEncryptedFields[currentModel])
                 modelsEncryptedFields[currentModel] = [];
 
@@ -50,6 +59,18 @@ function findEncryptFields(filePath: string): PrismaCrypto.PrismaEncryptModels {
 
     return modelsEncryptedFields;
 }
+
+// função que recebe um nome de model do schema.prisma e retorna o nome do model no banco de dados
+const getDbName = ({
+    modelName,
+    modelsInfo,
+}: {
+    modelName: string;
+    modelsInfo: DMMF.Model[];
+}): string => {
+    const model = modelsInfo.find((model) => model.name === modelName);
+    return model.dbName;
+};
 
 const convertToJson = (variable: any): string => {
     return JSON.stringify(variable, null, 2);
@@ -65,18 +86,13 @@ generatorHandler({
         };
     },
     async onGenerate(options: GeneratorOptions) {
-        const newEncryptedModels = findEncryptFields(options.schemaPath);
+        const newEncryptedModels = findEncryptFields(
+            options.schemaPath,
+            options.dmmf.datamodel.models,
+        );
         const executionUrl =
             process.env[options.generator?.config?.var_env_url as string];
-        console.log("options.dmmf.schema:", convertToJson(options.dmmf.schema));
-        console.log(
-            "options.dmmf.datamodel:",
-            convertToJson(options.dmmf.datamodel),
-        );
-        console.log(
-            "options.dmmf.mappings:",
-            convertToJson(options.dmmf.mappings),
-        );
+
         process.env.PRISMA_CRYPTO = executionUrl || process.env.PRISMA_WRITE;
 
         if (!fs.existsSync(resolve(__dirname))) return { exitCode: 1 };
@@ -215,7 +231,7 @@ generatorHandler({
                 logger.info("newMigration:", newMigration[0]); //remover
                 logger.info(
                     "Added Encryption:",
-                    newMigration[0]?.add_encryption,
+                    convertToJson(newMigration[0]?.add_encryption),
                 );
                 logger.info(
                     "Removed Encryption:",
