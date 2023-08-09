@@ -87,14 +87,13 @@ function findEncryptFields(filePath, modelsInfo) {
 // função que recebe um nome de model do schema.prisma e retorna o nome do model no banco de dados
 var getDbName = function (_a) {
     var modelName = _a.modelName, modelsInfo = _a.modelsInfo;
-    console.log("modelsInfo:", modelsInfo);
-    var model = modelsInfo.find(function (model) {
-        console.log("model.name:", model.name);
-        console.log("modelName:", modelName);
-        return model.name === modelName;
-    });
-    console.log("model:", model);
-    return model.dbName;
+    var findModelInfo = modelsInfo.find(function (model) { return model.name === modelName; });
+    var modelDbName = findModelInfo === null || findModelInfo === void 0 ? void 0 : findModelInfo.dbName;
+    if (!modelDbName) {
+        sdk_1.logger.error("Model ".concat(modelName, " not found in the database."));
+        process.exit(1); // Encerra o processo com um código de erro (1)
+    }
+    return modelDbName;
 };
 var convertToJson = function (variable) {
     return JSON.stringify(variable, null, 2);

@@ -69,14 +69,15 @@ const getDbName = ({
     modelName: string;
     modelsInfo: DMMF.Model[];
 }): string => {
-    console.log("modelsInfo:", modelsInfo);
-    const model = modelsInfo.find((model) => {
-        console.log("model.name:", model.name);
-        console.log("modelName:", modelName);
-        return model.name === modelName;
-    });
-    console.log("model:", model);
-    return model.dbName;
+    const findModelInfo = modelsInfo.find((model) => model.name === modelName);
+
+    const modelDbName = findModelInfo?.dbName;
+    if (!modelDbName) {
+        logger.error(`Model ${modelName} not found in the database.`);
+        process.exit(1); // Encerra o processo com um código de erro (1)
+    }
+
+    return modelDbName;
 };
 
 const convertToJson = (variable: any): string => {
