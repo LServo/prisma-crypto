@@ -254,15 +254,14 @@ generatorHandler({
                 newEncryptedModels,
                 lastEncryptedModels?.encryptedModels,
             );
-            console.log("add_encryption:", add_encryption);
-            console.log("remove_encryption:", remove_encryption);
 
-            const { add_encryption: add_encryption_db_name } =
-                getEncryptionChanges(
-                    newEncryptedModelsDbName,
-                    lastEncryptedModels?.encryptedModelsDbName,
-                );
-            console.log("add_encryption_db_name:", add_encryption_db_name);
+            const {
+                add_encryption: add_encryption_db_name,
+                remove_encryption: remove_encryption_db_name,
+            } = getEncryptionChanges(
+                newEncryptedModelsDbName,
+                lastEncryptedModels?.encryptedModelsDbName,
+            );
 
             const hasChanges =
                 add_encryption.length || remove_encryption.length;
@@ -280,11 +279,22 @@ generatorHandler({
                     const deepClonedAddEncryptionDbName = JSON.parse(
                         JSON.stringify(add_encryption_db_name),
                     ) as String[];
+                    const deepClonedRemoveEncryption = JSON.parse(
+                        JSON.stringify(remove_encryption),
+                    ) as String[];
+                    const deepClonedRemoveEncryptionDbName = JSON.parse(
+                        JSON.stringify(remove_encryption_db_name),
+                    ) as String[];
 
                     await EncryptionMethods.managingDatabaseEncryption(
                         deepClonedAddEncryption,
                         deepClonedAddEncryptionDbName,
                         "add",
+                    );
+                    await EncryptionMethods.managingDatabaseEncryption(
+                        deepClonedRemoveEncryption,
+                        deepClonedRemoveEncryptionDbName,
+                        "remove",
                     );
                 } catch (error) {
                     logger.error(

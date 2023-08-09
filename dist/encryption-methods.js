@@ -239,7 +239,6 @@ var EncryptionMethods = /** @class */ (function () {
             return __generator(this, function (_f) {
                 switch (_f.label) {
                     case 0:
-                        console.log("action:", action);
                         console.log("index:", fields.length);
                         actualField = fields.shift();
                         actualFieldDbName = fieldsDbName.shift();
@@ -298,19 +297,32 @@ var EncryptionMethods = /** @class */ (function () {
                         createPrismaTransactions = allEntries
                             .map(function (entry) {
                             var _a, _b;
-                            var _c;
-                            var _d = entry, _e = primaryKeyColumnName, id = _d[_e], _f = columnName, value = _d[_f];
+                            var _c, _d;
+                            var _e = entry, _f = primaryKeyColumnName, id = _e[_f], _g = columnName, value = _e[_g];
                             console.log("primaryKeyColumnName:", primaryKeyColumnName);
                             console.log("columnName:", columnName);
                             if (!value)
                                 return;
-                            var encryptedValue = (_c = EncryptionMethods.encryptData({
-                                stringToEncrypt: value,
-                            })) === null || _c === void 0 ? void 0 : _c.encryptedString;
-                            console.log("encryptedValue:", encryptedValue);
+                            var newValue;
+                            switch (action) {
+                                case "add":
+                                    newValue = (_c = EncryptionMethods.encryptData({
+                                        stringToEncrypt: value,
+                                    })) === null || _c === void 0 ? void 0 : _c.encryptedString;
+                                    break;
+                                case "remove":
+                                    newValue = (_d = EncryptionMethods.decryptData({
+                                        stringToDecrypt: value,
+                                    })) === null || _d === void 0 ? void 0 : _d.decryptedString;
+                                    break;
+                                default:
+                                    newValue = value;
+                                    break;
+                            }
+                            console.log("newValue:", newValue);
                             return prisma_client_1.prisma[schemaTableName].update({
                                 where: (_a = {}, _a[primaryKeyColumnName] = id, _a),
-                                data: (_b = {}, _b[columnName] = encryptedValue, _b),
+                                data: (_b = {}, _b[columnName] = newValue, _b),
                             });
                         })
                             .filter(Boolean);

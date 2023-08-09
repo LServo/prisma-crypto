@@ -254,7 +254,6 @@ class EncryptionMethods implements PrismaCrypto.EncryptionMethods {
         fieldsDbName: String[],
         action: "add" | "remove",
     ): Promise<void> {
-        console.log("action:", action);
         console.log("index:", fields.length);
         const actualField = fields.shift();
         const actualFieldDbName = fieldsDbName.shift();
@@ -344,14 +343,27 @@ class EncryptionMethods implements PrismaCrypto.EncryptionMethods {
                 console.log("primaryKeyColumnName:", primaryKeyColumnName);
                 console.log("columnName:", columnName);
                 if (!value) return;
-                const encryptedValue = EncryptionMethods.encryptData({
-                    stringToEncrypt: value,
-                })?.encryptedString;
-                console.log("encryptedValue:", encryptedValue);
+                let newValue: string;
+                switch (action) {
+                    case "add":
+                        newValue = EncryptionMethods.encryptData({
+                            stringToEncrypt: value,
+                        })?.encryptedString;
+                        break;
+                    case "remove":
+                        newValue = EncryptionMethods.decryptData({
+                            stringToDecrypt: value,
+                        })?.decryptedString;
+                        break;
+                    default:
+                        newValue = value;
+                        break;
+                }
+                console.log("newValue:", newValue);
 
                 return prisma[schemaTableName].update({
                     where: { [primaryKeyColumnName]: id },
-                    data: { [columnName]: encryptedValue },
+                    data: { [columnName]: newValue },
                 });
             })
             .filter(Boolean);
