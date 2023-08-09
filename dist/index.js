@@ -186,9 +186,9 @@ var getDbName = function (_a) {
                                 if (oldModels)
                                     oldFields =
                                         ((_d = oldModels[curr]) === null || _d === void 0 ? void 0 : _d.map(function (field) { return "".concat(curr, ".").concat(field.fieldName); })) || [];
-                                var fieldsToAdd = newFields === null || newFields === void 0 ? void 0 : newFields.filter(function (field) { return !oldFields.includes(field); });
+                                var fieldsToAdd = newFields === null || newFields === void 0 ? void 0 : newFields.filter(function (field) { return !(oldFields === null || oldFields === void 0 ? void 0 : oldFields.includes(field)); });
                                 (_a = acc.add_encryption).push.apply(_a, fieldsToAdd);
-                                var fieldsToRemove = oldFields === null || oldFields === void 0 ? void 0 : oldFields.filter(function (field) { return !newFields.includes(field); });
+                                var fieldsToRemove = oldFields === null || oldFields === void 0 ? void 0 : oldFields.filter(function (field) { return !(newFields === null || newFields === void 0 ? void 0 : newFields.includes(field)); });
                                 (_b = acc.remove_encryption).push.apply(_b, fieldsToRemove);
                                 return acc;
                             }, {

@@ -233,12 +233,12 @@ generatorHandler({
                                 ) || [];
 
                         const fieldsToAdd = newFields?.filter(
-                            (field) => !oldFields.includes(field),
+                            (field) => !oldFields?.includes(field),
                         );
                         acc.add_encryption.push(...fieldsToAdd);
 
                         const fieldsToRemove = oldFields?.filter(
-                            (field) => !newFields.includes(field),
+                            (field) => !newFields?.includes(field),
                         );
                         acc.remove_encryption.push(...fieldsToRemove);
 
