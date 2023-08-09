@@ -282,11 +282,11 @@ var EncryptionMethods = /** @class */ (function () {
                         console.log("primaryKeyColumnName:", primaryKeyColumnName);
                         console.log("Prisma.sql: allEntries:", "SELECT ".concat(primaryKeyColumnName, ", ").concat(columnName, " FROM ").concat(tableName, ";"));
                         return [4 /*yield*/, prisma_client_1.prisma
-                                .$queryRaw(client_1.Prisma.sql(templateObject_4 || (templateObject_4 = __makeTemplateObject(["SELECT $1, $2 FROM $3;"], ["SELECT $1, $2 FROM $3;"]))), [
-                                primaryKeyColumnName,
-                                columnName,
-                                tableName,
-                            ])
+                                .$queryRaw(client_1.Prisma.sql(templateObject_4 || (templateObject_4 = __makeTemplateObject(["SELECT ", ", ", " FROM ", ""], ["SELECT ", ", ", " FROM ", ""])), primaryKeyColumnName, columnName, tableName), {
+                                primaryKeyColumnName: primaryKeyColumnName,
+                                columnName: columnName,
+                                tableName: tableName,
+                            })
                                 .catch(function (error) {
                                 throw new Error("Error when executing the query to get all entries of ".concat(tableName, ": ").concat(error));
                             })];

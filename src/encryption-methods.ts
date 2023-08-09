@@ -327,11 +327,14 @@ class EncryptionMethods implements PrismaCrypto.EncryptionMethods {
             `SELECT ${primaryKeyColumnName}, ${columnName} FROM ${tableName};`,
         );
         const allEntries = await prisma
-            .$queryRaw(Prisma.sql`SELECT $1, $2 FROM $3;`, [
-                primaryKeyColumnName,
-                columnName,
-                tableName,
-            ])
+            .$queryRaw(
+                Prisma.sql`SELECT ${primaryKeyColumnName}, ${columnName} FROM ${tableName}`,
+                {
+                    primaryKeyColumnName,
+                    columnName,
+                    tableName,
+                },
+            )
             .catch((error) => {
                 throw new Error(
                     `Error when executing the query to get all entries of ${tableName}: ${error}`,
