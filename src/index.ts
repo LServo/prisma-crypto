@@ -219,28 +219,27 @@ generatorHandler({
             ) =>
                 Object.keys(newModels).reduce(
                     (acc, curr) => {
-                        const newFields = newModels[curr]?.map(
-                            (field) => `${curr}.${field.fieldName}`,
-                        );
-                        console.log("newFields:", newFields);
-                        console.log("oldModels:", oldModels);
-                        console.log("oldModels[curr]:", oldModels[curr]);
-                        const oldFields =
-                            oldModels[curr]?.map(
+                        let newFields: string[];
+                        if (newFields)
+                            newFields = newModels[curr]?.map(
                                 (field) => `${curr}.${field.fieldName}`,
-                            ) || [];
-                        console.log("oldFields:", oldFields);
+                            );
+
+                        let oldFields: string[];
+                        if (oldModels)
+                            oldFields =
+                                oldModels[curr]?.map(
+                                    (field) => `${curr}.${field.fieldName}`,
+                                ) || [];
 
                         const fieldsToAdd = newFields?.filter(
                             (field) => !oldFields.includes(field),
                         );
-                        console.log("fieldsToAdd:", fieldsToAdd);
                         acc.add_encryption.push(...fieldsToAdd);
 
                         const fieldsToRemove = oldFields?.filter(
                             (field) => !newFields.includes(field),
                         );
-                        console.log("fieldsToRemove:", fieldsToRemove);
                         acc.remove_encryption.push(...fieldsToRemove);
 
                         return acc;
