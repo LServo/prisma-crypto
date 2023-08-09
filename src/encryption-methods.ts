@@ -301,11 +301,7 @@ class EncryptionMethods implements PrismaCrypto.EncryptionMethods {
                 `The column ${tableName}.${columnName} is not of type "text".`,
             );
         }
-        // encontre a primary key da tabela
-        console.log(
-            "Prisma.sql: getModelPrimaryKey:",
-            `SELECT column_name FROM information_schema.key_column_usage WHERE table_name = '${tableName}' AND constraint_name = '${tableName}_pkey';`,
-        );
+
         const getModelPrimaryKey = await prisma
             .$queryRaw(
                 Prisma.sql`SELECT column_name FROM information_schema.key_column_usage WHERE table_name = ${tableName} AND constraint_name = ${
@@ -317,10 +313,11 @@ class EncryptionMethods implements PrismaCrypto.EncryptionMethods {
                     `Error when executing the query to get the primary key of ${tableName}: ${error}`,
                 );
             });
-        console.log("getModelPrimaryKey:", getModelPrimaryKey);
 
         const primaryKeyColumnName = getModelPrimaryKey[0]?.column_name;
+        console.log("tableName:", tableName);
         console.log("primaryKeyColumnName:", primaryKeyColumnName);
+        console.log("columnName:", columnName);
 
         const allEntries = await prisma[tableName]
             .findMany({

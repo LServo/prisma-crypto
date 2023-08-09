@@ -269,8 +269,6 @@ var EncryptionMethods = /** @class */ (function () {
                         if (!isTextColumn && !isArrayColumn) {
                             throw new Error("The column ".concat(tableName, ".").concat(columnName, " is not of type \"text\"."));
                         }
-                        // encontre a primary key da tabela
-                        console.log("Prisma.sql: getModelPrimaryKey:", "SELECT column_name FROM information_schema.key_column_usage WHERE table_name = '".concat(tableName, "' AND constraint_name = '").concat(tableName, "_pkey';"));
                         return [4 /*yield*/, prisma_client_1.prisma
                                 .$queryRaw(client_1.Prisma.sql(templateObject_3 || (templateObject_3 = __makeTemplateObject(["SELECT column_name FROM information_schema.key_column_usage WHERE table_name = ", " AND constraint_name = ", ";"], ["SELECT column_name FROM information_schema.key_column_usage WHERE table_name = ", " AND constraint_name = ", ";"])), tableName, tableName + "_pkey"))
                                 .catch(function (error) {
@@ -278,9 +276,10 @@ var EncryptionMethods = /** @class */ (function () {
                             })];
                     case 3:
                         getModelPrimaryKey = _f.sent();
-                        console.log("getModelPrimaryKey:", getModelPrimaryKey);
                         primaryKeyColumnName = (_c = getModelPrimaryKey[0]) === null || _c === void 0 ? void 0 : _c.column_name;
+                        console.log("tableName:", tableName);
                         console.log("primaryKeyColumnName:", primaryKeyColumnName);
+                        console.log("columnName:", columnName);
                         return [4 /*yield*/, prisma_client_1.prisma[tableName]
                                 .findMany({
                                 select: (_e = {}, _e[primaryKeyColumnName] = true, _e[columnName] = true, _e),
