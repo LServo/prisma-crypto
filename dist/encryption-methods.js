@@ -242,7 +242,6 @@ var EncryptionMethods = /** @class */ (function () {
                     var _a = field.split("."), model = _a[0], fieldName = _a[1];
                     return { model: model, fieldName: fieldName };
                 });
-                console.log("fieldsToManage:", fieldsToManage);
                 fieldsToManage.forEach(function (field) { return __awaiter(_this, void 0, void 0, function () {
                     var tableName, columnName, result, columnExists, columnType, columnDataType, getModelPrimaryKey, primaryKeyColumnName, allEntries;
                     var _a, _b, _c;
@@ -253,7 +252,9 @@ var EncryptionMethods = /** @class */ (function () {
                                 return [4 /*yield*/, prisma_client_1.prisma.$queryRaw(client_1.Prisma.sql(templateObject_1 || (templateObject_1 = __makeTemplateObject(["SELECT EXISTS (\n                    SELECT FROM information_schema.columns\n                    WHERE table_name = ", "\n                    AND column_name = ", "\n                    ) AS \"exists\""], ["SELECT EXISTS (\n                    SELECT FROM information_schema.columns\n                    WHERE table_name = ", "\n                    AND column_name = ", "\n                    ) AS \"exists\""])), tableName, columnName))];
                             case 1:
                                 result = _d.sent();
+                                console.log("result:", result);
                                 columnExists = (_a = result[0]) === null || _a === void 0 ? void 0 : _a.exists;
+                                console.log("columnExists:", columnExists);
                                 if (!columnExists) {
                                     sdk_1.logger.error("The column ".concat(tableName, ".").concat(columnName, " does not exists in the database."));
                                     process.exit(1);
@@ -261,7 +262,9 @@ var EncryptionMethods = /** @class */ (function () {
                                 return [4 /*yield*/, prisma_client_1.prisma.$queryRaw(client_1.Prisma.sql(templateObject_2 || (templateObject_2 = __makeTemplateObject(["SELECT data_type FROM information_schema.columns WHERE table_name = ", " AND column_name = ", ";"], ["SELECT data_type FROM information_schema.columns WHERE table_name = ", " AND column_name = ", ";"])), tableName, columnName))];
                             case 2:
                                 columnType = _d.sent();
+                                console.log("columnType:", columnType);
                                 columnDataType = (_b = columnType[0]) === null || _b === void 0 ? void 0 : _b.data_type;
+                                console.log("columnDataType:", columnDataType);
                                 if (columnDataType !== "text") {
                                     sdk_1.logger.error("The column ".concat(tableName, ".").concat(columnName, " is not of type \"text\"."));
                                     process.exit(1);

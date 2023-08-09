@@ -222,10 +222,18 @@ generatorHandler({
                 logger.info("Managing encryption...");
                 // criar função para aplicar ou remover a criptografia com base add_encryption e remove_encryption
 
-                await EncryptionMethods.managingDatabaseEncryption(
-                    add_encryption,
-                    "add",
-                );
+                try {
+                    await EncryptionMethods.managingDatabaseEncryption(
+                        add_encryption,
+                        "add",
+                    );
+                } catch (error) {
+                    logger.error(
+                        "Error when applying encryption to the database:",
+                        error,
+                    );
+                    process.exit(1);
+                }
 
                 logger.info("Saving current state...");
                 const newMigration =

@@ -259,7 +259,6 @@ class EncryptionMethods implements PrismaCrypto.EncryptionMethods {
             const [model, fieldName] = field.split(".");
             return { model, fieldName };
         });
-        console.log("fieldsToManage:", fieldsToManage);
 
         fieldsToManage.forEach(async (field) => {
             const { model: tableName, fieldName: columnName } = field;
@@ -271,8 +270,10 @@ class EncryptionMethods implements PrismaCrypto.EncryptionMethods {
                     AND column_name = ${columnName}
                     ) AS "exists"`,
             );
+            console.log("result:", result);
 
             const columnExists = result[0]?.exists;
+            console.log("columnExists:", columnExists);
 
             if (!columnExists) {
                 logger.error(
@@ -284,8 +285,10 @@ class EncryptionMethods implements PrismaCrypto.EncryptionMethods {
             const columnType = await prisma.$queryRaw(
                 Prisma.sql`SELECT data_type FROM information_schema.columns WHERE table_name = ${tableName} AND column_name = ${columnName};`,
             );
+            console.log("columnType:", columnType);
 
             const columnDataType = columnType[0]?.data_type;
+            console.log("columnDataType:", columnDataType);
 
             if (columnDataType !== "text") {
                 logger.error(
