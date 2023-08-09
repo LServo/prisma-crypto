@@ -279,9 +279,6 @@ var EncryptionMethods = /** @class */ (function () {
                     case 3:
                         getModelPrimaryKey = _f.sent();
                         primaryKeyColumnName = (_c = getModelPrimaryKey[0]) === null || _c === void 0 ? void 0 : _c.column_name;
-                        console.log("schemaTableName:", schemaTableName);
-                        console.log("primaryKeyColumnName:", primaryKeyColumnName);
-                        console.log("columnName:", columnName);
                         return [4 /*yield*/, prisma_client_1.prisma[schemaTableName]
                                 .findMany({
                                 select: (_e = {}, _e[primaryKeyColumnName] = true, _e[columnName] = true, _e),
@@ -297,7 +294,24 @@ var EncryptionMethods = /** @class */ (function () {
                     case 5:
                         _f.sent();
                         _f.label = 6;
-                    case 6: return [2 /*return*/];
+                    case 6:
+                        // modificar todos os registros da coluna criptografando um a um utilizando o método `EncryptionMethods.encryptData`
+                        prisma_client_1.prisma.$transaction(allEntries.map(function (entry) {
+                            var _a, _b;
+                            var _c;
+                            var _d = entry, _e = primaryKeyColumnName, id = _d[_e], _f = columnName, value = _d[_f];
+                            console.log("primaryKeyColumnName:", primaryKeyColumnName);
+                            console.log("columnName:", columnName);
+                            var encryptedValue = (_c = EncryptionMethods.encryptData({
+                                stringToEncrypt: value,
+                            })) === null || _c === void 0 ? void 0 : _c.encryptedString;
+                            console.log("encryptedValue:", encryptedValue);
+                            return prisma_client_1.prisma[schemaTableName].update({
+                                where: (_a = {}, _a[primaryKeyColumnName] = id, _a),
+                                data: (_b = {}, _b[columnName] = encryptedValue, _b),
+                            });
+                        }));
+                        return [2 /*return*/];
                 }
             });
         });

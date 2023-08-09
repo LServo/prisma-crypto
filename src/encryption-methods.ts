@@ -321,9 +321,6 @@ class EncryptionMethods implements PrismaCrypto.EncryptionMethods {
          * As queries utilizando a api do prisma precisam ser com o nome do model que foi escrito no schema.prisma, por isso, daqui pra baixo não utilizaremos o dbTableName, mas sim o schemaTableName
          */
         const primaryKeyColumnName = getModelPrimaryKey[0]?.column_name;
-        console.log("schemaTableName:", schemaTableName);
-        console.log("primaryKeyColumnName:", primaryKeyColumnName);
-        console.log("columnName:", columnName);
 
         const allEntries = await prisma[schemaTableName]
             .findMany({
@@ -340,18 +337,23 @@ class EncryptionMethods implements PrismaCrypto.EncryptionMethods {
             await this.managingDatabaseEncryption(fields, fieldsDbName, "add");
 
         // modificar todos os registros da coluna criptografando um a um utilizando o método `EncryptionMethods.encryptData`
-        // prisma.$transaction(
-        //     allEntries.map((entry) => {
-        //         const { id, [columnName]: value } = entry;
-        //         const encryptedValue = EncryptionMethods.encryptData({
-        //             stringToEncrypt: value,
-        //         })?.encryptedString;
+        prisma.$transaction(
+            allEntries.map((entry) => {
+                const { [primaryKeyColumnName]: id, [columnName]: value } =
+                    entry;
+                console.log("primaryKeyColumnName:", primaryKeyColumnName);
+                console.log("columnName:", columnName);
+                const encryptedValue = EncryptionMethods.encryptData({
+                    stringToEncrypt: value,
+                })?.encryptedString;
+                console.log("encryptedValue:", encryptedValue);
 
-        //         return prisma.$queryRaw(
-        //             Prisma.sql`UPDATE ${tableName} SET ${columnName} = ${encryptedValue} WHERE ${primaryKeyColumnName} = ${id};`,
-        //         );
-        //     }),
-        // );
+                return prisma[schemaTableName].update({
+                    where: { [primaryKeyColumnName]: id },
+                    data: { [columnName]: encryptedValue },
+                });
+            }),
+        );
     }
 }
 
