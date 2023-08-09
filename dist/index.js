@@ -86,7 +86,9 @@ function findEncryptFields(filePath, modelsInfo) {
 // função que recebe um nome de model do schema.prisma e retorna o nome do model no banco de dados
 var getDbName = function (_a) {
     var modelName = _a.modelName, modelsInfo = _a.modelsInfo;
+    console.log("modelsInfo:", modelsInfo);
     var model = modelsInfo.find(function (model) { return model.name === modelName; });
+    console.log("model:", model);
     return model.dbName;
 };
 var convertToJson = function (variable) {

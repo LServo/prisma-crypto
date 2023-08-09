@@ -68,7 +68,9 @@ const getDbName = ({
     modelName: string;
     modelsInfo: DMMF.Model[];
 }): string => {
+    console.log("modelsInfo:", modelsInfo);
     const model = modelsInfo.find((model) => model.name === modelName);
+    console.log("model:", model);
     return model.dbName;
 };
 
