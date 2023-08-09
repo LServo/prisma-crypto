@@ -337,8 +337,8 @@ class EncryptionMethods implements PrismaCrypto.EncryptionMethods {
             await this.managingDatabaseEncryption(fields, fieldsDbName, "add");
 
         // modificar todos os registros da coluna criptografando um a um utilizando o método `EncryptionMethods.encryptData`
-        prisma.$transaction(
-            allEntries.map((entry) => {
+        const createPrismaTransactions = allEntries
+            .map((entry) => {
                 const { [primaryKeyColumnName]: id, [columnName]: value } =
                     entry;
                 console.log("primaryKeyColumnName:", primaryKeyColumnName);
@@ -353,8 +353,10 @@ class EncryptionMethods implements PrismaCrypto.EncryptionMethods {
                     where: { [primaryKeyColumnName]: id },
                     data: { [columnName]: encryptedValue },
                 });
-            }),
-        );
+            })
+            .filter(Boolean);
+
+        await prisma.$transaction(createPrismaTransactions);
     }
 }
 

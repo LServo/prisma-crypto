@@ -234,7 +234,7 @@ var EncryptionMethods = /** @class */ (function () {
     EncryptionMethods.managingDatabaseEncryption = function (fields, fieldsDbName, action) {
         var _a, _b, _c;
         return __awaiter(this, void 0, void 0, function () {
-            var actualField, actualFieldDbName, _d, schemaTableName, columnName, dbTableName, result, columnExists, columnType, columnDataType, isArrayColumn, isTextColumn, getModelPrimaryKey, primaryKeyColumnName, allEntries;
+            var actualField, actualFieldDbName, _d, schemaTableName, columnName, dbTableName, result, columnExists, columnType, columnDataType, isArrayColumn, isTextColumn, getModelPrimaryKey, primaryKeyColumnName, allEntries, createPrismaTransactions;
             var _e;
             return __generator(this, function (_f) {
                 switch (_f.label) {
@@ -295,8 +295,8 @@ var EncryptionMethods = /** @class */ (function () {
                         _f.sent();
                         _f.label = 6;
                     case 6:
-                        // modificar todos os registros da coluna criptografando um a um utilizando o método `EncryptionMethods.encryptData`
-                        prisma_client_1.prisma.$transaction(allEntries.map(function (entry) {
+                        createPrismaTransactions = allEntries
+                            .map(function (entry) {
                             var _a, _b;
                             var _c;
                             var _d = entry, _e = primaryKeyColumnName, id = _d[_e], _f = columnName, value = _d[_f];
@@ -312,7 +312,11 @@ var EncryptionMethods = /** @class */ (function () {
                                 where: (_a = {}, _a[primaryKeyColumnName] = id, _a),
                                 data: (_b = {}, _b[columnName] = encryptedValue, _b),
                             });
-                        }));
+                        })
+                            .filter(Boolean);
+                        return [4 /*yield*/, prisma_client_1.prisma.$transaction(createPrismaTransactions)];
+                    case 7:
+                        _f.sent();
                         return [2 /*return*/];
                 }
             });
