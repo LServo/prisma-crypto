@@ -314,6 +314,10 @@ class EncryptionMethods implements PrismaCrypto.EncryptionMethods {
                 throw new Error(
                     `Error when executing the query to get the primary key of ${tableName}: ${error}`,
                 );
+            })
+            .then((result) => {
+                console.log("result:", result);
+                return result;
             });
         console.log("getModelPrimaryKey:", getModelPrimaryKey);
 

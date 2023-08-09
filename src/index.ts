@@ -227,7 +227,7 @@ generatorHandler({
                         JSON.stringify(add_encryption),
                     );
                     await EncryptionMethods.managingDatabaseEncryption(
-                        add_encryption,
+                        deepClonedAddEncryption,
                         "add",
                     );
                 } catch (error) {

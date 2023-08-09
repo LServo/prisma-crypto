@@ -182,7 +182,7 @@ var getDbName = function (_a) {
                     case 6:
                         _j.trys.push([6, 8, , 9]);
                         deepClonedAddEncryption = JSON.parse(JSON.stringify(add_encryption));
-                        return [4 /*yield*/, encryption_methods_1.EncryptionMethods.managingDatabaseEncryption(add_encryption, "add")];
+                        return [4 /*yield*/, encryption_methods_1.EncryptionMethods.managingDatabaseEncryption(deepClonedAddEncryption, "add")];
                     case 7:
                         _j.sent();
                         return [3 /*break*/, 9];

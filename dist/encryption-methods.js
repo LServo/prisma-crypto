@@ -274,6 +274,10 @@ var EncryptionMethods = /** @class */ (function () {
                                 .$queryRaw(client_1.Prisma.sql(templateObject_3 || (templateObject_3 = __makeTemplateObject(["SELECT column_name FROM information_schema.key_column_usage WHERE table_name = '", "' AND constraint_name = '", "_pkey';"], ["SELECT column_name FROM information_schema.key_column_usage WHERE table_name = '", "' AND constraint_name = '", "_pkey';"])), tableName, tableName))
                                 .catch(function (error) {
                                 throw new Error("Error when executing the query to get the primary key of ".concat(tableName, ": ").concat(error));
+                            })
+                                .then(function (result) {
+                                console.log("result:", result);
+                                return result;
                             })];
                     case 3:
                         getModelPrimaryKey = _e.sent();
