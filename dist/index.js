@@ -180,10 +180,14 @@ var getDbName = function (_a) {
                                 var _a, _b;
                                 var _c, _d;
                                 var newFields = (_c = newModels[curr]) === null || _c === void 0 ? void 0 : _c.map(function (field) { return "".concat(curr, ".").concat(field.fieldName); });
+                                console.log("newFields:", newFields);
                                 var oldFields = ((_d = oldModels[curr]) === null || _d === void 0 ? void 0 : _d.map(function (field) { return "".concat(curr, ".").concat(field.fieldName); })) || [];
+                                console.log("oldFields:", oldFields);
                                 var fieldsToAdd = newFields === null || newFields === void 0 ? void 0 : newFields.filter(function (field) { return !oldFields.includes(field); });
+                                console.log("fieldsToAdd:", fieldsToAdd);
                                 (_a = acc.add_encryption).push.apply(_a, fieldsToAdd);
                                 var fieldsToRemove = oldFields === null || oldFields === void 0 ? void 0 : oldFields.filter(function (field) { return !newFields.includes(field); });
+                                console.log("fieldsToRemove:", fieldsToRemove);
                                 (_b = acc.remove_encryption).push.apply(_b, fieldsToRemove);
                                 return acc;
                             }, {
@@ -192,7 +196,10 @@ var getDbName = function (_a) {
                             });
                         };
                         _j = getEncryptionChanges(newEncryptedModels, lastEncryptedModels === null || lastEncryptedModels === void 0 ? void 0 : lastEncryptedModels.encryptedModels), add_encryption = _j.add_encryption, remove_encryption = _j.remove_encryption;
+                        console.log("add_encryption:", add_encryption);
+                        console.log("remove_encryption:", remove_encryption);
                         add_encryption_db_name = getEncryptionChanges(newEncryptedModelsDbName, lastEncryptedModels === null || lastEncryptedModels === void 0 ? void 0 : lastEncryptedModels.encryptedModelsDbName).add_encryption;
+                        console.log("add_encryption_db_name:", add_encryption_db_name);
                         hasChanges = add_encryption.length || remove_encryption.length;
                         if (!hasChanges) return [3 /*break*/, 11];
                         sdk_1.logger.info("Changes found!");

@@ -222,19 +222,23 @@ generatorHandler({
                         const newFields = newModels[curr]?.map(
                             (field) => `${curr}.${field.fieldName}`,
                         );
+                        console.log("newFields:", newFields);
                         const oldFields =
                             oldModels[curr]?.map(
                                 (field) => `${curr}.${field.fieldName}`,
                             ) || [];
+                        console.log("oldFields:", oldFields);
 
                         const fieldsToAdd = newFields?.filter(
                             (field) => !oldFields.includes(field),
                         );
+                        console.log("fieldsToAdd:", fieldsToAdd);
                         acc.add_encryption.push(...fieldsToAdd);
 
                         const fieldsToRemove = oldFields?.filter(
                             (field) => !newFields.includes(field),
                         );
+                        console.log("fieldsToRemove:", fieldsToRemove);
                         acc.remove_encryption.push(...fieldsToRemove);
 
                         return acc;
@@ -249,12 +253,15 @@ generatorHandler({
                 newEncryptedModels,
                 lastEncryptedModels?.encryptedModels,
             );
+            console.log("add_encryption:", add_encryption);
+            console.log("remove_encryption:", remove_encryption);
 
             const { add_encryption: add_encryption_db_name } =
                 getEncryptionChanges(
                     newEncryptedModelsDbName,
                     lastEncryptedModels?.encryptedModelsDbName,
                 );
+            console.log("add_encryption_db_name:", add_encryption_db_name);
 
             const hasChanges =
                 add_encryption.length || remove_encryption.length;
