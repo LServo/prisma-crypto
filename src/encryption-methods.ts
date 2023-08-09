@@ -308,7 +308,9 @@ class EncryptionMethods implements PrismaCrypto.EncryptionMethods {
         );
         const getModelPrimaryKey = await prisma
             .$queryRaw(
-                Prisma.sql`SELECT column_name FROM information_schema.key_column_usage WHERE table_name = '${tableName}' AND constraint_name = '${tableName}_pkey';`,
+                Prisma.sql`SELECT column_name FROM information_schema.key_column_usage WHERE table_name = ${tableName} AND constraint_name = ${
+                    tableName + "_pkey"
+                };`,
             )
             .catch((error) => {
                 throw new Error(
