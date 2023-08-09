@@ -234,7 +234,7 @@ var EncryptionMethods = /** @class */ (function () {
     EncryptionMethods.managingDatabaseEncryption = function (fields, action) {
         var _a, _b, _c;
         return __awaiter(this, void 0, void 0, function () {
-            var actualField, _d, tableName, columnName, result, columnExists, columnType, columnDataType, isArrayColumn, isTextColumn, getModelPrimaryKey, primaryKeyColumnName, allEntries;
+            var actualField, _d, tableName, columnName, result, columnExists, columnType, columnDataType, isArrayColumn, isTextColumn, getModelPrimaryKey, primaryKeyColumnName, allEntriesQuery, allEntries;
             return __generator(this, function (_e) {
                 switch (_e.label) {
                     case 0:
@@ -280,13 +280,15 @@ var EncryptionMethods = /** @class */ (function () {
                         console.log("getModelPrimaryKey:", getModelPrimaryKey);
                         primaryKeyColumnName = (_c = getModelPrimaryKey[0]) === null || _c === void 0 ? void 0 : _c.column_name;
                         console.log("primaryKeyColumnName:", primaryKeyColumnName);
-                        console.log("Prisma.sql: allEntries:", "SELECT ".concat(primaryKeyColumnName, ", ").concat(columnName, " FROM ").concat(tableName, ";"));
+                        allEntriesQuery = "SELECT " +
+                            primaryKeyColumnName +
+                            ", " +
+                            columnName +
+                            " FROM " +
+                            tableName;
+                        console.log("allEntriesQuery:", allEntriesQuery);
                         return [4 /*yield*/, prisma_client_1.prisma
-                                .$queryRaw(client_1.Prisma.sql(templateObject_4 || (templateObject_4 = __makeTemplateObject(["SELECT ", ", ", " FROM ", ""], ["SELECT ", ", ", " FROM ", ""])), primaryKeyColumnName, columnName, tableName), {
-                                primaryKeyColumnName: primaryKeyColumnName,
-                                columnName: columnName,
-                                tableName: tableName,
-                            })
+                                .$queryRaw(client_1.Prisma.sql(templateObject_4 || (templateObject_4 = __makeTemplateObject(["", ""], ["", ""])), allEntriesQuery))
                                 .catch(function (error) {
                                 throw new Error("Error when executing the query to get all entries of ".concat(tableName, ": ").concat(error));
                             })];
