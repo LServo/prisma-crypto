@@ -223,6 +223,8 @@ generatorHandler({
                             (field) => `${curr}.${field.fieldName}`,
                         );
                         console.log("newFields:", newFields);
+                        console.log("oldModels:", oldModels);
+                        console.log("oldModels[curr]:", oldModels[curr]);
                         const oldFields =
                             oldModels[curr]?.map(
                                 (field) => `${curr}.${field.fieldName}`,

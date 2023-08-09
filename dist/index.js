@@ -181,6 +181,8 @@ var getDbName = function (_a) {
                                 var _c, _d;
                                 var newFields = (_c = newModels[curr]) === null || _c === void 0 ? void 0 : _c.map(function (field) { return "".concat(curr, ".").concat(field.fieldName); });
                                 console.log("newFields:", newFields);
+                                console.log("oldModels:", oldModels);
+                                console.log("oldModels[curr]:", oldModels[curr]);
                                 var oldFields = ((_d = oldModels[curr]) === null || _d === void 0 ? void 0 : _d.map(function (field) { return "".concat(curr, ".").concat(field.fieldName); })) || [];
                                 console.log("oldFields:", oldFields);
                                 var fieldsToAdd = newFields === null || newFields === void 0 ? void 0 : newFields.filter(function (field) { return !oldFields.includes(field); });
