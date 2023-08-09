@@ -276,10 +276,8 @@ class EncryptionMethods implements PrismaCrypto.EncryptionMethods {
                         `Error when executing the query to check if the column ${tableName}.${columnName} exists: ${error}`,
                     );
                 });
-            console.log("result:", result);
 
             const columnExists = result[0]?.exists;
-            console.log("columnExists:", columnExists);
 
             if (!columnExists) {
                 throw new Error(
@@ -297,14 +295,9 @@ class EncryptionMethods implements PrismaCrypto.EncryptionMethods {
                     );
                 });
 
-            console.log("columnType:", columnType);
-
             const columnDataType = columnType[0]?.data_type;
             const isArrayColumn = columnDataType === "ARRAY";
-            console.log("isArrayColumn:", isArrayColumn);
             const isTextColumn = columnDataType === "text";
-            console.log("isTextColumn:", isTextColumn);
-            console.log("columnDataType:", columnDataType);
 
             if (!isTextColumn && !isArrayColumn) {
                 throw new Error(
@@ -331,6 +324,10 @@ class EncryptionMethods implements PrismaCrypto.EncryptionMethods {
             console.log("primaryKeyColumnName:", primaryKeyColumnName);
 
             // modificar todos os registros da coluna criptografando um a um utilizando o método `EncryptionMethods.encryptData`
+            console.log(
+                "Prisma.sql: allEntries:",
+                `SELECT ${primaryKeyColumnName}, ${columnName} FROM ${tableName};`,
+            );
             const allEntries = await prisma
                 .$queryRaw(
                     Prisma.sql`SELECT ${primaryKeyColumnName}, ${columnName} FROM ${tableName};`,

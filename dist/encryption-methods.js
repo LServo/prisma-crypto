@@ -256,9 +256,7 @@ var EncryptionMethods = /** @class */ (function () {
                                     })];
                             case 1:
                                 result = _d.sent();
-                                console.log("result:", result);
                                 columnExists = (_a = result[0]) === null || _a === void 0 ? void 0 : _a.exists;
-                                console.log("columnExists:", columnExists);
                                 if (!columnExists) {
                                     throw new Error("The column ".concat(tableName, ".").concat(columnName, " does not exists in the database."));
                                 }
@@ -269,13 +267,9 @@ var EncryptionMethods = /** @class */ (function () {
                                     })];
                             case 2:
                                 columnType = _d.sent();
-                                console.log("columnType:", columnType);
                                 columnDataType = (_b = columnType[0]) === null || _b === void 0 ? void 0 : _b.data_type;
                                 isArrayColumn = columnDataType === "ARRAY";
-                                console.log("isArrayColumn:", isArrayColumn);
                                 isTextColumn = columnDataType === "text";
-                                console.log("isTextColumn:", isTextColumn);
-                                console.log("columnDataType:", columnDataType);
                                 if (!isTextColumn && !isArrayColumn) {
                                     throw new Error("The column ".concat(tableName, ".").concat(columnName, " is not of type \"text\"."));
                                 }
@@ -291,6 +285,8 @@ var EncryptionMethods = /** @class */ (function () {
                                 console.log("getModelPrimaryKey:", getModelPrimaryKey);
                                 primaryKeyColumnName = (_c = getModelPrimaryKey[0]) === null || _c === void 0 ? void 0 : _c.column_name;
                                 console.log("primaryKeyColumnName:", primaryKeyColumnName);
+                                // modificar todos os registros da coluna criptografando um a um utilizando o método `EncryptionMethods.encryptData`
+                                console.log("Prisma.sql: allEntries:", "SELECT ".concat(primaryKeyColumnName, ", ").concat(columnName, " FROM ").concat(tableName, ";"));
                                 return [4 /*yield*/, prisma_client_1.prisma
                                         .$queryRaw(client_1.Prisma.sql(templateObject_4 || (templateObject_4 = __makeTemplateObject(["SELECT ", ", ", " FROM ", ";"], ["SELECT ", ", ", " FROM ", ";"])), primaryKeyColumnName, columnName, tableName))
                                         .catch(function (error) {
