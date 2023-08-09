@@ -62,11 +62,11 @@ function findEncryptFields(
 
             if (!modelsEncryptedFields[currentModel])
                 modelsEncryptedFields[currentModel] = [];
-            if (!modelsEncryptedFields[currentModelDbName])
-                modelsEncryptedFields[currentModelDbName] = [];
+            if (!modelsEncryptedFieldsDbName[currentModelDbName])
+                modelsEncryptedFieldsDbName[currentModelDbName] = [];
 
             modelsEncryptedFields[currentModel].push({ fieldName, typeName });
-            modelsEncryptedFields[currentModelDbName].push({
+            modelsEncryptedFieldsDbName[currentModelDbName].push({
                 fieldName,
                 typeName,
             });
