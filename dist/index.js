@@ -179,11 +179,13 @@ var getDbName = function (_a) {
                             return Object.keys(newModels).reduce(function (acc, curr) {
                                 var _a, _b;
                                 var _c, _d;
+                                console.log("newModels:", newModels);
+                                console.log("oldModels:", oldModels);
                                 var newFields = (_c = newModels[curr]) === null || _c === void 0 ? void 0 : _c.map(function (field) { return "".concat(curr, ".").concat(field.fieldName); });
-                                var lastFields = ((_d = oldModels[curr]) === null || _d === void 0 ? void 0 : _d.map(function (field) { return "".concat(curr, ".").concat(field.fieldName); })) || [];
-                                var fieldsToAdd = newFields.filter(function (field) { return !lastFields.includes(field); });
+                                var oldFields = ((_d = oldModels[curr]) === null || _d === void 0 ? void 0 : _d.map(function (field) { return "".concat(curr, ".").concat(field.fieldName); })) || [];
+                                var fieldsToAdd = newFields.filter(function (field) { return !oldFields.includes(field); });
                                 (_a = acc.add_encryption).push.apply(_a, fieldsToAdd);
-                                var fieldsToRemove = lastFields.filter(function (field) { return !newFields.includes(field); });
+                                var fieldsToRemove = oldFields.filter(function (field) { return !newFields.includes(field); });
                                 (_b = acc.remove_encryption).push.apply(_b, fieldsToRemove);
                                 return acc;
                             }, {
