@@ -252,14 +252,15 @@ class EncryptionMethods implements PrismaCrypto.EncryptionMethods {
     static async managingDatabaseEncryption(
         fields: String[],
         action: "add" | "remove",
-    ) {
+    ): Promise<void> {
         console.log("action:", action);
         const fieldsToManage = fields.map((field) => {
             const [model, fieldName] = field.split(".");
             return { model, fieldName };
         });
 
-        fieldsToManage.forEach(async (field) => {
+        fieldsToManage.forEach(async (field, index) => {
+            console.log("index:", index);
             const { model: tableName, fieldName: columnName } = field;
 
             const result = await prisma
@@ -311,9 +312,13 @@ class EncryptionMethods implements PrismaCrypto.EncryptionMethods {
                 );
             }
             // encontre a primary key da tabela
+            console.log(
+                "Prisma.sql: getModelPrimaryKey:",
+                `SELECT column_name FROM information_schema.key_column_usage WHERE table_name = '${tableName}' AND constraint_name = '${tableName}_pkey';`,
+            );
             const getModelPrimaryKey = await prisma
                 .$queryRaw(
-                    Prisma.sql`SELECT column_name FROM information_schema.key_column_usage WHERE table_name = ${tableName} AND constraint_name = '${tableName}_pkey';`,
+                    Prisma.sql`SELECT column_name FROM information_schema.key_column_usage WHERE table_name = '${tableName}' AND constraint_name = '${tableName}_pkey';`,
                 )
                 .catch((error) => {
                     throw new Error(

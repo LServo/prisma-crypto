@@ -241,12 +241,13 @@ var EncryptionMethods = /** @class */ (function () {
                     var _a = field.split("."), model = _a[0], fieldName = _a[1];
                     return { model: model, fieldName: fieldName };
                 });
-                fieldsToManage.forEach(function (field) { return __awaiter(_this, void 0, void 0, function () {
+                fieldsToManage.forEach(function (field, index) { return __awaiter(_this, void 0, void 0, function () {
                     var tableName, columnName, result, columnExists, columnType, columnDataType, isArrayColumn, isTextColumn, getModelPrimaryKey, primaryKeyColumnName, allEntries;
                     var _a, _b, _c;
                     return __generator(this, function (_d) {
                         switch (_d.label) {
                             case 0:
+                                console.log("index:", index);
                                 tableName = field.model, columnName = field.fieldName;
                                 return [4 /*yield*/, prisma_client_1.prisma
                                         .$queryRaw(client_1.Prisma.sql(templateObject_1 || (templateObject_1 = __makeTemplateObject(["SELECT EXISTS (\n                    SELECT FROM information_schema.columns\n                    WHERE table_name = ", "\n                    AND column_name = ", "\n                    ) AS \"exists\""], ["SELECT EXISTS (\n                    SELECT FROM information_schema.columns\n                    WHERE table_name = ", "\n                    AND column_name = ", "\n                    ) AS \"exists\""])), tableName, columnName))
@@ -278,8 +279,10 @@ var EncryptionMethods = /** @class */ (function () {
                                 if (!isTextColumn && !isArrayColumn) {
                                     throw new Error("The column ".concat(tableName, ".").concat(columnName, " is not of type \"text\"."));
                                 }
+                                // encontre a primary key da tabela
+                                console.log("Prisma.sql: getModelPrimaryKey:", "SELECT column_name FROM information_schema.key_column_usage WHERE table_name = '".concat(tableName, "' AND constraint_name = '").concat(tableName, "_pkey';"));
                                 return [4 /*yield*/, prisma_client_1.prisma
-                                        .$queryRaw(client_1.Prisma.sql(templateObject_3 || (templateObject_3 = __makeTemplateObject(["SELECT column_name FROM information_schema.key_column_usage WHERE table_name = ", " AND constraint_name = '", "_pkey';"], ["SELECT column_name FROM information_schema.key_column_usage WHERE table_name = ", " AND constraint_name = '", "_pkey';"])), tableName, tableName))
+                                        .$queryRaw(client_1.Prisma.sql(templateObject_3 || (templateObject_3 = __makeTemplateObject(["SELECT column_name FROM information_schema.key_column_usage WHERE table_name = '", "' AND constraint_name = '", "_pkey';"], ["SELECT column_name FROM information_schema.key_column_usage WHERE table_name = '", "' AND constraint_name = '", "_pkey';"])), tableName, tableName))
                                         .catch(function (error) {
                                         throw new Error("Error when executing the query to get the primary key of ".concat(tableName, ": ").concat(error));
                                     })];
