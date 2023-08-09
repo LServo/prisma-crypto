@@ -95,9 +95,9 @@ var getDbName = function (_a) {
     }
     return modelDbName;
 };
-var convertToJson = function (variable) {
-    return JSON.stringify(variable, null, 2);
-};
+// const convertToJson = (variable: any): string => {
+//     return JSON.stringify(variable, null, 2);
+// };
 (0, generator_helper_1.generatorHandler)({
     onManifest: function () {
         return {
@@ -178,6 +178,9 @@ var convertToJson = function (variable) {
                             remove_encryption: [],
                         }), add_encryption = _h.add_encryption, remove_encryption = _h.remove_encryption;
                         hasChanges = add_encryption.length || remove_encryption.length;
+                        console.log("add_encryption.length:", add_encryption.length);
+                        console.log("remove_encryption.length:", remove_encryption.length);
+                        console.log("hasChanges:", hasChanges);
                         if (!hasChanges) return [3 /*break*/, 8];
                         sdk_1.logger.info("Changes found!");
                         sdk_1.logger.info("Managing encryption...");
@@ -191,7 +194,7 @@ var convertToJson = function (variable) {
                     case 7:
                         newMigration = _j.sent();
                         sdk_1.logger.info("newMigration:", newMigration[0]); //remover
-                        sdk_1.logger.info("Added Encryption:", convertToJson((_f = newMigration[0]) === null || _f === void 0 ? void 0 : _f.add_encryption));
+                        sdk_1.logger.info("Added Encryption:", JSON.stringify((_f = newMigration[0]) === null || _f === void 0 ? void 0 : _f.add_encryption));
                         sdk_1.logger.info("Removed Encryption:", (_g = newMigration[0]) === null || _g === void 0 ? void 0 : _g.remove_encryption);
                         _j.label = 8;
                     case 8: return [3 /*break*/, 10];

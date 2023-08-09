@@ -80,9 +80,9 @@ const getDbName = ({
     return modelDbName;
 };
 
-const convertToJson = (variable: any): string => {
-    return JSON.stringify(variable, null, 2);
-};
+// const convertToJson = (variable: any): string => {
+//     return JSON.stringify(variable, null, 2);
+// };
 
 generatorHandler({
     onManifest() {
@@ -220,7 +220,10 @@ generatorHandler({
 
             const hasChanges =
                 add_encryption.length || remove_encryption.length;
+            console.log("add_encryption.length:", add_encryption.length);
+            console.log("remove_encryption.length:", remove_encryption.length);
 
+            console.log("hasChanges:", hasChanges);
             if (hasChanges) {
                 logger.info("Changes found!");
 
@@ -239,7 +242,7 @@ generatorHandler({
                 logger.info("newMigration:", newMigration[0]); //remover
                 logger.info(
                     "Added Encryption:",
-                    convertToJson(newMigration[0]?.add_encryption),
+                    JSON.stringify(newMigration[0]?.add_encryption),
                 );
                 logger.info(
                     "Removed Encryption:",
