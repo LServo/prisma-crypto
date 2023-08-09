@@ -316,27 +316,8 @@ class EncryptionMethods implements PrismaCrypto.EncryptionMethods {
                 throw new Error(
                     `Error when executing the query to get the primary key of ${tableName}: ${error}`,
                 );
-            })
-            .then((result) => {
-                console.log("result:", result);
-                return result;
             });
         console.log("getModelPrimaryKey:", getModelPrimaryKey);
-
-        const teste = await prisma
-            .$queryRaw(
-                Prisma.sql`SELECT column_name FROM information_schema.key_column_usage WHERE table_name = 'invitation' AND constraint_name = 'invitation_pkey';`,
-            )
-            .catch((error) => {
-                throw new Error(
-                    `Error when executing the query to get the primary key of ${tableName}: ${error}`,
-                );
-            })
-            .then((result) => {
-                console.log("result:", result);
-                return result;
-            });
-        console.log("teste:", teste);
 
         const primaryKeyColumnName = getModelPrimaryKey[0]?.column_name;
         console.log("primaryKeyColumnName:", primaryKeyColumnName);
@@ -346,9 +327,11 @@ class EncryptionMethods implements PrismaCrypto.EncryptionMethods {
             `SELECT ${primaryKeyColumnName}, ${columnName} FROM ${tableName};`,
         );
         const allEntries = await prisma
-            .$queryRaw(
-                Prisma.sql`SELECT ${primaryKeyColumnName}, ${columnName} FROM ${tableName};`,
-            )
+            .$queryRaw(Prisma.sql`SELECT $1, $2 FROM $3;`, [
+                primaryKeyColumnName,
+                columnName,
+                tableName,
+            ])
             .catch((error) => {
                 throw new Error(
                     `Error when executing the query to get all entries of ${tableName}: ${error}`,

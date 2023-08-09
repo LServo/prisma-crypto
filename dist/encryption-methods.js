@@ -234,7 +234,7 @@ var EncryptionMethods = /** @class */ (function () {
     EncryptionMethods.managingDatabaseEncryption = function (fields, action) {
         var _a, _b, _c;
         return __awaiter(this, void 0, void 0, function () {
-            var actualField, _d, tableName, columnName, result, columnExists, columnType, columnDataType, isArrayColumn, isTextColumn, getModelPrimaryKey, teste, primaryKeyColumnName, allEntries;
+            var actualField, _d, tableName, columnName, result, columnExists, columnType, columnDataType, isArrayColumn, isTextColumn, getModelPrimaryKey, primaryKeyColumnName, allEntries;
             return __generator(this, function (_e) {
                 switch (_e.label) {
                     case 0:
@@ -274,43 +274,31 @@ var EncryptionMethods = /** @class */ (function () {
                                 .$queryRaw(client_1.Prisma.sql(templateObject_3 || (templateObject_3 = __makeTemplateObject(["SELECT column_name FROM information_schema.key_column_usage WHERE table_name = ", " AND constraint_name = ", ";"], ["SELECT column_name FROM information_schema.key_column_usage WHERE table_name = ", " AND constraint_name = ", ";"])), tableName, tableName + "_pkey"))
                                 .catch(function (error) {
                                 throw new Error("Error when executing the query to get the primary key of ".concat(tableName, ": ").concat(error));
-                            })
-                                .then(function (result) {
-                                console.log("result:", result);
-                                return result;
                             })];
                     case 3:
                         getModelPrimaryKey = _e.sent();
                         console.log("getModelPrimaryKey:", getModelPrimaryKey);
-                        return [4 /*yield*/, prisma_client_1.prisma
-                                .$queryRaw(client_1.Prisma.sql(templateObject_4 || (templateObject_4 = __makeTemplateObject(["SELECT column_name FROM information_schema.key_column_usage WHERE table_name = 'invitation' AND constraint_name = 'invitation_pkey';"], ["SELECT column_name FROM information_schema.key_column_usage WHERE table_name = 'invitation' AND constraint_name = 'invitation_pkey';"]))))
-                                .catch(function (error) {
-                                throw new Error("Error when executing the query to get the primary key of ".concat(tableName, ": ").concat(error));
-                            })
-                                .then(function (result) {
-                                console.log("result:", result);
-                                return result;
-                            })];
-                    case 4:
-                        teste = _e.sent();
-                        console.log("teste:", teste);
                         primaryKeyColumnName = (_c = getModelPrimaryKey[0]) === null || _c === void 0 ? void 0 : _c.column_name;
                         console.log("primaryKeyColumnName:", primaryKeyColumnName);
                         console.log("Prisma.sql: allEntries:", "SELECT ".concat(primaryKeyColumnName, ", ").concat(columnName, " FROM ").concat(tableName, ";"));
                         return [4 /*yield*/, prisma_client_1.prisma
-                                .$queryRaw(client_1.Prisma.sql(templateObject_5 || (templateObject_5 = __makeTemplateObject(["SELECT ", ", ", " FROM ", ";"], ["SELECT ", ", ", " FROM ", ";"])), primaryKeyColumnName, columnName, tableName))
+                                .$queryRaw(client_1.Prisma.sql(templateObject_4 || (templateObject_4 = __makeTemplateObject(["SELECT $1, $2 FROM $3;"], ["SELECT $1, $2 FROM $3;"]))), [
+                                primaryKeyColumnName,
+                                columnName,
+                                tableName,
+                            ])
                                 .catch(function (error) {
                                 throw new Error("Error when executing the query to get all entries of ".concat(tableName, ": ").concat(error));
                             })];
-                    case 5:
+                    case 4:
                         allEntries = _e.sent();
                         console.log("allEntries:", allEntries);
-                        if (!(fields.length > 0)) return [3 /*break*/, 7];
+                        if (!(fields.length > 0)) return [3 /*break*/, 6];
                         return [4 /*yield*/, this.managingDatabaseEncryption(fields, "add")];
-                    case 6:
+                    case 5:
                         _e.sent();
-                        _e.label = 7;
-                    case 7: return [2 /*return*/];
+                        _e.label = 6;
+                    case 6: return [2 /*return*/];
                 }
             });
         });
@@ -318,4 +306,4 @@ var EncryptionMethods = /** @class */ (function () {
     return EncryptionMethods;
 }());
 exports.EncryptionMethods = EncryptionMethods;
-var templateObject_1, templateObject_2, templateObject_3, templateObject_4, templateObject_5;
+var templateObject_1, templateObject_2, templateObject_3, templateObject_4;
