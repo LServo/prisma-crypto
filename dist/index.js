@@ -87,7 +87,11 @@ function findEncryptFields(filePath, modelsInfo) {
 var getDbName = function (_a) {
     var modelName = _a.modelName, modelsInfo = _a.modelsInfo;
     console.log("modelsInfo:", modelsInfo);
-    var model = modelsInfo.find(function (model) { return model.name === modelName; });
+    var model = modelsInfo.find(function (model) {
+        console.log("model.name:", model.name);
+        console.log("modelName:", modelName);
+        return model.name === modelName;
+    });
     console.log("model:", model);
     return model.dbName;
 };
