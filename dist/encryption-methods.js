@@ -234,9 +234,10 @@ var EncryptionMethods = /** @class */ (function () {
     EncryptionMethods.managingDatabaseEncryption = function (fields, action) {
         var _a, _b, _c;
         return __awaiter(this, void 0, void 0, function () {
-            var actualField, _d, tableName, columnName, result, columnExists, columnType, columnDataType, isArrayColumn, isTextColumn, getModelPrimaryKey, primaryKeyColumnName, allEntriesQuery, allEntries;
-            return __generator(this, function (_e) {
-                switch (_e.label) {
+            var actualField, _d, tableName, columnName, result, columnExists, columnType, columnDataType, isArrayColumn, isTextColumn, getModelPrimaryKey, primaryKeyColumnName, allEntries;
+            var _e;
+            return __generator(this, function (_f) {
+                switch (_f.label) {
                     case 0:
                         console.log("action:", action);
                         console.log("index:", fields.length);
@@ -250,7 +251,7 @@ var EncryptionMethods = /** @class */ (function () {
                                 throw new Error("Error when executing the query to check if the column ".concat(tableName, ".").concat(columnName, " exists: ").concat(error));
                             })];
                     case 1:
-                        result = _e.sent();
+                        result = _f.sent();
                         columnExists = (_a = result[0]) === null || _a === void 0 ? void 0 : _a.exists;
                         if (!columnExists) {
                             throw new Error("The column ".concat(tableName, ".").concat(columnName, " does not exists in the database."));
@@ -261,7 +262,7 @@ var EncryptionMethods = /** @class */ (function () {
                                 throw new Error("Error when executing the query to get the column type of ".concat(tableName, ".").concat(columnName, ": ").concat(error));
                             })];
                     case 2:
-                        columnType = _e.sent();
+                        columnType = _f.sent();
                         columnDataType = (_b = columnType[0]) === null || _b === void 0 ? void 0 : _b.data_type;
                         isArrayColumn = columnDataType === "ARRAY";
                         isTextColumn = columnDataType === "text";
@@ -276,30 +277,25 @@ var EncryptionMethods = /** @class */ (function () {
                                 throw new Error("Error when executing the query to get the primary key of ".concat(tableName, ": ").concat(error));
                             })];
                     case 3:
-                        getModelPrimaryKey = _e.sent();
+                        getModelPrimaryKey = _f.sent();
                         console.log("getModelPrimaryKey:", getModelPrimaryKey);
                         primaryKeyColumnName = (_c = getModelPrimaryKey[0]) === null || _c === void 0 ? void 0 : _c.column_name;
                         console.log("primaryKeyColumnName:", primaryKeyColumnName);
-                        allEntriesQuery = "SELECT " +
-                            primaryKeyColumnName +
-                            ", " +
-                            columnName +
-                            " FROM " +
-                            tableName;
-                        console.log("allEntriesQuery:", allEntriesQuery);
-                        return [4 /*yield*/, prisma_client_1.prisma
-                                .$queryRaw(client_1.Prisma.sql(templateObject_4 || (templateObject_4 = __makeTemplateObject(["", ""], ["", ""])), allEntriesQuery))
+                        return [4 /*yield*/, prisma_client_1.prisma[tableName]
+                                .findMany({
+                                select: (_e = {}, _e[primaryKeyColumnName] = true, _e[columnName] = true, _e),
+                            })
                                 .catch(function (error) {
                                 throw new Error("Error when executing the query to get all entries of ".concat(tableName, ": ").concat(error));
                             })];
                     case 4:
-                        allEntries = _e.sent();
+                        allEntries = _f.sent();
                         console.log("allEntries:", allEntries);
                         if (!(fields.length > 0)) return [3 /*break*/, 6];
                         return [4 /*yield*/, this.managingDatabaseEncryption(fields, "add")];
                     case 5:
-                        _e.sent();
-                        _e.label = 6;
+                        _f.sent();
+                        _f.label = 6;
                     case 6: return [2 /*return*/];
                 }
             });
@@ -308,4 +304,4 @@ var EncryptionMethods = /** @class */ (function () {
     return EncryptionMethods;
 }());
 exports.EncryptionMethods = EncryptionMethods;
-var templateObject_1, templateObject_2, templateObject_3, templateObject_4;
+var templateObject_1, templateObject_2, templateObject_3;

@@ -322,16 +322,10 @@ class EncryptionMethods implements PrismaCrypto.EncryptionMethods {
         const primaryKeyColumnName = getModelPrimaryKey[0]?.column_name;
         console.log("primaryKeyColumnName:", primaryKeyColumnName);
 
-        const allEntriesQuery =
-            "SELECT " +
-            primaryKeyColumnName +
-            ", " +
-            columnName +
-            " FROM " +
-            tableName;
-        console.log("allEntriesQuery:", allEntriesQuery);
-        const allEntries = await prisma
-            .$queryRaw(Prisma.sql`${allEntriesQuery}`)
+        const allEntries = await prisma[tableName]
+            .findMany({
+                select: { [primaryKeyColumnName]: true, [columnName]: true },
+            })
             .catch((error) => {
                 throw new Error(
                     `Error when executing the query to get all entries of ${tableName}: ${error}`,
