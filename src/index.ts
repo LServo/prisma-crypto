@@ -220,7 +220,7 @@ generatorHandler({
                 Object.keys(newModels).reduce(
                     (acc, curr) => {
                         let newFields: string[];
-                        if (newFields)
+                        if (newModels)
                             newFields = newModels[curr]?.map(
                                 (field) => `${curr}.${field.fieldName}`,
                             );

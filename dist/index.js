@@ -180,7 +180,7 @@ var getDbName = function (_a) {
                                 var _a, _b;
                                 var _c, _d;
                                 var newFields;
-                                if (newFields)
+                                if (newModels)
                                     newFields = (_c = newModels[curr]) === null || _c === void 0 ? void 0 : _c.map(function (field) { return "".concat(curr, ".").concat(field.fieldName); });
                                 var oldFields;
                                 if (oldModels)
