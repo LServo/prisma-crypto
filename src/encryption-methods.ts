@@ -342,6 +342,7 @@ class EncryptionMethods implements PrismaCrypto.EncryptionMethods {
                     entry;
                 console.log("primaryKeyColumnName:", primaryKeyColumnName);
                 console.log("columnName:", columnName);
+                console.log("value:", value);
                 if (!value) return;
                 let newValue: string;
                 switch (action) {

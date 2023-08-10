@@ -301,6 +301,7 @@ var EncryptionMethods = /** @class */ (function () {
                             var _e = entry, _f = primaryKeyColumnName, id = _e[_f], _g = columnName, value = _e[_g];
                             console.log("primaryKeyColumnName:", primaryKeyColumnName);
                             console.log("columnName:", columnName);
+                            console.log("value:", value);
                             if (!value)
                                 return;
                             var newValue;

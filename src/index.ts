@@ -286,10 +286,26 @@ generatorHandler({
                         JSON.stringify(remove_encryption_db_name),
                     ) as String[];
 
+                    console.log(
+                        "deepClonedAddEncryption:",
+                        deepClonedAddEncryption,
+                    );
+                    console.log(
+                        "deepClonedAddEncryptionDbName:",
+                        deepClonedAddEncryptionDbName,
+                    );
                     await EncryptionMethods.managingDatabaseEncryption(
                         deepClonedAddEncryption,
                         deepClonedAddEncryptionDbName,
                         "add",
+                    );
+                    console.log(
+                        "deepClonedRemoveEncryption:",
+                        deepClonedRemoveEncryption,
+                    );
+                    console.log(
+                        "deepClonedRemoveEncryptionDbName:",
+                        deepClonedRemoveEncryptionDbName,
                     );
                     await EncryptionMethods.managingDatabaseEncryption(
                         deepClonedRemoveEncryption,
