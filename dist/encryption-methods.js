@@ -61,7 +61,7 @@ var EncryptionMethods = /** @class */ (function () {
     EncryptionMethods.resolveEncryptedArgs = function (_a) {
         var _b;
         var whereArgs = _a.whereArgs, fieldsToManage = _a.fieldsToManage;
-        // console.log("args before:", ConvertToJson(args));
+        // logger.info("args before:", ConvertToJson(args));
         var _c = (_b = whereArgs) !== null && _b !== void 0 ? _b : {}, AND = _c.AND, NOT = _c.NOT, OR = _c.OR;
         // criptografar a pesquisa para o banco de dados passando o argumento where
         var manageArrayEncryption = function (array) {
@@ -86,7 +86,7 @@ var EncryptionMethods = /** @class */ (function () {
             manageArrayEncryption(NOT);
         if (OR)
             manageArrayEncryption(OR);
-        // console.log("args after:", ConvertToJson(args));
+        // logger.info("args after:", ConvertToJson(args));
         return {};
     };
     EncryptionMethods.prototype.resolveEncryptedArgs = function (_a) {
@@ -104,7 +104,10 @@ var EncryptionMethods = /** @class */ (function () {
             var fieldValue = dataToEncrypt[fieldName];
             if (!fieldValue)
                 return;
-            console.log("dataToEncrypt[".concat(fieldName, "]:"), dataToEncrypt[fieldName]);
+            // logger.info(
+            //     `dataToEncrypt[${fieldName}]:`,
+            //     dataToEncrypt[fieldName],
+            // );
             var isArray = Array.isArray(fieldValue);
             var isString = typeof fieldValue === "string";
             switch (isArray) {
@@ -172,7 +175,10 @@ var EncryptionMethods = /** @class */ (function () {
                 default:
                     break;
             }
-            console.log("dataToEncrypt[".concat(fieldName, "]:"), dataToEncrypt[fieldName]);
+            // logger.info(
+            //     `dataToEncrypt[${fieldName}]:`,
+            //     dataToEncrypt[fieldName],
+            // );
         });
         return {};
     };
@@ -186,8 +192,6 @@ var EncryptionMethods = /** @class */ (function () {
     };
     EncryptionMethods.encryptData = function (_a) {
         var stringToEncrypt = _a.stringToEncrypt;
-        console.log("encryptData");
-        console.log("stringToEncrypt:", stringToEncrypt);
         var fixedIV = EncryptionMethods.generateHash({
             stringToGenerateHash: stringToEncrypt,
         }).generatedHash;
@@ -211,8 +215,6 @@ var EncryptionMethods = /** @class */ (function () {
     };
     EncryptionMethods.decryptData = function (_a) {
         var stringToDecrypt = _a.stringToDecrypt;
-        console.log("decryptData");
-        console.log("stringToDecrypt:", stringToDecrypt);
         var encryptedBuffer = Buffer.from(stringToDecrypt, "base64");
         // Extraia o IV, a tag e o texto cifrado da string codificada
         var iv = encryptedBuffer.subarray(0, 32);
@@ -239,7 +241,6 @@ var EncryptionMethods = /** @class */ (function () {
             return __generator(this, function (_f) {
                 switch (_f.label) {
                     case 0:
-                        console.log("index:", fields.length);
                         actualField = fields.shift();
                         actualFieldDbName = fieldsDbName.shift();
                         if (!actualField)
@@ -287,7 +288,6 @@ var EncryptionMethods = /** @class */ (function () {
                             })];
                     case 4:
                         allEntries = _f.sent();
-                        console.log("allEntries:", allEntries);
                         if (!(fields.length > 0)) return [3 /*break*/, 6];
                         return [4 /*yield*/, this.managingDatabaseEncryption(fields, fieldsDbName, "add")];
                     case 5:
@@ -299,9 +299,9 @@ var EncryptionMethods = /** @class */ (function () {
                             var _a, _b;
                             var _c, _d;
                             var _e = entry, _f = primaryKeyColumnName, id = _e[_f], _g = columnName, value = _e[_g];
-                            console.log("primaryKeyColumnName:", primaryKeyColumnName);
-                            console.log("columnName:", columnName);
-                            console.log("value:", value);
+                            // logger.info("primaryKeyColumnName:", primaryKeyColumnName);
+                            // logger.info("columnName:", columnName);
+                            // logger.info("value:", value);
                             if (!value)
                                 return;
                             var newValue;
@@ -320,7 +320,7 @@ var EncryptionMethods = /** @class */ (function () {
                                     newValue = value;
                                     break;
                             }
-                            console.log("newValue:", newValue);
+                            // logger.info("newValue:", newValue);
                             return prisma_client_1.prisma[schemaTableName].update({
                                 where: (_a = {}, _a[primaryKeyColumnName] = id, _a),
                                 data: (_b = {}, _b[columnName] = newValue, _b),

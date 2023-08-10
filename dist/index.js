@@ -209,13 +209,9 @@ var getDbName = function (_a) {
                         deepClonedAddEncryptionDbName = JSON.parse(JSON.stringify(add_encryption_db_name));
                         deepClonedRemoveEncryption = JSON.parse(JSON.stringify(remove_encryption));
                         deepClonedRemoveEncryptionDbName = JSON.parse(JSON.stringify(remove_encryption_db_name));
-                        console.log("deepClonedAddEncryption:", deepClonedAddEncryption);
-                        console.log("deepClonedAddEncryptionDbName:", deepClonedAddEncryptionDbName);
                         return [4 /*yield*/, encryption_methods_1.EncryptionMethods.managingDatabaseEncryption(deepClonedAddEncryption, deepClonedAddEncryptionDbName, "add")];
                     case 7:
                         _l.sent();
-                        console.log("deepClonedRemoveEncryption:", deepClonedRemoveEncryption);
-                        console.log("deepClonedRemoveEncryptionDbName:", deepClonedRemoveEncryptionDbName);
                         return [4 /*yield*/, encryption_methods_1.EncryptionMethods.managingDatabaseEncryption(deepClonedRemoveEncryption, deepClonedRemoveEncryptionDbName, "remove")];
                     case 8:
                         _l.sent();
