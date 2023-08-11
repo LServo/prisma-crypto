@@ -8,16 +8,19 @@ import { PrismaCrypto } from "./prisma-crypto";
 const convertToJson = (variable: any): string => {
     return JSON.stringify(variable, null, 2);
 };
+function getMyVar(env_var: string) {
+    return process.env[env_var];
+}
 
 const prismaDirect = new PrismaClient({
     datasources: {
         db: {
-            url: process.env.PRISMA_CRYPTO_DIRECT_DB,
+            url: getMyVar("PRISMA_CRYPTO_DIRECT_DB"),
         },
     },
 });
 
-const debugMode = process.env.PRISMA_CRYPTO_DEBUG === "true";
+const debugMode = getMyVar("PRISMA_CRYPTO_DEBUG") === "true";
 class EncryptionMethods implements PrismaCrypto.EncryptionMethods {
     static generateHash({
         stringToGenerateHash,
@@ -213,7 +216,7 @@ class EncryptionMethods implements PrismaCrypto.EncryptionMethods {
         });
         const cipher = createCipheriv(
             "aes-256-gcm",
-            process.env.SECRET_KEY,
+            getMyVar("SECRET_KEY"),
             fixedIV,
         );
 
@@ -254,7 +257,7 @@ class EncryptionMethods implements PrismaCrypto.EncryptionMethods {
 
         const decipher = createDecipheriv(
             "aes-256-gcm",
-            process.env.SECRET_KEY,
+            getMyVar("SECRET_KEY"),
             iv,
         );
         decipher.setAuthTag(tag);

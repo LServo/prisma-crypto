@@ -10,12 +10,16 @@ const convertToJson = (variable: any): string => {
     return JSON.stringify(variable, null, 2);
 };
 
-const debugMode = process.env.PRISMA_CRYPTO_DEBUG === "true";
+function getMyVar(env_var: string) {
+    return process.env[env_var];
+}
+
+const debugMode = getMyVar("PRISMA_CRYPTO_DEBUG") === "true";
 
 const prisma = new PrismaClient({
     datasources: {
         db: {
-            url: process.env.PRISMA_CRYPTO_DIRECT_DB,
+            url: getMyVar("PRISMA_CRYPTO_DIRECT_DB"),
         },
     },
 }).$extends({
@@ -65,7 +69,7 @@ const prisma = new PrismaClient({
 const writeReplicaPrisma = new PrismaClient({
     datasources: {
         db: {
-            url: process.env.PRISMA_CRYPTO_WRITE_DB,
+            url: getMyVar("PRISMA_CRYPTO_WRITE_DB"),
         },
     },
 }).$extends({
@@ -249,7 +253,7 @@ const writeReplicaPrisma = new PrismaClient({
 const readReplicaPrisma = new PrismaClient({
     datasources: {
         db: {
-            url: process.env.PRISMA_CRYPTO_READ_DB,
+            url: getMyVar("PRISMA_CRYPTO_READ_DB"),
         },
     },
 }).$extends({

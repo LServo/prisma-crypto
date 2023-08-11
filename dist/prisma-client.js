@@ -56,11 +56,14 @@ var encryption_methods_1 = require("./encryption-methods");
 var convertToJson = function (variable) {
     return JSON.stringify(variable, null, 2);
 };
-var debugMode = process.env.PRISMA_CRYPTO_DEBUG === "true";
+function getMyVar(env_var) {
+    return process.env[env_var];
+}
+var debugMode = getMyVar("PRISMA_CRYPTO_DEBUG") === "true";
 var prisma = new client_1.PrismaClient({
     datasources: {
         db: {
-            url: process.env.PRISMA_CRYPTO_DIRECT_DB,
+            url: getMyVar("PRISMA_CRYPTO_DIRECT_DB"),
         },
     },
 }).$extends({
@@ -101,7 +104,7 @@ exports.prisma = prisma;
 var writeReplicaPrisma = new client_1.PrismaClient({
     datasources: {
         db: {
-            url: process.env.PRISMA_CRYPTO_WRITE_DB,
+            url: getMyVar("PRISMA_CRYPTO_WRITE_DB"),
         },
     },
 }).$extends({
@@ -238,7 +241,7 @@ var writeReplicaPrisma = new client_1.PrismaClient({
 var readReplicaPrisma = new client_1.PrismaClient({
     datasources: {
         db: {
-            url: process.env.PRISMA_CRYPTO_READ_DB,
+            url: getMyVar("PRISMA_CRYPTO_READ_DB"),
         },
     },
 }).$extends({

@@ -11,7 +11,6 @@ vite.config.ts
 .env
 .env.example
 package-lock.json
-src/*
-!src/prisma-client.ts
+src
 node_modules
 test

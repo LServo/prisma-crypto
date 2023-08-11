@@ -47,14 +47,17 @@ var sdk_1 = require("@prisma/sdk");
 var convertToJson = function (variable) {
     return JSON.stringify(variable, null, 2);
 };
+function getMyVar(env_var) {
+    return process.env[env_var];
+}
 var prismaDirect = new client_1.PrismaClient({
     datasources: {
         db: {
-            url: process.env.PRISMA_CRYPTO_DIRECT_DB,
+            url: getMyVar("PRISMA_CRYPTO_DIRECT_DB"),
         },
     },
 });
-var debugMode = process.env.PRISMA_CRYPTO_DEBUG === "true";
+var debugMode = getMyVar("PRISMA_CRYPTO_DEBUG") === "true";
 var EncryptionMethods = /** @class */ (function () {
     function EncryptionMethods() {
     }
@@ -206,7 +209,7 @@ var EncryptionMethods = /** @class */ (function () {
         var fixedIV = EncryptionMethods.generateHash({
             stringToGenerateHash: stringToEncrypt,
         }).generatedHash;
-        var cipher = (0, node_crypto_1.createCipheriv)("aes-256-gcm", process.env.SECRET_KEY, fixedIV);
+        var cipher = (0, node_crypto_1.createCipheriv)("aes-256-gcm", getMyVar("SECRET_KEY"), fixedIV);
         var encrypted = Buffer.concat([
             cipher.update(stringToEncrypt, "utf8"),
             cipher.final(),
@@ -235,7 +238,7 @@ var EncryptionMethods = /** @class */ (function () {
         var iv = encryptedBuffer.subarray(0, 32);
         var tag = encryptedBuffer.subarray(32, 48);
         var encrypted = encryptedBuffer.subarray(48);
-        var decipher = (0, node_crypto_1.createDecipheriv)("aes-256-gcm", process.env.SECRET_KEY, iv);
+        var decipher = (0, node_crypto_1.createDecipheriv)("aes-256-gcm", getMyVar("SECRET_KEY"), iv);
         decipher.setAuthTag(tag);
         var decrypted = Buffer.concat([
             decipher.update(encrypted),
