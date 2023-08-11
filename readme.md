@@ -2,9 +2,9 @@
 
 [![npm version](https://img.shields.io/npm/v/prisma-crypto.svg?style=flat-square)](https://www.npmjs.com/package/prisma-crypto)
 [![NPM Downloads](https://img.shields.io/npm/dt/prisma-crypto.svg?style=flat-square)](https://www.npmjs.com/package/prisma-crypto)
-[![GitHub issues](https://img.shields.io/github/issues-raw/paipe/prisma-crypto?style=flat-square)](https://github.com/LServo/prisma-crypto/issues)
-[![Code Coverage](https://img.shields.io/codecov/c/github/paipe/prisma-crypto?style=flat-square)](https://codecov.io/gh/LServo/prisma-crypto)
-<!-- [![GitHub Actions](https://github.com/paipe/prisma-crypto/workflows/CI/badge.svg)](https://github.com/LServo/prisma-crypto/actions) //é necessário ter um workflow ativo com o nome CI para funcionar -->
+[![GitHub issues](https://img.shields.io/github/issues-raw/LServo/prisma-crypto?style=flat-square)](https://github.com/LServo/prisma-crypto/issues)
+[![GitHub Actions](https://github.com/LServo/prisma-crypto/workflows/CI/badge.svg)](https://github.com/LServo/prisma-crypto/actions)
+[![Code Coverage](https://img.shields.io/codecov/c/github/LServo/prisma-crypto?style=flat-square)](https://codecov.io/gh/LServo/prisma-crypto)
 <br>
 
 O `prisma-crypto` é uma extensão para o Prisma ORM que facilita a implementação de criptografia em seus modelos de banco de dados. Com uma simples anotação e algumas configurações, você pode garantir que seus dados sejam armazenados de forma segura e ainda mantenha a capacidade de consultar esses dados de forma eficiente.
@@ -69,7 +69,7 @@ model User {
 Com o `prisma-crypto` configurado, execute suas operações do Prisma como de costume. A extensão cuidará da criptografia e descriptografia para você.
 
 ```typescript
-import { prisma } from "@paipe/prisma-crypto";
+import { prisma } from "prisma-crypto";
 
 const newUser = {
   email: 'example@example.com',
@@ -83,7 +83,7 @@ await prisma.user.create({
 Ao recuperar o usuário, os campos criptografados serão automaticamente descriptografados:
 
 ```typescript
-import { prisma } from "@paipe/prisma-crypto";
+import { prisma } from "prisma-crypto";
 
 const userEmail = 'example@example.com';
 
