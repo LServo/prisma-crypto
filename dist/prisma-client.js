@@ -56,7 +56,7 @@ var encryption_methods_1 = require("./encryption-methods");
 var convertToJson = function (variable) {
     return JSON.stringify(variable, null, 2);
 };
-var debugMode = process.env.DEBUG_MODE === "true";
+var debugMode = process.env.PRISMA_CRYPTO_DEBUG === "true";
 var prisma = new client_1.PrismaClient({
     datasources: {
         db: {

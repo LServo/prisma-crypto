@@ -48,7 +48,7 @@ var prisma_client_1 = require("./prisma-client");
 var convertToJson = function (variable) {
     return JSON.stringify(variable, null, 2);
 };
-var debugMode = process.env.DEBUG_MODE === "true";
+var debugMode = process.env.PRISMA_CRYPTO_DEBUG === "true";
 var EncryptionMethods = /** @class */ (function () {
     function EncryptionMethods() {
     }

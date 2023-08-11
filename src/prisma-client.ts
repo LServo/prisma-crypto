@@ -10,7 +10,7 @@ const convertToJson = (variable: any): string => {
     return JSON.stringify(variable, null, 2);
 };
 
-const debugMode = process.env.DEBUG_MODE === "true";
+const debugMode = process.env.PRISMA_CRYPTO_DEBUG === "true";
 
 const prisma = new PrismaClient({
     datasources: {
