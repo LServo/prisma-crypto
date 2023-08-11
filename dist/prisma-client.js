@@ -51,17 +51,16 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.prisma = void 0;
 var client_1 = require("@prisma/client");
 var sdk_1 = require("@prisma/sdk");
-var _1 = require(".");
 var encrypted_models_1 = require("./encrypted-models");
 var encryption_methods_1 = require("./encryption-methods");
 var convertToJson = function (variable) {
     return JSON.stringify(variable, null, 2);
 };
-var debugMode = _1.PRISMA_CRYPTO_DEBUG === "true";
+var debugMode = process.env.PRISMA_CRYPTO_DEBUG === "true";
 var prisma = new client_1.PrismaClient({
     datasources: {
         db: {
-            url: _1.PRISMA_CRYPTO_DIRECT_DB,
+            url: process.env.PRISMA_CRYPTO_DIRECT_DB,
         },
     },
 }).$extends({
@@ -102,7 +101,7 @@ exports.prisma = prisma;
 var writeReplicaPrisma = new client_1.PrismaClient({
     datasources: {
         db: {
-            url: _1.PRISMA_CRYPTO_WRITE_DB,
+            url: process.env.PRISMA_CRYPTO_WRITE_DB,
         },
     },
 }).$extends({
@@ -243,7 +242,7 @@ var writeReplicaPrisma = new client_1.PrismaClient({
 var readReplicaPrisma = new client_1.PrismaClient({
     datasources: {
         db: {
-            url: _1.PRISMA_CRYPTO_READ_DB,
+            url: process.env.PRISMA_CRYPTO_READ_DB,
         },
     },
 }).$extends({

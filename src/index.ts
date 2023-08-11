@@ -1,6 +1,5 @@
 #!/usr/bin/env node
 /* eslint-disable @typescript-eslint/no-var-requires */
-
 import { sign, verify } from "jsonwebtoken";
 import { execSync } from "node:child_process";
 import fs from "node:fs";
@@ -18,11 +17,6 @@ import { EncryptionMethods } from "./encryption-methods";
 import { prisma } from "./prisma-client";
 import { PrismaCrypto } from "./prisma-crypto";
 export { prisma } from "./prisma-client";
-
-export let PRISMA_CRYPTO_DEBUG: string;
-export let PRISMA_CRYPTO_DIRECT_DB: string;
-export let PRISMA_CRYPTO_WRITE_DB: string;
-export let PRISMA_CRYPTO_READ_DB: string;
 
 function findEncryptFields(
     filePath: string,
@@ -117,15 +111,6 @@ generatorHandler({
             options.schemaPath,
             options.dmmf.datamodel.models,
         );
-
-        PRISMA_CRYPTO_DEBUG =
-            (options.generator?.config?.debug_mode as string) || "false";
-        PRISMA_CRYPTO_DIRECT_DB =
-            process.env[options.generator?.config?.direct_db as string];
-        PRISMA_CRYPTO_WRITE_DB =
-            process.env[options.generator?.config?.read_db as string];
-        PRISMA_CRYPTO_READ_DB =
-            process.env[options.generator?.config?.write_db as string];
 
         if (!fs.existsSync(resolve(__dirname))) return { exitCode: 1 };
 

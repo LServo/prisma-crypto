@@ -3,12 +3,6 @@
 import { PrismaClient } from "@prisma/client";
 import { logger } from "@prisma/sdk";
 
-import {
-    PRISMA_CRYPTO_DEBUG,
-    PRISMA_CRYPTO_DIRECT_DB,
-    PRISMA_CRYPTO_READ_DB,
-    PRISMA_CRYPTO_WRITE_DB,
-} from ".";
 import { prismaEncryptModels } from "./encrypted-models";
 import { EncryptionMethods } from "./encryption-methods";
 
@@ -16,12 +10,12 @@ const convertToJson = (variable: any): string => {
     return JSON.stringify(variable, null, 2);
 };
 
-const debugMode = PRISMA_CRYPTO_DEBUG === "true";
+const debugMode = process.env.PRISMA_CRYPTO_DEBUG === "true";
 
 const prisma = new PrismaClient({
     datasources: {
         db: {
-            url: PRISMA_CRYPTO_DIRECT_DB,
+            url: process.env.PRISMA_CRYPTO_DIRECT_DB,
         },
     },
 }).$extends({
@@ -68,7 +62,7 @@ const prisma = new PrismaClient({
 const writeReplicaPrisma = new PrismaClient({
     datasources: {
         db: {
-            url: PRISMA_CRYPTO_WRITE_DB,
+            url: process.env.PRISMA_CRYPTO_WRITE_DB,
         },
     },
 }).$extends({
@@ -238,7 +232,7 @@ const writeReplicaPrisma = new PrismaClient({
 const readReplicaPrisma = new PrismaClient({
     datasources: {
         db: {
-            url: PRISMA_CRYPTO_READ_DB,
+            url: process.env.PRISMA_CRYPTO_READ_DB,
         },
     },
 }).$extends({
