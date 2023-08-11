@@ -334,13 +334,24 @@ generatorHandler({
             encryptedModelsFilePath,
             "utf8",
         );
-        const parseToString = `${readEncryptedModelsFile}`;
-        const addModels = parseToString.replace(
-            /exports.prismaEncryptModels = {}/g,
-            `exports.prismaEncryptModels = ${newEncryptedModelsJSON}`,
-        );
 
-        fs.writeFileSync(encryptedModelsFilePath, addModels, "utf-8");
+        const regex = /exports\.prismaEncryptModels = \{/;
+        const findIndex = readEncryptedModelsFile.search(regex);
+
+        if (findIndex !== -1) {
+            const cutInterestParts = readEncryptedModelsFile.slice(
+                0,
+                findIndex,
+            );
+
+            const newContent =
+                cutInterestParts +
+                "exports.prismaEncryptModels = " +
+                newEncryptedModelsJSON +
+                ";";
+
+            fs.writeFileSync(encryptedModelsFilePath, newContent, "utf-8");
+        }
 
         logger.info(`Encrypted models: ${encryptedModelsFilePath}`);
         return {

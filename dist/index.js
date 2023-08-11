@@ -119,7 +119,7 @@ var getDbName = function (_a) {
     onGenerate: function (options) {
         var _a, _b, _c, _d, _e;
         return __awaiter(this, void 0, void 0, function () {
-            var _f, newEncryptedModels, newEncryptedModelsDbName, result, modelExists, schemaPath, modelMigrateEncryption, latestMigration, error_1, newToken, lastEncryptedModels, getEncryptionChanges, _g, add_encryption, remove_encryption, _h, add_encryption_db_name, remove_encryption_db_name, hasChanges, deepClonedAddEncryption, deepClonedAddEncryptionDbName, deepClonedRemoveEncryption, deepClonedRemoveEncryptionDbName, error_2, newMigration, error_3, encryptedModelsFilePath, newEncryptedModelsJSON, readEncryptedModelsFile, parseToString, addModels;
+            var _f, newEncryptedModels, newEncryptedModelsDbName, result, modelExists, schemaPath, modelMigrateEncryption, latestMigration, error_1, newToken, lastEncryptedModels, getEncryptionChanges, _g, add_encryption, remove_encryption, _h, add_encryption_db_name, remove_encryption_db_name, hasChanges, deepClonedAddEncryption, deepClonedAddEncryptionDbName, deepClonedRemoveEncryption, deepClonedRemoveEncryptionDbName, error_2, newMigration, error_3, encryptedModelsFilePath, newEncryptedModelsJSON, readEncryptedModelsFile, regex, findIndex, cutInterestParts, newContent;
             return __generator(this, function (_j) {
                 switch (_j.label) {
                     case 0:
@@ -238,9 +238,16 @@ var getDbName = function (_a) {
                         encryptedModelsFilePath = (0, node_path_1.resolve)(__dirname, "encrypted-models.js");
                         newEncryptedModelsJSON = JSON.stringify(newEncryptedModels, null, 4);
                         readEncryptedModelsFile = node_fs_1.default.readFileSync(encryptedModelsFilePath, "utf8");
-                        parseToString = "".concat(readEncryptedModelsFile);
-                        addModels = parseToString.replace(/exports.prismaEncryptModels = {}/g, "exports.prismaEncryptModels = ".concat(newEncryptedModelsJSON));
-                        node_fs_1.default.writeFileSync(encryptedModelsFilePath, addModels, "utf-8");
+                        regex = /exports\.prismaEncryptModels = \{/;
+                        findIndex = readEncryptedModelsFile.search(regex);
+                        if (findIndex !== -1) {
+                            cutInterestParts = readEncryptedModelsFile.slice(0, findIndex);
+                            newContent = cutInterestParts +
+                                "exports.prismaEncryptModels = " +
+                                newEncryptedModelsJSON +
+                                ";";
+                            node_fs_1.default.writeFileSync(encryptedModelsFilePath, newContent, "utf-8");
+                        }
                         sdk_1.logger.info("Encrypted models: ".concat(encryptedModelsFilePath));
                         return [2 /*return*/, {
                                 exitCode: 0,
