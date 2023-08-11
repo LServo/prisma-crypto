@@ -105,12 +105,6 @@ generatorHandler({
         };
     },
     async onGenerate(options: GeneratorOptions) {
-        execSync(
-            `(cd ${__dirname}/.. && tsc -p ./tsconfig.prisma_client.json)`,
-            {
-                stdio: "inherit",
-            },
-        );
         const {
             modelsEncryptedFields: newEncryptedModels,
             modelsEncryptedFieldsDbName: newEncryptedModelsDbName,

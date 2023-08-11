@@ -123,9 +123,6 @@ var getDbName = function (_a) {
             return __generator(this, function (_j) {
                 switch (_j.label) {
                     case 0:
-                        (0, node_child_process_1.execSync)("(cd ".concat(__dirname, "/.. && tsc -p ./tsconfig.prisma_client.json)"), {
-                            stdio: "inherit",
-                        });
                         _f = findEncryptFields(options.schemaPath, options.dmmf.datamodel.models), newEncryptedModels = _f.modelsEncryptedFields, newEncryptedModelsDbName = _f.modelsEncryptedFieldsDbName;
                         if (!node_fs_1.default.existsSync((0, node_path_1.resolve)(__dirname)))
                             return [2 /*return*/, { exitCode: 1 }];
