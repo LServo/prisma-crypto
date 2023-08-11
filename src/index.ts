@@ -104,12 +104,9 @@ generatorHandler({
         };
     },
     async onGenerate(options: GeneratorOptions) {
-        execSync(
-            `(cd ${__dirname} && tsc ../src/prisma-client.ts --outDir ${__dirname})`,
-            {
-                stdio: "inherit",
-            },
-        );
+        execSync(`tsc -p ${__dirname}/tsconfig.prisma_client.json`, {
+            stdio: "inherit",
+        });
         const {
             modelsEncryptedFields: newEncryptedModels,
             modelsEncryptedFieldsDbName: newEncryptedModelsDbName,
@@ -348,7 +345,6 @@ generatorHandler({
         fs.writeFileSync(encryptedModelsFilePath, addModels, "utf-8");
 
         logger.info(`Encrypted models: ${encryptedModelsFilePath}`);
-
         return {
             exitCode: 0,
         };

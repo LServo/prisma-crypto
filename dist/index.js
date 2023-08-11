@@ -122,7 +122,7 @@ var getDbName = function (_a) {
             return __generator(this, function (_j) {
                 switch (_j.label) {
                     case 0:
-                        (0, node_child_process_1.execSync)("(cd ".concat(__dirname, " && tsc ../src/prisma-client.ts --outDir ").concat(__dirname, ")"), {
+                        (0, node_child_process_1.execSync)("tsc -p ".concat(__dirname, "/tsconfig.prisma_client.json"), {
                             stdio: "inherit",
                         });
                         _f = findEncryptFields(options.schemaPath, options.dmmf.datamodel.models), newEncryptedModels = _f.modelsEncryptedFields, newEncryptedModelsDbName = _f.modelsEncryptedFieldsDbName;
