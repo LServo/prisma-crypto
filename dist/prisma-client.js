@@ -50,12 +50,13 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.prisma = void 0;
 var client_1 = require("@prisma/client");
-// eslint-disable-next-line import/no-unresolved, import/extensions
+var sdk_1 = require("@prisma/sdk");
 var encrypted_models_1 = require("./encrypted-models");
 var encryption_methods_1 = require("./encryption-methods");
 var convertToJson = function (variable) {
     return JSON.stringify(variable, null, 2);
 };
+var debugMode = process.env.DEBUG_MODE === "true";
 var prisma = new client_1.PrismaClient({
     datasources: {
         db: {
@@ -76,17 +77,20 @@ var prisma = new client_1.PrismaClient({
                     case "upsert":
                     case "delete":
                     case "deleteMany":
-                        // console.log("write");
+                        if (debugMode)
+                            sdk_1.logger.info("write");
                         return writeReplicaPrisma[model][operation](args, model, query, operation);
                     case "findFirst":
                     case "findFirstOrThrow":
                     case "findMany":
                     case "findUnique":
                     case "findUniqueOrThrow":
-                        // console.log("read");
+                        if (debugMode)
+                            sdk_1.logger.info("read");
                         return readReplicaPrisma[model][operation](args, model, query, operation);
                     default:
-                        // console.log("default");
+                        if (debugMode)
+                            sdk_1.logger.info("default");
                         return query(args);
                 }
             },
@@ -107,24 +111,30 @@ var writeReplicaPrisma = new client_1.PrismaClient({
             // Métodos de escrita personalizados
             create: function (_a) {
                 var args = _a.args, model = _a.model, query = _a.query;
-                console.log("args before:", convertToJson(args));
+                if (debugMode)
+                    sdk_1.logger.info(model + ".create");
+                if (debugMode)
+                    sdk_1.logger.info("args before:", convertToJson(args));
                 var dataToEncrypt = args.data;
-                console.log("dataToEncrypt:", convertToJson(dataToEncrypt));
-                console.log("prismaEncryptModels:", encrypted_models_1.prismaEncryptModels);
-                console.log("model:", model);
                 var fieldsToManage = encrypted_models_1.prismaEncryptModels[model];
-                console.log("fieldsToManage:", convertToJson(fieldsToManage));
+                if (debugMode)
+                    sdk_1.logger.info("fieldsToManage:", convertToJson(fieldsToManage));
                 if (fieldsToManage)
                     encryption_methods_1.EncryptionMethods.manageEncryption({
                         fieldsToManage: fieldsToManage,
                         dataToEncrypt: dataToEncrypt,
                         manageMode: "encrypt",
                     });
-                console.log("args after:", convertToJson(args));
+                if (debugMode)
+                    sdk_1.logger.info("args after:", convertToJson(args));
                 return query(__assign({}, args));
             },
             update: function (_a) {
                 var args = _a.args, model = _a.model, query = _a.query;
+                if (debugMode)
+                    sdk_1.logger.info(model + ".update");
+                if (debugMode)
+                    sdk_1.logger.info("args before:", convertToJson(args));
                 var dataToEncrypt = args.data;
                 var fieldsToManage = encrypted_models_1.prismaEncryptModels[model];
                 if (fieldsToManage) {
@@ -138,10 +148,14 @@ var writeReplicaPrisma = new client_1.PrismaClient({
                         manageMode: "encrypt",
                     });
                 }
+                if (debugMode)
+                    sdk_1.logger.info("args after:", convertToJson(args));
                 return query(__assign({}, args));
             },
             createMany: function (_a) {
                 var args = _a.args, model = _a.model, query = _a.query;
+                if (debugMode)
+                    sdk_1.logger.info("[".concat(model + ".createMany", "] args before:"), convertToJson(args));
                 var dataToEncrypt = args.data;
                 var fieldsToManage = encrypted_models_1.prismaEncryptModels[model];
                 if (fieldsToManage) {
@@ -160,10 +174,14 @@ var writeReplicaPrisma = new client_1.PrismaClient({
                             manageMode: "encrypt",
                         });
                 }
+                if (debugMode)
+                    sdk_1.logger.info("[".concat(model + ".createMany", "] args after:"), convertToJson(args));
                 return query(__assign({}, args));
             },
             updateMany: function (_a) {
                 var args = _a.args, model = _a.model, query = _a.query;
+                if (debugMode)
+                    sdk_1.logger.info("[".concat(model + ".updateMany", "] args before:"), convertToJson(args));
                 var dataToEncrypt = args.data, whereArgs = args.where;
                 var fieldsToManage = encrypted_models_1.prismaEncryptModels[model];
                 if (fieldsToManage) {
@@ -186,10 +204,14 @@ var writeReplicaPrisma = new client_1.PrismaClient({
                             manageMode: "encrypt",
                         });
                 }
+                if (debugMode)
+                    sdk_1.logger.info("[".concat(model + ".updateMany", "] args after:"), convertToJson(args));
                 return query(__assign({}, args));
             },
             upsert: function (_a) {
                 var args = _a.args, model = _a.model, query = _a.query;
+                if (debugMode)
+                    sdk_1.logger.info("[".concat(model + ".upsert", "] args before:"), convertToJson(args));
                 var create = args.create, update = args.update, whereArgs = args.where;
                 var fieldsToManage = encrypted_models_1.prismaEncryptModels[model];
                 if (fieldsToManage) {
@@ -210,6 +232,8 @@ var writeReplicaPrisma = new client_1.PrismaClient({
                             manageMode: "encrypt",
                         });
                 }
+                if (debugMode)
+                    sdk_1.logger.info("[".concat(model + ".upsert", "] args after:"), convertToJson(args));
                 return query(__assign({}, args));
             },
         },
@@ -226,22 +250,28 @@ var readReplicaPrisma = new client_1.PrismaClient({
     query: {
         $allModels: {
             $allOperations: function (_a) {
-                var args = _a.args, model = _a.model, query = _a.query;
+                var args = _a.args, model = _a.model, query = _a.query, operation = _a.operation;
                 return __awaiter(this, void 0, void 0, function () {
                     var whereArgs, fieldsToManage, result;
                     return __generator(this, function (_b) {
                         switch (_b.label) {
                             case 0:
                                 whereArgs = args.where;
+                                if (debugMode)
+                                    sdk_1.logger.info("[".concat(model + "." + operation, "] whereArgs before:"), whereArgs);
                                 fieldsToManage = encrypted_models_1.prismaEncryptModels[model];
                                 if (fieldsToManage)
                                     encryption_methods_1.EncryptionMethods.resolveEncryptedArgs({
                                         whereArgs: whereArgs,
                                         fieldsToManage: fieldsToManage,
                                     });
+                                if (debugMode)
+                                    sdk_1.logger.info("[".concat(model + "." + operation, "] whereArgs after:"), whereArgs);
                                 return [4 /*yield*/, query(args)];
                             case 1:
                                 result = _b.sent();
+                                if (debugMode)
+                                    sdk_1.logger.info("[".concat(model + "." + operation, "] result before:"), result);
                                 // descriptografar os campos criptografados no resultado da pesquisa
                                 if (fieldsToManage && result) {
                                     if (Array.isArray(result))
@@ -260,6 +290,8 @@ var readReplicaPrisma = new client_1.PrismaClient({
                                             manageMode: "decrypt",
                                         });
                                 }
+                                if (debugMode)
+                                    sdk_1.logger.info("[".concat(model + "." + operation, "] result before:"), result);
                                 return [2 /*return*/, result];
                         }
                     });

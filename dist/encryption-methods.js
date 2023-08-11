@@ -43,7 +43,12 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.EncryptionMethods = void 0;
 var node_crypto_1 = require("node:crypto");
 var client_1 = require("@prisma/client");
+var sdk_1 = require("@prisma/sdk");
 var prisma_client_1 = require("./prisma-client");
+var convertToJson = function (variable) {
+    return JSON.stringify(variable, null, 2);
+};
+var debugMode = process.env.DEBUG_MODE === "true";
 var EncryptionMethods = /** @class */ (function () {
     function EncryptionMethods() {
     }
@@ -61,7 +66,8 @@ var EncryptionMethods = /** @class */ (function () {
     EncryptionMethods.resolveEncryptedArgs = function (_a) {
         var _b;
         var whereArgs = _a.whereArgs, fieldsToManage = _a.fieldsToManage;
-        // logger.info("args before:", ConvertToJson(args));
+        if (debugMode)
+            sdk_1.logger.info("[resolveEncryptedArgs] whereArgs before:", convertToJson(whereArgs));
         var _c = (_b = whereArgs) !== null && _b !== void 0 ? _b : {}, AND = _c.AND, NOT = _c.NOT, OR = _c.OR;
         // criptografar a pesquisa para o banco de dados passando o argumento where
         var manageArrayEncryption = function (array) {
@@ -86,7 +92,8 @@ var EncryptionMethods = /** @class */ (function () {
             manageArrayEncryption(NOT);
         if (OR)
             manageArrayEncryption(OR);
-        // logger.info("args after:", ConvertToJson(args));
+        if (debugMode)
+            sdk_1.logger.info("[resolveEncryptedArgs] whereArgs after:", convertToJson(whereArgs));
         return {};
     };
     EncryptionMethods.prototype.resolveEncryptedArgs = function (_a) {
@@ -104,10 +111,8 @@ var EncryptionMethods = /** @class */ (function () {
             var fieldValue = dataToEncrypt[fieldName];
             if (!fieldValue)
                 return;
-            // logger.info(
-            //     `dataToEncrypt[${fieldName}]:`,
-            //     dataToEncrypt[fieldName],
-            // );
+            if (debugMode)
+                sdk_1.logger.info("[manageEncryption] dataToEncrypt[".concat(fieldName, "] before:"), dataToEncrypt[fieldName]);
             var isArray = Array.isArray(fieldValue);
             var isString = typeof fieldValue === "string";
             switch (isArray) {
@@ -175,10 +180,8 @@ var EncryptionMethods = /** @class */ (function () {
                 default:
                     break;
             }
-            // logger.info(
-            //     `dataToEncrypt[${fieldName}]:`,
-            //     dataToEncrypt[fieldName],
-            // );
+            if (debugMode)
+                sdk_1.logger.info("[manageEncryption] dataToEncrypt[".concat(fieldName, "] after:"), dataToEncrypt[fieldName]);
         });
         return {};
     };
@@ -192,6 +195,8 @@ var EncryptionMethods = /** @class */ (function () {
     };
     EncryptionMethods.encryptData = function (_a) {
         var stringToEncrypt = _a.stringToEncrypt;
+        if (debugMode)
+            sdk_1.logger.info("[encryptData] stringToEncrypt:", stringToEncrypt);
         var fixedIV = EncryptionMethods.generateHash({
             stringToGenerateHash: stringToEncrypt,
         }).generatedHash;
@@ -207,6 +212,8 @@ var EncryptionMethods = /** @class */ (function () {
             tag,
             encrypted,
         ]).toString("base64");
+        if (debugMode)
+            sdk_1.logger.info("[encryptData] encryptedString:", encryptedString);
         return { encryptedString: encryptedString };
     };
     EncryptionMethods.prototype.encryptData = function (_a) {
@@ -215,6 +222,8 @@ var EncryptionMethods = /** @class */ (function () {
     };
     EncryptionMethods.decryptData = function (_a) {
         var stringToDecrypt = _a.stringToDecrypt;
+        if (debugMode)
+            sdk_1.logger.info("[decryptData] stringToDecrypt:", stringToDecrypt);
         var encryptedBuffer = Buffer.from(stringToDecrypt, "base64");
         // Extraia o IV, a tag e o texto cifrado da string codificada
         var iv = encryptedBuffer.subarray(0, 32);
@@ -227,6 +236,8 @@ var EncryptionMethods = /** @class */ (function () {
             decipher.final(),
         ]);
         var decryptedString = decrypted.toString("utf8");
+        if (debugMode)
+            sdk_1.logger.info("[decryptData] decryptedString:", decryptedString);
         return { decryptedString: decryptedString };
     };
     EncryptionMethods.prototype.decryptData = function (_a) {
@@ -241,12 +252,21 @@ var EncryptionMethods = /** @class */ (function () {
             return __generator(this, function (_f) {
                 switch (_f.label) {
                     case 0:
+                        if (debugMode)
+                            sdk_1.logger.info("[managingDatabaseEncryption] index:", fields.length);
                         actualField = fields.shift();
+                        if (debugMode)
+                            sdk_1.logger.info("[managingDatabaseEncryption] actualField:", actualField);
                         actualFieldDbName = fieldsDbName.shift();
                         if (!actualField)
                             return [2 /*return*/];
                         _d = actualField.split("."), schemaTableName = _d[0], columnName = _d[1];
                         dbTableName = actualFieldDbName.split(".")[0];
+                        if (debugMode) {
+                            sdk_1.logger.info("[managingDatabaseEncryption] schemaTableName:", actualField);
+                            sdk_1.logger.info("[managingDatabaseEncryption] dbTableName:", dbTableName);
+                            sdk_1.logger.info("[managingDatabaseEncryption] columnName:", columnName);
+                        }
                         return [4 /*yield*/, prisma_client_1.prisma
                                 .$queryRaw(client_1.Prisma.sql(templateObject_1 || (templateObject_1 = __makeTemplateObject(["SELECT EXISTS (\n                    SELECT FROM information_schema.columns\n                    WHERE table_name = ", "\n                    AND column_name = ", "\n                    ) AS \"exists\""], ["SELECT EXISTS (\n                    SELECT FROM information_schema.columns\n                    WHERE table_name = ", "\n                    AND column_name = ", "\n                    ) AS \"exists\""])), dbTableName, columnName))
                                 .catch(function (error) {
@@ -255,6 +275,8 @@ var EncryptionMethods = /** @class */ (function () {
                     case 1:
                         result = _f.sent();
                         columnExists = (_a = result[0]) === null || _a === void 0 ? void 0 : _a.exists;
+                        if (debugMode)
+                            sdk_1.logger.info("[managingDatabaseEncryption] columnExists:", columnExists);
                         if (!columnExists) {
                             throw new Error("The column ".concat(dbTableName, ".").concat(columnName, " does not exists in the database."));
                         }
@@ -268,6 +290,8 @@ var EncryptionMethods = /** @class */ (function () {
                         columnDataType = (_b = columnType[0]) === null || _b === void 0 ? void 0 : _b.data_type;
                         isArrayColumn = columnDataType === "ARRAY";
                         isTextColumn = columnDataType === "text";
+                        if (debugMode)
+                            sdk_1.logger.info("[managingDatabaseEncryption] columnDataType:", columnDataType);
                         if (!isTextColumn && !isArrayColumn) {
                             throw new Error("The column ".concat(dbTableName, ".").concat(columnName, " is not of type \"text\"."));
                         }
@@ -288,6 +312,8 @@ var EncryptionMethods = /** @class */ (function () {
                             })];
                     case 4:
                         allEntries = _f.sent();
+                        if (debugMode)
+                            sdk_1.logger.info("[managingDatabaseEncryption] allEntries:", allEntries);
                         if (!(fields.length > 0)) return [3 /*break*/, 6];
                         return [4 /*yield*/, this.managingDatabaseEncryption(fields, fieldsDbName, "add")];
                     case 5:
@@ -299,12 +325,15 @@ var EncryptionMethods = /** @class */ (function () {
                             var _a, _b;
                             var _c, _d;
                             var _e = entry, _f = primaryKeyColumnName, id = _e[_f], _g = columnName, value = _e[_g];
-                            // logger.info("primaryKeyColumnName:", primaryKeyColumnName);
-                            // logger.info("columnName:", columnName);
-                            // logger.info("value:", value);
+                            if (debugMode) {
+                                sdk_1.logger.info("[managingDatabaseEncryption] primaryKeyColumnName:", primaryKeyColumnName);
+                                sdk_1.logger.info("[managingDatabaseEncryption] columnName:", columnName);
+                                sdk_1.logger.info("[managingDatabaseEncryption] value:", value);
+                            }
                             if (!value)
                                 return;
                             var newValue;
+                            // adicionar validação para caso seja uma array, verificar se cada tipo é uma string e efetuar criptografia nos valores
                             switch (action) {
                                 case "add":
                                     newValue = (_c = EncryptionMethods.encryptData({
@@ -320,7 +349,10 @@ var EncryptionMethods = /** @class */ (function () {
                                     newValue = value;
                                     break;
                             }
-                            // logger.info("newValue:", newValue);
+                            if (debugMode) {
+                                sdk_1.logger.info("newValue:", newValue);
+                                sdk_1.logger.info("[managingDatabaseEncryption] return prisma[".concat(schemaTableName, "].update({\n                        where: { [").concat(primaryKeyColumnName, "]: ").concat(id, " },\n                        data: { [").concat(columnName, "]: ").concat(newValue, " },\n                    });"));
+                            }
                             return prisma_client_1.prisma[schemaTableName].update({
                                 where: (_a = {}, _a[primaryKeyColumnName] = id, _a),
                                 data: (_b = {}, _b[columnName] = newValue, _b),

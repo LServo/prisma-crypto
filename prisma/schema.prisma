@@ -10,7 +10,8 @@ datasource db {
     url      = env("PRISMA_CRYPTO")
 }
 
-model migrate_encryption {
+/// Os models devem ser escrits sempre em CamelCase para que as tipagens do prisma sejam consistentes
+model MigrateEncryption {
     id Int @id @default(autoincrement())
 
     token             String
@@ -18,4 +19,6 @@ model migrate_encryption {
     remove_encryption String[]
 
     created_at DateTime @default(now())
+
+    @@map("_migrate_encryption")
 }

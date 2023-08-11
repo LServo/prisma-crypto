@@ -1,10 +1,16 @@
 import { createHash, createCipheriv, createDecipheriv } from "node:crypto";
 
 import { Prisma } from "@prisma/client";
+import { logger } from "@prisma/sdk";
 
 import { prisma } from "./prisma-client";
 import { PrismaCrypto } from "./prisma-crypto";
 
+const convertToJson = (variable: any): string => {
+    return JSON.stringify(variable, null, 2);
+};
+
+const debugMode = process.env.DEBUG_MODE === "true";
 class EncryptionMethods implements PrismaCrypto.EncryptionMethods {
     static generateHash({
         stringToGenerateHash,
@@ -26,7 +32,11 @@ class EncryptionMethods implements PrismaCrypto.EncryptionMethods {
         whereArgs,
         fieldsToManage,
     }: PrismaCrypto.ResolveEncryptedArgs.Input): PrismaCrypto.ResolveEncryptedArgs.Output {
-        // logger.info("args before:", ConvertToJson(args));
+        if (debugMode)
+            logger.info(
+                "[resolveEncryptedArgs] whereArgs before:",
+                convertToJson(whereArgs),
+            );
         const { AND, NOT, OR } =
             (whereArgs as { AND: unknown; NOT: unknown; OR: unknown }) ?? {};
 
@@ -53,7 +63,11 @@ class EncryptionMethods implements PrismaCrypto.EncryptionMethods {
         if (NOT) manageArrayEncryption(NOT as unknown[]);
         if (OR) manageArrayEncryption(OR as unknown[]);
 
-        // logger.info("args after:", ConvertToJson(args));
+        if (debugMode)
+            logger.info(
+                "[resolveEncryptedArgs] whereArgs after:",
+                convertToJson(whereArgs),
+            );
 
         return {};
     }
@@ -77,10 +91,11 @@ class EncryptionMethods implements PrismaCrypto.EncryptionMethods {
             const fieldValue = dataToEncrypt[fieldName];
             if (!fieldValue) return;
 
-            // logger.info(
-            //     `dataToEncrypt[${fieldName}]:`,
-            //     dataToEncrypt[fieldName],
-            // );
+            if (debugMode)
+                logger.info(
+                    `[manageEncryption] dataToEncrypt[${fieldName}] before:`,
+                    dataToEncrypt[fieldName],
+                );
 
             const isArray = Array.isArray(fieldValue);
             const isString = typeof fieldValue === "string";
@@ -160,10 +175,11 @@ class EncryptionMethods implements PrismaCrypto.EncryptionMethods {
                     break;
             }
 
-            // logger.info(
-            //     `dataToEncrypt[${fieldName}]:`,
-            //     dataToEncrypt[fieldName],
-            // );
+            if (debugMode)
+                logger.info(
+                    `[manageEncryption] dataToEncrypt[${fieldName}] after:`,
+                    dataToEncrypt[fieldName],
+                );
         });
 
         return {};
@@ -183,6 +199,8 @@ class EncryptionMethods implements PrismaCrypto.EncryptionMethods {
     static encryptData({
         stringToEncrypt,
     }: PrismaCrypto.EncryptData.Input): PrismaCrypto.EncryptData.Output {
+        if (debugMode)
+            logger.info("[encryptData] stringToEncrypt:", stringToEncrypt);
         const { generatedHash: fixedIV } = EncryptionMethods.generateHash({
             stringToGenerateHash: stringToEncrypt,
         });
@@ -205,6 +223,8 @@ class EncryptionMethods implements PrismaCrypto.EncryptionMethods {
             encrypted,
         ]).toString("base64");
 
+        if (debugMode)
+            logger.info("[encryptData] encryptedString:", encryptedString);
         return { encryptedString };
     }
     encryptData({
@@ -216,6 +236,8 @@ class EncryptionMethods implements PrismaCrypto.EncryptionMethods {
     static decryptData({
         stringToDecrypt,
     }: PrismaCrypto.DecryptData.Input): PrismaCrypto.DecryptData.Output {
+        if (debugMode)
+            logger.info("[decryptData] stringToDecrypt:", stringToDecrypt);
         const encryptedBuffer = Buffer.from(stringToDecrypt, "base64");
 
         // Extraia o IV, a tag e o texto cifrado da string codificada
@@ -237,6 +259,8 @@ class EncryptionMethods implements PrismaCrypto.EncryptionMethods {
 
         const decryptedString = decrypted.toString("utf8");
 
+        if (debugMode)
+            logger.info("[decryptData] decryptedString:", decryptedString);
         return { decryptedString };
     }
     decryptData({
@@ -250,13 +274,30 @@ class EncryptionMethods implements PrismaCrypto.EncryptionMethods {
         fieldsDbName: String[],
         action: "add" | "remove",
     ): Promise<void> {
-        // logger.info("index:", fields.length);
+        if (debugMode)
+            logger.info("[managingDatabaseEncryption] index:", fields.length);
         const actualField = fields.shift();
+        if (debugMode)
+            logger.info(
+                "[managingDatabaseEncryption] actualField:",
+                actualField,
+            );
         const actualFieldDbName = fieldsDbName.shift();
         if (!actualField) return;
 
         const [schemaTableName, columnName] = actualField.split(".");
         const [dbTableName] = actualFieldDbName.split(".");
+        if (debugMode) {
+            logger.info(
+                "[managingDatabaseEncryption] schemaTableName:",
+                actualField,
+            );
+            logger.info(
+                "[managingDatabaseEncryption] dbTableName:",
+                dbTableName,
+            );
+            logger.info("[managingDatabaseEncryption] columnName:", columnName);
+        }
 
         const result = await prisma
             .$queryRaw(
@@ -273,6 +314,11 @@ class EncryptionMethods implements PrismaCrypto.EncryptionMethods {
             });
 
         const columnExists = result[0]?.exists;
+        if (debugMode)
+            logger.info(
+                "[managingDatabaseEncryption] columnExists:",
+                columnExists,
+            );
 
         if (!columnExists) {
             throw new Error(
@@ -293,6 +339,11 @@ class EncryptionMethods implements PrismaCrypto.EncryptionMethods {
         const columnDataType = columnType[0]?.data_type;
         const isArrayColumn = columnDataType === "ARRAY";
         const isTextColumn = columnDataType === "text";
+        if (debugMode)
+            logger.info(
+                "[managingDatabaseEncryption] columnDataType:",
+                columnDataType,
+            );
 
         if (!isTextColumn && !isArrayColumn) {
             throw new Error(
@@ -326,7 +377,8 @@ class EncryptionMethods implements PrismaCrypto.EncryptionMethods {
                     `Error when executing the query to get all entries of ${schemaTableName}: ${error}`,
                 );
             });
-        // logger.info("allEntries:", allEntries);
+        if (debugMode)
+            logger.info("[managingDatabaseEncryption] allEntries:", allEntries);
 
         if (fields.length > 0)
             await this.managingDatabaseEncryption(fields, fieldsDbName, "add");
@@ -336,11 +388,21 @@ class EncryptionMethods implements PrismaCrypto.EncryptionMethods {
             .map((entry) => {
                 const { [primaryKeyColumnName]: id, [columnName]: value } =
                     entry;
-                // logger.info("primaryKeyColumnName:", primaryKeyColumnName);
-                // logger.info("columnName:", columnName);
-                // logger.info("value:", value);
+                if (debugMode) {
+                    logger.info(
+                        "[managingDatabaseEncryption] primaryKeyColumnName:",
+                        primaryKeyColumnName,
+                    );
+                    logger.info(
+                        "[managingDatabaseEncryption] columnName:",
+                        columnName,
+                    );
+                    logger.info("[managingDatabaseEncryption] value:", value);
+                }
                 if (!value) return;
+
                 let newValue: string;
+                // adicionar validação para caso seja uma array, verificar se cada tipo é uma string e efetuar criptografia nos valores
                 switch (action) {
                     case "add":
                         newValue = EncryptionMethods.encryptData({
@@ -356,8 +418,14 @@ class EncryptionMethods implements PrismaCrypto.EncryptionMethods {
                         newValue = value;
                         break;
                 }
-                // logger.info("newValue:", newValue);
 
+                if (debugMode) {
+                    logger.info("newValue:", newValue);
+                    logger.info(`[managingDatabaseEncryption] return prisma[${schemaTableName}].update({
+                        where: { [${primaryKeyColumnName}]: ${id} },
+                        data: { [${columnName}]: ${newValue} },
+                    });`);
+                }
                 return prisma[schemaTableName].update({
                     where: { [primaryKeyColumnName]: id },
                     data: { [columnName]: newValue },

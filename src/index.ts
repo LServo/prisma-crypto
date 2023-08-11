@@ -114,7 +114,9 @@ generatorHandler({
         );
         const executionUrl =
             process.env[options.generator?.config?.var_env_url as string];
+        const debugMode = options.generator?.config?.debug_mode as string;
 
+        process.env.PRISMA_CRYPTO_DEBUG = debugMode || "false";
         process.env.PRISMA_CRYPTO = executionUrl || process.env.PRISMA_WRITE;
 
         if (!fs.existsSync(resolve(__dirname))) return { exitCode: 1 };
