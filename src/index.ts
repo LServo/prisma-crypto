@@ -19,6 +19,11 @@ import { prisma } from "./prisma-client";
 import { PrismaCrypto } from "./prisma-crypto";
 export { prisma } from "./prisma-client";
 
+export let PRISMA_CRYPTO_DEBUG: string;
+export let PRISMA_CRYPTO_DIRECT_DB: string;
+export let PRISMA_CRYPTO_WRITE_DB: string;
+export let PRISMA_CRYPTO_READ_DB: string;
+
 function findEncryptFields(
     filePath: string,
     modelsInfo: DMMF.Model[],
@@ -112,12 +117,15 @@ generatorHandler({
             options.schemaPath,
             options.dmmf.datamodel.models,
         );
-        const executionUrl =
-            process.env[options.generator?.config?.var_env_url as string];
-        const debugMode = options.generator?.config?.debug_mode as string;
 
-        process.env.PRISMA_CRYPTO_DEBUG = debugMode || "false";
-        process.env.PRISMA_CRYPTO = executionUrl || process.env.PRISMA_WRITE;
+        PRISMA_CRYPTO_DEBUG =
+            (options.generator?.config?.debug_mode as string) || "false";
+        PRISMA_CRYPTO_DIRECT_DB =
+            process.env[options.generator?.config?.direct_db as string];
+        PRISMA_CRYPTO_WRITE_DB =
+            process.env[options.generator?.config?.read_db as string];
+        PRISMA_CRYPTO_READ_DB =
+            process.env[options.generator?.config?.write_db as string];
 
         if (!fs.existsSync(resolve(__dirname))) return { exitCode: 1 };
 
@@ -150,7 +158,7 @@ generatorHandler({
                 logger.info("Synchronizing database schema...");
                 execSync(`npx prisma db pull --schema=${schemaPath}`);
 
-                const modelMigrateEncryption = `\nmodel migrate_encryption {
+                const modelMigrateEncryption = `\nmodel MigrateEncryption {
                     id Int @id @default(autoincrement())
                 
                     token             String
@@ -348,7 +356,7 @@ generatorHandler({
 
         fs.writeFileSync(encryptedModelsFilePath, addModels, "utf-8");
 
-        logger.info(`Encrypted fields: ${encryptedModelsFilePath}`);
+        logger.info(`Encrypted models: ${encryptedModelsFilePath}`);
 
         return {
             exitCode: 0,

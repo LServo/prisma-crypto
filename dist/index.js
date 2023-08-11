@@ -45,7 +45,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.prisma = void 0;
+exports.PRISMA_CRYPTO_READ_DB = exports.PRISMA_CRYPTO_WRITE_DB = exports.PRISMA_CRYPTO_DIRECT_DB = exports.PRISMA_CRYPTO_DEBUG = exports.prisma = void 0;
 var jsonwebtoken_1 = require("jsonwebtoken");
 var node_child_process_1 = require("node:child_process");
 var node_fs_1 = __importDefault(require("node:fs"));
@@ -116,23 +116,27 @@ var getDbName = function (_a) {
         };
     },
     onGenerate: function (options) {
-        var _a, _b, _c, _d, _e, _f, _g, _h, _j;
+        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o;
         return __awaiter(this, void 0, void 0, function () {
-            var _k, newEncryptedModels, newEncryptedModelsDbName, executionUrl, debugMode, result, modelExists, schemaPath, modelMigrateEncryption, latestMigration, error_1, newToken, lastEncryptedModels, getEncryptionChanges, _l, add_encryption, remove_encryption, _m, add_encryption_db_name, remove_encryption_db_name, hasChanges, deepClonedAddEncryption, deepClonedAddEncryptionDbName, deepClonedRemoveEncryption, deepClonedRemoveEncryptionDbName, error_2, newMigration, error_3, encryptedModelsFilePath, newEncryptedModelsJSON, readEncryptedModelsFile, parseToString, addModels;
-            return __generator(this, function (_o) {
-                switch (_o.label) {
+            var _p, newEncryptedModels, newEncryptedModelsDbName, result, modelExists, schemaPath, modelMigrateEncryption, latestMigration, error_1, newToken, lastEncryptedModels, getEncryptionChanges, _q, add_encryption, remove_encryption, _r, add_encryption_db_name, remove_encryption_db_name, hasChanges, deepClonedAddEncryption, deepClonedAddEncryptionDbName, deepClonedRemoveEncryption, deepClonedRemoveEncryptionDbName, error_2, newMigration, error_3, encryptedModelsFilePath, newEncryptedModelsJSON, readEncryptedModelsFile, parseToString, addModels;
+            return __generator(this, function (_s) {
+                switch (_s.label) {
                     case 0:
-                        _k = findEncryptFields(options.schemaPath, options.dmmf.datamodel.models), newEncryptedModels = _k.modelsEncryptedFields, newEncryptedModelsDbName = _k.modelsEncryptedFieldsDbName;
-                        executionUrl = process.env[(_b = (_a = options.generator) === null || _a === void 0 ? void 0 : _a.config) === null || _b === void 0 ? void 0 : _b.var_env_url];
-                        debugMode = (_d = (_c = options.generator) === null || _c === void 0 ? void 0 : _c.config) === null || _d === void 0 ? void 0 : _d.debug_mode;
-                        process.env.PRISMA_CRYPTO_DEBUG = debugMode || "false";
-                        process.env.PRISMA_CRYPTO = executionUrl || process.env.PRISMA_WRITE;
+                        _p = findEncryptFields(options.schemaPath, options.dmmf.datamodel.models), newEncryptedModels = _p.modelsEncryptedFields, newEncryptedModelsDbName = _p.modelsEncryptedFieldsDbName;
+                        exports.PRISMA_CRYPTO_DEBUG =
+                            ((_b = (_a = options.generator) === null || _a === void 0 ? void 0 : _a.config) === null || _b === void 0 ? void 0 : _b.debug_mode) || "false";
+                        exports.PRISMA_CRYPTO_DIRECT_DB =
+                            process.env[(_d = (_c = options.generator) === null || _c === void 0 ? void 0 : _c.config) === null || _d === void 0 ? void 0 : _d.direct_db];
+                        exports.PRISMA_CRYPTO_WRITE_DB =
+                            process.env[(_f = (_e = options.generator) === null || _e === void 0 ? void 0 : _e.config) === null || _f === void 0 ? void 0 : _f.read_db];
+                        exports.PRISMA_CRYPTO_READ_DB =
+                            process.env[(_h = (_g = options.generator) === null || _g === void 0 ? void 0 : _g.config) === null || _h === void 0 ? void 0 : _h.write_db];
                         if (!node_fs_1.default.existsSync((0, node_path_1.resolve)(__dirname)))
                             return [2 /*return*/, { exitCode: 1 }];
                         return [4 /*yield*/, prisma_client_1.prisma.$queryRaw(client_1.Prisma.sql(templateObject_1 || (templateObject_1 = __makeTemplateObject(["SELECT EXISTS (\n                SELECT FROM information_schema.tables\n                WHERE table_name = '_migrate_encryption'\n                ) AS \"exists\""], ["SELECT EXISTS (\n                SELECT FROM information_schema.tables\n                WHERE table_name = '_migrate_encryption'\n                ) AS \"exists\""]))))];
                     case 1:
-                        result = _o.sent();
-                        modelExists = (_e = result[0]) === null || _e === void 0 ? void 0 : _e.exists;
+                        result = _s.sent();
+                        modelExists = (_j = result[0]) === null || _j === void 0 ? void 0 : _j.exists;
                         if (modelExists) {
                             sdk_1.logger.info("The table `_migrate_encryption` already exists in the database.");
                         }
@@ -143,7 +147,7 @@ var getDbName = function (_a) {
                             try {
                                 sdk_1.logger.info("Synchronizing database schema...");
                                 (0, node_child_process_1.execSync)("npx prisma db pull --schema=".concat(schemaPath));
-                                modelMigrateEncryption = "\nmodel migrate_encryption {\n                    id Int @id @default(autoincrement())\n                \n                    token             String\n                    add_encryption    String[]\n                    remove_encryption String[]\n                \n                    created_at DateTime @default(now())\n                \n                    @@map(\"_migrate_encryption\")\n                }";
+                                modelMigrateEncryption = "\nmodel MigrateEncryption {\n                    id Int @id @default(autoincrement())\n                \n                    token             String\n                    add_encryption    String[]\n                    remove_encryption String[]\n                \n                    created_at DateTime @default(now())\n                \n                    @@map(\"_migrate_encryption\")\n                }";
                                 node_fs_1.default.appendFileSync(schemaPath, modelMigrateEncryption, "utf-8");
                                 (0, node_child_process_1.execSync)("npx prisma db push --skip-generate --schema=".concat(schemaPath));
                                 sdk_1.logger.info("Synchronization completed successfully.");
@@ -154,28 +158,28 @@ var getDbName = function (_a) {
                                 process.exit(1);
                             }
                         }
-                        _o.label = 2;
+                        _s.label = 2;
                     case 2:
-                        _o.trys.push([2, 4, , 5]);
+                        _s.trys.push([2, 4, , 5]);
                         return [4 /*yield*/, prisma_client_1.prisma.$queryRaw(client_1.Prisma.sql(templateObject_2 || (templateObject_2 = __makeTemplateObject(["SELECT * FROM \"_migrate_encryption\" ORDER BY \"created_at\" DESC LIMIT 1;"], ["SELECT * FROM \"_migrate_encryption\" ORDER BY \"created_at\" DESC LIMIT 1;"]))))];
                     case 3:
-                        latestMigration = _o.sent();
-                        sdk_1.logger.info("Most recent record:", (_f = latestMigration[0]) === null || _f === void 0 ? void 0 : _f.created_at);
+                        latestMigration = _s.sent();
+                        sdk_1.logger.info("Most recent record:", (_k = latestMigration[0]) === null || _k === void 0 ? void 0 : _k.created_at);
                         return [3 /*break*/, 5];
                     case 4:
-                        error_1 = _o.sent();
+                        error_1 = _s.sent();
                         sdk_1.logger.error("Error fetching the most recent record:", error_1);
                         process.exit(1);
                         return [3 /*break*/, 5];
                     case 5:
-                        _o.trys.push([5, 13, , 14]);
+                        _s.trys.push([5, 13, , 14]);
                         newToken = (0, jsonwebtoken_1.sign)({
                             encryptedModels: newEncryptedModels,
                             encryptedModelsDbName: newEncryptedModelsDbName,
                         }, "prisma-crypto-secret");
                         lastEncryptedModels = void 0;
                         if (latestMigration[0]) {
-                            lastEncryptedModels = (0, jsonwebtoken_1.verify)((_g = latestMigration[0]) === null || _g === void 0 ? void 0 : _g.token, "prisma-crypto-secret");
+                            lastEncryptedModels = (0, jsonwebtoken_1.verify)((_l = latestMigration[0]) === null || _l === void 0 ? void 0 : _l.token, "prisma-crypto-secret");
                         }
                         getEncryptionChanges = function (newModels, oldModels) {
                             return Object.keys(newModels).reduce(function (acc, curr) {
@@ -198,28 +202,28 @@ var getDbName = function (_a) {
                                 remove_encryption: [],
                             });
                         };
-                        _l = getEncryptionChanges(newEncryptedModels, lastEncryptedModels === null || lastEncryptedModels === void 0 ? void 0 : lastEncryptedModels.encryptedModels), add_encryption = _l.add_encryption, remove_encryption = _l.remove_encryption;
-                        _m = getEncryptionChanges(newEncryptedModelsDbName, lastEncryptedModels === null || lastEncryptedModels === void 0 ? void 0 : lastEncryptedModels.encryptedModelsDbName), add_encryption_db_name = _m.add_encryption, remove_encryption_db_name = _m.remove_encryption;
+                        _q = getEncryptionChanges(newEncryptedModels, lastEncryptedModels === null || lastEncryptedModels === void 0 ? void 0 : lastEncryptedModels.encryptedModels), add_encryption = _q.add_encryption, remove_encryption = _q.remove_encryption;
+                        _r = getEncryptionChanges(newEncryptedModelsDbName, lastEncryptedModels === null || lastEncryptedModels === void 0 ? void 0 : lastEncryptedModels.encryptedModelsDbName), add_encryption_db_name = _r.add_encryption, remove_encryption_db_name = _r.remove_encryption;
                         hasChanges = add_encryption.length || remove_encryption.length;
                         if (!hasChanges) return [3 /*break*/, 12];
                         sdk_1.logger.info("Changes found!");
                         sdk_1.logger.info("Managing encryption...");
-                        _o.label = 6;
+                        _s.label = 6;
                     case 6:
-                        _o.trys.push([6, 9, , 10]);
+                        _s.trys.push([6, 9, , 10]);
                         deepClonedAddEncryption = JSON.parse(JSON.stringify(add_encryption));
                         deepClonedAddEncryptionDbName = JSON.parse(JSON.stringify(add_encryption_db_name));
                         deepClonedRemoveEncryption = JSON.parse(JSON.stringify(remove_encryption));
                         deepClonedRemoveEncryptionDbName = JSON.parse(JSON.stringify(remove_encryption_db_name));
                         return [4 /*yield*/, encryption_methods_1.EncryptionMethods.managingDatabaseEncryption(deepClonedAddEncryption, deepClonedAddEncryptionDbName, "add")];
                     case 7:
-                        _o.sent();
+                        _s.sent();
                         return [4 /*yield*/, encryption_methods_1.EncryptionMethods.managingDatabaseEncryption(deepClonedRemoveEncryption, deepClonedRemoveEncryptionDbName, "remove")];
                     case 8:
-                        _o.sent();
+                        _s.sent();
                         return [3 /*break*/, 10];
                     case 9:
-                        error_2 = _o.sent();
+                        error_2 = _s.sent();
                         sdk_1.logger.error("Error when applying encryption to the database:", error_2);
                         process.exit(1);
                         return [3 /*break*/, 10];
@@ -227,13 +231,13 @@ var getDbName = function (_a) {
                         sdk_1.logger.info("Saving current state...");
                         return [4 /*yield*/, prisma_client_1.prisma.$queryRaw(client_1.Prisma.sql(templateObject_3 || (templateObject_3 = __makeTemplateObject(["INSERT INTO \"_migrate_encryption\" (\"token\", \"add_encryption\", \"remove_encryption\") VALUES (", ", ", ", ", ") RETURNING *;"], ["INSERT INTO \"_migrate_encryption\" (\"token\", \"add_encryption\", \"remove_encryption\") VALUES (", ", ", ", ", ") RETURNING *;"])), newToken, add_encryption, remove_encryption))];
                     case 11:
-                        newMigration = _o.sent();
-                        sdk_1.logger.info("Added Encryption:", JSON.stringify((_h = newMigration[0]) === null || _h === void 0 ? void 0 : _h.add_encryption));
-                        sdk_1.logger.info("Removed Encryption:", JSON.stringify((_j = newMigration[0]) === null || _j === void 0 ? void 0 : _j.remove_encryption));
-                        _o.label = 12;
+                        newMigration = _s.sent();
+                        sdk_1.logger.info("Added Encryption:", JSON.stringify((_m = newMigration[0]) === null || _m === void 0 ? void 0 : _m.add_encryption));
+                        sdk_1.logger.info("Removed Encryption:", JSON.stringify((_o = newMigration[0]) === null || _o === void 0 ? void 0 : _o.remove_encryption));
+                        _s.label = 12;
                     case 12: return [3 /*break*/, 14];
                     case 13:
-                        error_3 = _o.sent();
+                        error_3 = _s.sent();
                         sdk_1.logger.error("Erro ao verificar o token:", error_3);
                         process.exit(1);
                         return [3 /*break*/, 14];
@@ -244,7 +248,7 @@ var getDbName = function (_a) {
                         parseToString = "".concat(readEncryptedModelsFile);
                         addModels = parseToString.replace(/exports.prismaEncryptModels = {}/g, "exports.prismaEncryptModels = ".concat(newEncryptedModelsJSON));
                         node_fs_1.default.writeFileSync(encryptedModelsFilePath, addModels, "utf-8");
-                        sdk_1.logger.info("Encrypted fields: ".concat(encryptedModelsFilePath));
+                        sdk_1.logger.info("Encrypted models: ".concat(encryptedModelsFilePath));
                         return [2 /*return*/, {
                                 exitCode: 0,
                             }];
