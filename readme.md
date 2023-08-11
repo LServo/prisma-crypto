@@ -7,9 +7,7 @@
 [![Code Coverage](https://img.shields.io/codecov/c/github/paipe/prisma-crypto?style=flat-square)](https://codecov.io/gh/LServo/prisma-crypto)
 
 
-O `prisma-crypto` é uma extensão poderosa e flexível para o Prisma ORM, projetada para simplificar a implementação de criptografia em seus modelos de banco de dados. Com uma configuração mínima e uma anotação simples, você pode garantir que seus dados sejam armazenados de forma segura, mantendo a capacidade de realizar consultas eficientes.
-
-Seja você um desenvolvedor experiente ou apenas começando com Prisma, o `prisma-crypto` é a ferramenta ideal para manter seus dados protegidos.
+O `prisma-crypto`` é uma extensão para o Prisma ORM que facilita a implementação de criptografia em seus modelos de banco de dados. Com uma simples anotação e algumas configurações, você pode garantir que seus dados sejam armazenados de forma segura e ainda mantenha a capacidade de consultar esses dados de forma eficiente.
 
 ---
 
