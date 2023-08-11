@@ -31,7 +31,8 @@ const prisma = new PrismaClient({
                     case "upsert":
                     case "delete":
                     case "deleteMany":
-                        if (debugMode) logger.info("write");
+                        if (debugMode)
+                            logger.info("[PrismaCLient] write instance");
                         return writeReplicaPrisma[model][operation](
                             args,
                             model,
@@ -43,7 +44,8 @@ const prisma = new PrismaClient({
                     case "findMany":
                     case "findUnique":
                     case "findUniqueOrThrow":
-                        if (debugMode) logger.info("read");
+                        if (debugMode)
+                            logger.info("[PrismaCLient] read instance");
                         return readReplicaPrisma[model][operation](
                             args,
                             model,
@@ -51,7 +53,8 @@ const prisma = new PrismaClient({
                             operation,
                         );
                     default:
-                        if (debugMode) logger.info("default");
+                        if (debugMode)
+                            logger.info("[PrismaCLient] default instance");
                         return query(args);
                 }
             },
@@ -71,8 +74,11 @@ const writeReplicaPrisma = new PrismaClient({
         $allModels: {
             // Métodos de escrita personalizados
             create({ args, model, query }) {
-                if (debugMode) logger.info(model + ".create");
-                if (debugMode) logger.info("args before:", convertToJson(args));
+                if (debugMode)
+                    logger.info(
+                        `[${model + ".create"}] args before:`,
+                        convertToJson(args),
+                    );
                 const { data: dataToEncrypt } = args;
 
                 const fieldsToManage = prismaEncryptModels[model];
@@ -89,13 +95,20 @@ const writeReplicaPrisma = new PrismaClient({
                         manageMode: "encrypt",
                     });
 
-                if (debugMode) logger.info("args after:", convertToJson(args));
+                if (debugMode)
+                    logger.info(
+                        `[${model + ".create"}] args after:`,
+                        convertToJson(args),
+                    );
                 return query({ ...args });
             },
 
             update({ args, model, query }) {
-                if (debugMode) logger.info(model + ".update");
-                if (debugMode) logger.info("args before:", convertToJson(args));
+                if (debugMode)
+                    logger.info(
+                        `[${model + ".update"}] args before:`,
+                        convertToJson(args),
+                    );
                 const { data: dataToEncrypt } = args;
                 const fieldsToManage = prismaEncryptModels[model];
 
@@ -111,7 +124,11 @@ const writeReplicaPrisma = new PrismaClient({
                     });
                 }
 
-                if (debugMode) logger.info("args after:", convertToJson(args));
+                if (debugMode)
+                    logger.info(
+                        `[${model + ".update"}] args after:`,
+                        convertToJson(args),
+                    );
                 return query({ ...args });
             },
 

@@ -427,7 +427,10 @@ class EncryptionMethods implements PrismaCrypto.EncryptionMethods {
                 }
 
                 if (debugMode) {
-                    logger.info("newValue:", newValue);
+                    logger.info(
+                        "[managingDatabaseEncryption] newValue:",
+                        newValue,
+                    );
                     logger.info(`[managingDatabaseEncryption] return prisma[${schemaTableName}].update({
                         where: { [${primaryKeyColumnName}]: ${id} },
                         data: { [${columnName}]: ${newValue} },

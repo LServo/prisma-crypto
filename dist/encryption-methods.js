@@ -356,7 +356,7 @@ var EncryptionMethods = /** @class */ (function () {
                                     break;
                             }
                             if (debugMode) {
-                                sdk_1.logger.info("newValue:", newValue);
+                                sdk_1.logger.info("[managingDatabaseEncryption] newValue:", newValue);
                                 sdk_1.logger.info("[managingDatabaseEncryption] return prisma[".concat(schemaTableName, "].update({\n                        where: { [").concat(primaryKeyColumnName, "]: ").concat(id, " },\n                        data: { [").concat(columnName, "]: ").concat(newValue, " },\n                    });"));
                             }
                             return prismaDirect[schemaTableName].update({
