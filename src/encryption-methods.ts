@@ -1,14 +1,21 @@
 import { createHash, createCipheriv, createDecipheriv } from "node:crypto";
 
-import { Prisma } from "@prisma/client";
+import { Prisma, PrismaClient } from "@prisma/client";
 import { logger } from "@prisma/sdk";
 
-import { prisma } from "./prisma-client";
 import { PrismaCrypto } from "./prisma-crypto";
 
 const convertToJson = (variable: any): string => {
     return JSON.stringify(variable, null, 2);
 };
+
+const prismaDirect = new PrismaClient({
+    datasources: {
+        db: {
+            url: process.env.PRISMA_CRYPTO_DIRECT_DB,
+        },
+    },
+});
 
 const debugMode = process.env.PRISMA_CRYPTO_DEBUG === "true";
 class EncryptionMethods implements PrismaCrypto.EncryptionMethods {
@@ -299,7 +306,7 @@ class EncryptionMethods implements PrismaCrypto.EncryptionMethods {
             logger.info("[managingDatabaseEncryption] columnName:", columnName);
         }
 
-        const result = await prisma
+        const result = await prismaDirect
             .$queryRaw(
                 Prisma.sql`SELECT EXISTS (
                     SELECT FROM information_schema.columns
@@ -326,7 +333,7 @@ class EncryptionMethods implements PrismaCrypto.EncryptionMethods {
             );
         }
 
-        const columnType = await prisma
+        const columnType = await prismaDirect
             .$queryRaw(
                 Prisma.sql`SELECT data_type FROM information_schema.columns WHERE table_name = ${dbTableName} AND column_name = ${columnName};`,
             )
@@ -351,7 +358,7 @@ class EncryptionMethods implements PrismaCrypto.EncryptionMethods {
             );
         }
 
-        const getModelPrimaryKey = await prisma
+        const getModelPrimaryKey = await prismaDirect
             .$queryRaw(
                 Prisma.sql`SELECT column_name FROM information_schema.key_column_usage WHERE table_name = ${dbTableName} AND constraint_name = ${
                     dbTableName + "_pkey"
@@ -368,7 +375,7 @@ class EncryptionMethods implements PrismaCrypto.EncryptionMethods {
          */
         const primaryKeyColumnName = getModelPrimaryKey[0]?.column_name;
 
-        const allEntries = await prisma[schemaTableName]
+        const allEntries = await prismaDirect[schemaTableName]
             .findMany({
                 select: { [primaryKeyColumnName]: true, [columnName]: true },
             })
@@ -426,14 +433,14 @@ class EncryptionMethods implements PrismaCrypto.EncryptionMethods {
                         data: { [${columnName}]: ${newValue} },
                     });`);
                 }
-                return prisma[schemaTableName].update({
+                return prismaDirect[schemaTableName].update({
                     where: { [primaryKeyColumnName]: id },
                     data: { [columnName]: newValue },
                 });
             })
             .filter(Boolean);
 
-        await prisma.$transaction(createPrismaTransactions);
+        await prismaDirect.$transaction(createPrismaTransactions);
     }
 }
 

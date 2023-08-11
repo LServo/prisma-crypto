@@ -44,10 +44,16 @@ exports.EncryptionMethods = void 0;
 var node_crypto_1 = require("node:crypto");
 var client_1 = require("@prisma/client");
 var sdk_1 = require("@prisma/sdk");
-var prisma_client_1 = require("./prisma-client");
 var convertToJson = function (variable) {
     return JSON.stringify(variable, null, 2);
 };
+var prismaDirect = new client_1.PrismaClient({
+    datasources: {
+        db: {
+            url: process.env.PRISMA_CRYPTO_DIRECT_DB,
+        },
+    },
+});
 var debugMode = process.env.PRISMA_CRYPTO_DEBUG === "true";
 var EncryptionMethods = /** @class */ (function () {
     function EncryptionMethods() {
@@ -267,7 +273,7 @@ var EncryptionMethods = /** @class */ (function () {
                             sdk_1.logger.info("[managingDatabaseEncryption] dbTableName:", dbTableName);
                             sdk_1.logger.info("[managingDatabaseEncryption] columnName:", columnName);
                         }
-                        return [4 /*yield*/, prisma_client_1.prisma
+                        return [4 /*yield*/, prismaDirect
                                 .$queryRaw(client_1.Prisma.sql(templateObject_1 || (templateObject_1 = __makeTemplateObject(["SELECT EXISTS (\n                    SELECT FROM information_schema.columns\n                    WHERE table_name = ", "\n                    AND column_name = ", "\n                    ) AS \"exists\""], ["SELECT EXISTS (\n                    SELECT FROM information_schema.columns\n                    WHERE table_name = ", "\n                    AND column_name = ", "\n                    ) AS \"exists\""])), dbTableName, columnName))
                                 .catch(function (error) {
                                 throw new Error("Error when executing the query to check if the column ".concat(dbTableName, ".").concat(columnName, " exists: ").concat(error));
@@ -280,7 +286,7 @@ var EncryptionMethods = /** @class */ (function () {
                         if (!columnExists) {
                             throw new Error("The column ".concat(dbTableName, ".").concat(columnName, " does not exists in the database."));
                         }
-                        return [4 /*yield*/, prisma_client_1.prisma
+                        return [4 /*yield*/, prismaDirect
                                 .$queryRaw(client_1.Prisma.sql(templateObject_2 || (templateObject_2 = __makeTemplateObject(["SELECT data_type FROM information_schema.columns WHERE table_name = ", " AND column_name = ", ";"], ["SELECT data_type FROM information_schema.columns WHERE table_name = ", " AND column_name = ", ";"])), dbTableName, columnName))
                                 .catch(function (error) {
                                 throw new Error("Error when executing the query to get the column type of ".concat(dbTableName, ".").concat(columnName, ": ").concat(error));
@@ -295,7 +301,7 @@ var EncryptionMethods = /** @class */ (function () {
                         if (!isTextColumn && !isArrayColumn) {
                             throw new Error("The column ".concat(dbTableName, ".").concat(columnName, " is not of type \"text\"."));
                         }
-                        return [4 /*yield*/, prisma_client_1.prisma
+                        return [4 /*yield*/, prismaDirect
                                 .$queryRaw(client_1.Prisma.sql(templateObject_3 || (templateObject_3 = __makeTemplateObject(["SELECT column_name FROM information_schema.key_column_usage WHERE table_name = ", " AND constraint_name = ", ";"], ["SELECT column_name FROM information_schema.key_column_usage WHERE table_name = ", " AND constraint_name = ", ";"])), dbTableName, dbTableName + "_pkey"))
                                 .catch(function (error) {
                                 throw new Error("Error when executing the query to get the primary key of ".concat(dbTableName, ": ").concat(error));
@@ -303,7 +309,7 @@ var EncryptionMethods = /** @class */ (function () {
                     case 3:
                         getModelPrimaryKey = _f.sent();
                         primaryKeyColumnName = (_c = getModelPrimaryKey[0]) === null || _c === void 0 ? void 0 : _c.column_name;
-                        return [4 /*yield*/, prisma_client_1.prisma[schemaTableName]
+                        return [4 /*yield*/, prismaDirect[schemaTableName]
                                 .findMany({
                                 select: (_e = {}, _e[primaryKeyColumnName] = true, _e[columnName] = true, _e),
                             })
@@ -353,13 +359,13 @@ var EncryptionMethods = /** @class */ (function () {
                                 sdk_1.logger.info("newValue:", newValue);
                                 sdk_1.logger.info("[managingDatabaseEncryption] return prisma[".concat(schemaTableName, "].update({\n                        where: { [").concat(primaryKeyColumnName, "]: ").concat(id, " },\n                        data: { [").concat(columnName, "]: ").concat(newValue, " },\n                    });"));
                             }
-                            return prisma_client_1.prisma[schemaTableName].update({
+                            return prismaDirect[schemaTableName].update({
                                 where: (_a = {}, _a[primaryKeyColumnName] = id, _a),
                                 data: (_b = {}, _b[columnName] = newValue, _b),
                             });
                         })
                             .filter(Boolean);
-                        return [4 /*yield*/, prisma_client_1.prisma.$transaction(createPrismaTransactions)];
+                        return [4 /*yield*/, prismaDirect.$transaction(createPrismaTransactions)];
                     case 7:
                         _f.sent();
                         return [2 /*return*/];
