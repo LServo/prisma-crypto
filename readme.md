@@ -1,4 +1,4 @@
-# Prisma-Crypto: Criptografia Automatizada para Prisma ORM
+# Prisma-Crypto: Automated Encryption for Prisma ORM
 
 [![npm version](https://img.shields.io/npm/v/prisma-crypto.svg?style=flat-square)](https://www.npmjs.com/package/prisma-crypto)
 [![NPM Downloads](https://img.shields.io/npm/dt/prisma-crypto.svg?style=flat-square)](https://www.npmjs.com/package/prisma-crypto)
@@ -7,30 +7,30 @@
 <!-- [![GitHub Actions](https://github.com/LServo/prisma-crypto/workflows/CI/badge.svg)](https://github.com/LServo/prisma-crypto/actions) -->
 <br>
 
-O `prisma-crypto` é uma extensão para o Prisma ORM que facilita a implementação de criptografia em seus modelos de banco de dados. Com uma simples anotação e algumas configurações, você pode garantir que seus dados sejam armazenados de forma segura e ainda mantenha a capacidade de consultar esses dados de forma eficiente.
+The `prisma-crypto` is an extension for the Prisma ORM that simplifies the implementation of encryption in your database models. With a simple annotation and some configurations, you can ensure that your data is stored securely while still maintaining the ability to query these data efficiently.
 
 ---
 
-## 📑 Tabela de Conteúdos
+## 📑 Table of Contents
 
-- [Instalação](#-instalação)
-- [Configuração de Ambiente](#-configuração-de-ambiente)
-- [Configuração no Schema](#-configuração-no-schema)
-- [Uso](#-uso)
-- [Detalhes Técnicos](#-detalhes-técnicos)
-- [Cenários de Uso](#-cenários-de-uso)
-- [Contribuição](#-contribuição)
-- [Licença](#-licença)
+- [Installation](#-installation)
+- [Environment Configuration](#-environment-configuration)
+- [Schema Configuration](#-schema-configuration)
+- [Usage](#-usage)
+- [Technical Details](#-technical-details)
+- [Use Cases](#-use-cases)
+- [Contribution](#-contribution)
+- [License](#-license)
 
 ---
 
-## 🚀 Instalação
+## 🚀 Installation
 
 ```bash
 npm install prisma-crypto
 ```
 
-ou
+or
 
 ```bash
 yarn add prisma-crypto
@@ -38,21 +38,21 @@ yarn add prisma-crypto
 
 ---
 
-## 🌐 Configuração de Ambiente
+## 🌐 Environment Configuration
 
-Antes de começar, configure as seguintes variáveis de ambiente:
+Before starting, set up the following environment variables:
 
-- `PRISMA_CRYPTO_SECRET_KEY`: Sua chave secreta para criptografia.
-- `PRISMA_CRYPTO_DIRECT_DB`: Conexão direta com o banco. Útil para ambientes de desenvolvimento com Docker.
-- `PRISMA_CRYPTO_WRITE_DB`: Conexão para a instância de escrita. Utilizada para operações de escrita via Prisma Client.
-- `PRISMA_CRYPTO_READ_DB`: Conexão para a instância de leitura. Utilizada para operações de leitura via Prisma Client.
-- `PRISMA_CRYPTO_DEBUG`: Ative para obter logs detalhados do funcionamento do pacote.
+- `PRISMA_CRYPTO_SECRET_KEY`: Your secret key for encryption.
+- `PRISMA_CRYPTO_DIRECT_DB`: Direct connection to the database. Useful for development environments with Docker.
+- `PRISMA_CRYPTO_WRITE_DB`: Connection to the write instance. Used for write operations via Prisma Client.
+- `PRISMA_CRYPTO_READ_DB`: Connection to the read instance. Used for read operations via Prisma Client.
+- `PRISMA_CRYPTO_DEBUG`: Activate to get detailed logs of the package's operation.
 
 ---
 
-## 📝 Configuração no Schema
+## 📝 Schema Configuration
 
-No seu `schema.prisma`, adicione a anotação `@encrypt` aos campos que você deseja criptografar.
+In your `schema.prisma`, add the `@encrypt` annotation to the fields you want to encrypt.
 
 ```prisma
 model User {
@@ -64,9 +64,9 @@ model User {
 
 ---
 
-## 🛠 Uso
+## 🛠 Usage
 
-Com o `prisma-crypto` configurado, execute suas operações do Prisma como de costume. A extensão cuidará da criptografia e descriptografia para você.
+With `prisma-crypto` set up, run your Prisma operations as usual. The extension will handle encryption and decryption for you.
 
 ```typescript
 import { prisma } from "prisma-crypto";
@@ -80,7 +80,7 @@ await prisma.user.create({
   data: newUser,
 });
 ```
-Ao recuperar o usuário, os campos criptografados serão automaticamente descriptografados:
+When retrieving the user, the encrypted fields will be automatically decrypted:
 
 ```typescript
 import { prisma } from "prisma-crypto";
@@ -98,51 +98,51 @@ console.log(user.password); // 'securePassword'
 
 ---
 
-## 📖 Detalhes Técnicos
+## 📖 Technical Details
 
-### Algoritmo de Criptografia
+### Encryption Algorithm
 
-O `prisma-crypto` utiliza o algoritmo `aes-256-gcm` para criptografia. Este é um algoritmo simétrico de criptografia que é amplamente reconhecido por sua segurança e eficiência.
+The `prisma-crypto` uses the `aes-256-gcm` algorithm for encryption. This is a symmetric encryption algorithm that is widely recognized for its security and efficiency.
 
-### Criptografia Determinística
+### Deterministic Encryption
 
-Para permitir consultas em campos criptografados, o `prisma-crypto` utiliza uma abordagem determinística, onde a mesma entrada sempre produzirá a mesma saída criptografada. Isso é alcançado através do uso de hashes.
+To allow queries on encrypted fields, the `prisma-crypto` uses a deterministic approach, where the same input will always produce the same encrypted output. This is achieved through the use of hashes.
 
-### Limitações
+### Limitations
 
-- Apenas campos `string` ou `string[]` podem ser criptografados.
-- O pacote foi otimizado para uso com PostgreSQL.
-- Operações como LIKE e IN não são suportadas em campos criptografados.
-
----
-
-## 🎯 Cenários de Uso
-
-### Salvando Dados com Criptografia
-Ao criar ou atualizar registros, os campos marcados com `@encrypt` serão automaticamente criptografados.
-
-### Consulta em Dados Criptografados
-Ao consultar dados criptografados, o `prisma-crypto` aplica a criptografia nos valores de consulta para garantir que os resultados corretos sejam retornados.
-
-### Recuperando Dados Criptografados
-Ao recuperar registros, os campos criptografados serão automaticamente descriptografados.
-
-### Histórico de Mudanças para Criptografia de Dados
-Mantenha um registro de todas as alterações feitas nos dados criptografados, incluindo quais dados foram adicionados ou removidos da lista de criptografia.
+- Only `string` or `string[]` fields can be encrypted.
+- The package has been optimized for use with PostgreSQL.
+- Operations like LIKE and IN are not supported on encrypted fields.
 
 ---
 
-## 🤝 Contribuição
+## 🎯 Use Cases
 
-Contribuições são bem-vindas! Consulte o guia de contribuição para obter detalhes.
+### Saving Data with Encryption
+When creating or updating records, fields marked with `@encrypt` will be automatically encrypted.
+
+### Querying Encrypted Data
+When querying encrypted data, the `prisma-crypto` applies encryption to the query values to ensure the correct results are returned.
+
+### Retrieving Encrypted Data
+When retrieving records, the encrypted fields will be automatically decrypted.
+
+### Change History for Data Encryption
+Keep a record of all changes made to encrypted data, including which data was added or removed from the encryption list.
 
 ---
 
-## 📜 Licença
+## 🤝 Contribution
 
-Este projeto está licenciado sob a licença MIT.
+Contributions are welcome! Check the contribution guide for details.
 
 ---
 
-Desenvolvido com ❤️ por Lucas Servo.  
-📧 Contato: [l.servo@hotmail.com](mailto:l.servo@hotmail.com)
+## 📜 License
+
+This project is licensed under the MIT license.
+
+---
+
+Developed with ❤️ by Lucas Servo.  
+📧 Contact: [l.servo@hotmail.com](mailto:l.servo@hotmail.com)
