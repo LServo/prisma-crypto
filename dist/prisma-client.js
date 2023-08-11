@@ -49,6 +49,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.prisma = void 0;
+require("dotenv/config");
 var client_1 = require("@prisma/client");
 var sdk_1 = require("@prisma/sdk");
 var encrypted_models_1 = require("./encrypted-models");

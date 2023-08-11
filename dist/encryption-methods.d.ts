@@ -1,3 +1,4 @@
+import "dotenv/config";
 import { PrismaCrypto } from "./prisma-crypto";
 declare class EncryptionMethods implements PrismaCrypto.EncryptionMethods {
     static generateHash({ stringToGenerateHash, }: PrismaCrypto.GenerateHash.Input): PrismaCrypto.GenerateHash.Output;

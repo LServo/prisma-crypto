@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 /* eslint-disable @typescript-eslint/no-var-requires */
+import "dotenv/config";
 import { sign, verify } from "jsonwebtoken";
 import { execSync } from "node:child_process";
 import fs from "node:fs";

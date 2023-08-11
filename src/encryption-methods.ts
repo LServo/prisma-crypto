@@ -1,3 +1,4 @@
+import "dotenv/config";
 import { createHash, createCipheriv, createDecipheriv } from "node:crypto";
 
 import { Prisma, PrismaClient } from "@prisma/client";

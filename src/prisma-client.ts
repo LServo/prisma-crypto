@@ -1,5 +1,6 @@
 /* eslint-disable no-case-declarations */
 
+import "dotenv/config";
 import { PrismaClient } from "@prisma/client";
 import { logger } from "@prisma/sdk";
 

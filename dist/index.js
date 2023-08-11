@@ -46,6 +46,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.prisma = void 0;
 /* eslint-disable @typescript-eslint/no-var-requires */
+require("dotenv/config");
 var jsonwebtoken_1 = require("jsonwebtoken");
 var node_child_process_1 = require("node:child_process");
 var node_fs_1 = __importDefault(require("node:fs"));
