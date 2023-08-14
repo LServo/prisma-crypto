@@ -149,27 +149,63 @@ var EncryptionMethods = /** @class */ (function () {
                                     return; // Caso não tenha nenhum valor proibido, mas também não tenha nenhum permitido, como é o caso do "mode", então, retornamos sem fazer nada
                                 if (!dataToEncrypt[fieldName][key])
                                     return;
-                                // eslint-disable-next-line no-param-reassign
-                                dataToEncrypt[fieldName][key] =
-                                    manageMode === "encrypt"
-                                        ? (_a = EncryptionMethods.encryptData({
-                                            stringToEncrypt: dataToEncrypt[fieldName][key],
-                                        })) === null || _a === void 0 ? void 0 : _a.encryptedString
-                                        : (_b = EncryptionMethods.decryptData({
-                                            stringToDecrypt: dataToEncrypt[fieldName][key],
-                                        })) === null || _b === void 0 ? void 0 : _b.decryptedString;
+                                switch (manageMode) {
+                                    case "encrypt":
+                                        try {
+                                            dataToEncrypt[fieldName][key] =
+                                                (_a = EncryptionMethods.encryptData({
+                                                    stringToEncrypt: dataToEncrypt[fieldName][key],
+                                                })) === null || _a === void 0 ? void 0 : _a.encryptedString;
+                                        }
+                                        catch (error) {
+                                            sdk_1.logger.error("[managingDatabaseEncryption] Error when encrypting the value \"".concat(dataToEncrypt[fieldName][key], "\" of the column \"").concat(fieldName, "\": ").concat(error));
+                                            process.exit(1);
+                                        }
+                                        break;
+                                    case "decrypt":
+                                        try {
+                                            dataToEncrypt[fieldName][key] =
+                                                (_b = EncryptionMethods.encryptData({
+                                                    stringToEncrypt: dataToEncrypt[fieldName][key],
+                                                })) === null || _b === void 0 ? void 0 : _b.encryptedString;
+                                        }
+                                        catch (error) {
+                                            sdk_1.logger.error("[managingDatabaseEncryption] Error when decrypting the value \"".concat(dataToEncrypt[fieldName][key], "\" of the column \"").concat(fieldName, "\": ").concat(error));
+                                            process.exit(1);
+                                        }
+                                        break;
+                                    default:
+                                }
                             });
                             break;
                         case true:
-                            // eslint-disable-next-line no-param-reassign
-                            dataToEncrypt[fieldName] =
-                                manageMode === "encrypt"
-                                    ? (_a = EncryptionMethods.encryptData({
-                                        stringToEncrypt: dataToEncrypt[fieldName],
-                                    })) === null || _a === void 0 ? void 0 : _a.encryptedString
-                                    : (_b = EncryptionMethods.decryptData({
-                                        stringToDecrypt: dataToEncrypt[fieldName],
-                                    })) === null || _b === void 0 ? void 0 : _b.decryptedString;
+                            switch (manageMode) {
+                                case "encrypt":
+                                    try {
+                                        dataToEncrypt[fieldName] =
+                                            (_a = EncryptionMethods.encryptData({
+                                                stringToEncrypt: dataToEncrypt[fieldName],
+                                            })) === null || _a === void 0 ? void 0 : _a.encryptedString;
+                                    }
+                                    catch (error) {
+                                        sdk_1.logger.error("[managingDatabaseEncryption] Error when encrypting the value \"".concat(dataToEncrypt[fieldName], "\" of the column \"").concat(fieldName, "\": ").concat(error));
+                                        process.exit(1);
+                                    }
+                                    break;
+                                case "decrypt":
+                                    try {
+                                        dataToEncrypt[fieldName] =
+                                            (_b = EncryptionMethods.encryptData({
+                                                stringToEncrypt: dataToEncrypt[fieldName],
+                                            })) === null || _b === void 0 ? void 0 : _b.encryptedString;
+                                    }
+                                    catch (error) {
+                                        sdk_1.logger.error("[managingDatabaseEncryption] Error when decrypting the value \"".concat(dataToEncrypt[fieldName], "\" of the column \"").concat(fieldName, "\": ").concat(error));
+                                        process.exit(1);
+                                    }
+                                    break;
+                                default:
+                            }
                             break;
                         default:
                     }
@@ -346,14 +382,26 @@ var EncryptionMethods = /** @class */ (function () {
                             // adicionar validação para caso seja uma array, verificar se cada tipo é uma string e efetuar criptografia nos valores
                             switch (action) {
                                 case "add":
-                                    newValue = (_c = EncryptionMethods.encryptData({
-                                        stringToEncrypt: value,
-                                    })) === null || _c === void 0 ? void 0 : _c.encryptedString;
+                                    try {
+                                        newValue = (_c = EncryptionMethods.encryptData({
+                                            stringToEncrypt: value,
+                                        })) === null || _c === void 0 ? void 0 : _c.encryptedString;
+                                    }
+                                    catch (error) {
+                                        sdk_1.logger.error("[managingDatabaseEncryption] Error when encrypting the value \"".concat(value, "\" of the column \"").concat(columnName, "\" of the table \"").concat(schemaTableName, "\": ").concat(error));
+                                        process.exit(1);
+                                    }
                                     break;
                                 case "remove":
-                                    newValue = (_d = EncryptionMethods.decryptData({
-                                        stringToDecrypt: value,
-                                    })) === null || _d === void 0 ? void 0 : _d.decryptedString;
+                                    try {
+                                        newValue = (_d = EncryptionMethods.decryptData({
+                                            stringToDecrypt: value,
+                                        })) === null || _d === void 0 ? void 0 : _d.decryptedString;
+                                    }
+                                    catch (error) {
+                                        sdk_1.logger.error("[managingDatabaseEncryption] Error when decrypting the value \"".concat(value, "\" of the column \"").concat(columnName, "\" of the table \"").concat(schemaTableName, "\": ").concat(error));
+                                        process.exit(1);
+                                    }
                                     break;
                                 default:
                                     newValue = value;

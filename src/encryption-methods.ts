@@ -139,31 +139,76 @@ class EncryptionMethods implements PrismaCrypto.EncryptionMethods {
                                 if (!allowedKeys.includes(key)) return; // Caso não tenha nenhum valor proibido, mas também não tenha nenhum permitido, como é o caso do "mode", então, retornamos sem fazer nada
 
                                 if (!dataToEncrypt[fieldName][key]) return;
-                                // eslint-disable-next-line no-param-reassign
-                                dataToEncrypt[fieldName][key] =
-                                    manageMode === "encrypt"
-                                        ? EncryptionMethods.encryptData({
-                                              stringToEncrypt:
-                                                  dataToEncrypt[fieldName][key],
-                                          })?.encryptedString
-                                        : EncryptionMethods.decryptData({
-                                              stringToDecrypt:
-                                                  dataToEncrypt[fieldName][key],
-                                          })?.decryptedString;
+
+                                switch (manageMode) {
+                                    case "encrypt":
+                                        try {
+                                            dataToEncrypt[fieldName][key] =
+                                                EncryptionMethods.encryptData({
+                                                    stringToEncrypt:
+                                                        dataToEncrypt[
+                                                            fieldName
+                                                        ][key],
+                                                })?.encryptedString;
+                                        } catch (error) {
+                                            logger.error(
+                                                `[managingDatabaseEncryption] Error when encrypting the value "${dataToEncrypt[fieldName][key]}" of the column "${fieldName}": ${error}`,
+                                            );
+                                            process.exit(1);
+                                        }
+                                        break;
+                                    case "decrypt":
+                                        try {
+                                            dataToEncrypt[fieldName][key] =
+                                                EncryptionMethods.encryptData({
+                                                    stringToEncrypt:
+                                                        dataToEncrypt[
+                                                            fieldName
+                                                        ][key],
+                                                })?.encryptedString;
+                                        } catch (error) {
+                                            logger.error(
+                                                `[managingDatabaseEncryption] Error when decrypting the value "${dataToEncrypt[fieldName][key]}" of the column "${fieldName}": ${error}`,
+                                            );
+                                            process.exit(1);
+                                        }
+                                        break;
+                                    default:
+                                }
                             });
                             break;
                         case true:
-                            // eslint-disable-next-line no-param-reassign
-                            dataToEncrypt[fieldName] =
-                                manageMode === "encrypt"
-                                    ? EncryptionMethods.encryptData({
-                                          stringToEncrypt:
-                                              dataToEncrypt[fieldName],
-                                      })?.encryptedString
-                                    : EncryptionMethods.decryptData({
-                                          stringToDecrypt:
-                                              dataToEncrypt[fieldName],
-                                      })?.decryptedString;
+                            switch (manageMode) {
+                                case "encrypt":
+                                    try {
+                                        dataToEncrypt[fieldName] =
+                                            EncryptionMethods.encryptData({
+                                                stringToEncrypt:
+                                                    dataToEncrypt[fieldName],
+                                            })?.encryptedString;
+                                    } catch (error) {
+                                        logger.error(
+                                            `[managingDatabaseEncryption] Error when encrypting the value "${dataToEncrypt[fieldName]}" of the column "${fieldName}": ${error}`,
+                                        );
+                                        process.exit(1);
+                                    }
+                                    break;
+                                case "decrypt":
+                                    try {
+                                        dataToEncrypt[fieldName] =
+                                            EncryptionMethods.encryptData({
+                                                stringToEncrypt:
+                                                    dataToEncrypt[fieldName],
+                                            })?.encryptedString;
+                                    } catch (error) {
+                                        logger.error(
+                                            `[managingDatabaseEncryption] Error when decrypting the value "${dataToEncrypt[fieldName]}" of the column "${fieldName}": ${error}`,
+                                        );
+                                        process.exit(1);
+                                    }
+                                    break;
+                                default:
+                            }
                             break;
                         default:
                     }
@@ -416,14 +461,28 @@ class EncryptionMethods implements PrismaCrypto.EncryptionMethods {
                 // adicionar validação para caso seja uma array, verificar se cada tipo é uma string e efetuar criptografia nos valores
                 switch (action) {
                     case "add":
-                        newValue = EncryptionMethods.encryptData({
-                            stringToEncrypt: value,
-                        })?.encryptedString;
+                        try {
+                            newValue = EncryptionMethods.encryptData({
+                                stringToEncrypt: value,
+                            })?.encryptedString;
+                        } catch (error) {
+                            logger.error(
+                                `[managingDatabaseEncryption] Error when encrypting the value "${value}" of the column "${columnName}" of the table "${schemaTableName}": ${error}`,
+                            );
+                            process.exit(1);
+                        }
                         break;
                     case "remove":
-                        newValue = EncryptionMethods.decryptData({
-                            stringToDecrypt: value,
-                        })?.decryptedString;
+                        try {
+                            newValue = EncryptionMethods.decryptData({
+                                stringToDecrypt: value,
+                            })?.decryptedString;
+                        } catch (error) {
+                            logger.error(
+                                `[managingDatabaseEncryption] Error when decrypting the value "${value}" of the column "${columnName}" of the table "${schemaTableName}": ${error}`,
+                            );
+                            process.exit(1);
+                        }
                         break;
                     default:
                         newValue = value;
