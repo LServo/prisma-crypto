@@ -160,12 +160,12 @@ class EncryptionMethods implements PrismaCrypto.EncryptionMethods {
                                     case "decrypt":
                                         try {
                                             dataToEncrypt[fieldName][key] =
-                                                EncryptionMethods.encryptData({
-                                                    stringToEncrypt:
+                                                EncryptionMethods.decryptData({
+                                                    stringToDecrypt:
                                                         dataToEncrypt[
                                                             fieldName
                                                         ][key],
-                                                })?.encryptedString;
+                                                })?.decryptedString;
                                         } catch (error) {
                                             logger.error(
                                                 `[managingDatabaseEncryption] Error when decrypting the value "${dataToEncrypt[fieldName][key]}" of the column "${fieldName}": ${error}`,
@@ -196,10 +196,10 @@ class EncryptionMethods implements PrismaCrypto.EncryptionMethods {
                                 case "decrypt":
                                     try {
                                         dataToEncrypt[fieldName] =
-                                            EncryptionMethods.encryptData({
-                                                stringToEncrypt:
+                                            EncryptionMethods.decryptData({
+                                                stringToDecrypt:
                                                     dataToEncrypt[fieldName],
-                                            })?.encryptedString;
+                                            })?.decryptedString;
                                     } catch (error) {
                                         logger.error(
                                             `[managingDatabaseEncryption] Error when decrypting the value "${dataToEncrypt[fieldName]}" of the column "${fieldName}": ${error}`,
@@ -217,14 +217,39 @@ class EncryptionMethods implements PrismaCrypto.EncryptionMethods {
                 case true:
                     // eslint-disable-next-line no-param-reassign
                     dataToEncrypt[fieldName] = dataToEncrypt[fieldName].map(
-                        (item: string) =>
-                            manageMode === "encrypt"
-                                ? EncryptionMethods.encryptData({
-                                      stringToEncrypt: item,
-                                  })?.encryptedString
-                                : EncryptionMethods.decryptData({
-                                      stringToDecrypt: item,
-                                  })?.decryptedString,
+                        (item: string) => {
+                            let result: string;
+
+                            switch (manageMode) {
+                                case "encrypt":
+                                    try {
+                                        result = EncryptionMethods.encryptData({
+                                            stringToEncrypt: item,
+                                        })?.encryptedString;
+                                    } catch (error) {
+                                        logger.error(
+                                            `[managingDatabaseEncryption] Error when encrypting the value "${item}" of the column "${fieldName}": ${error}`,
+                                        );
+                                        process.exit(1);
+                                    }
+                                    break;
+                                case "decrypt":
+                                    try {
+                                        result = EncryptionMethods.decryptData({
+                                            stringToDecrypt: item,
+                                        })?.decryptedString;
+                                    } catch (error) {
+                                        logger.error(
+                                            `[managingDatabaseEncryption] Error when decrypting the value "${item}" of the column "${fieldName}": ${error}`,
+                                        );
+                                        process.exit(1);
+                                    }
+                                    break;
+                                default:
+                            }
+
+                            return result;
+                        },
                     );
                     break;
                 default:

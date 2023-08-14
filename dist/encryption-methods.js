@@ -165,9 +165,9 @@ var EncryptionMethods = /** @class */ (function () {
                                     case "decrypt":
                                         try {
                                             dataToEncrypt[fieldName][key] =
-                                                (_b = EncryptionMethods.encryptData({
-                                                    stringToEncrypt: dataToEncrypt[fieldName][key],
-                                                })) === null || _b === void 0 ? void 0 : _b.encryptedString;
+                                                (_b = EncryptionMethods.decryptData({
+                                                    stringToDecrypt: dataToEncrypt[fieldName][key],
+                                                })) === null || _b === void 0 ? void 0 : _b.decryptedString;
                                         }
                                         catch (error) {
                                             sdk_1.logger.error("[managingDatabaseEncryption] Error when decrypting the value \"".concat(dataToEncrypt[fieldName][key], "\" of the column \"").concat(fieldName, "\": ").concat(error));
@@ -195,9 +195,9 @@ var EncryptionMethods = /** @class */ (function () {
                                 case "decrypt":
                                     try {
                                         dataToEncrypt[fieldName] =
-                                            (_b = EncryptionMethods.encryptData({
-                                                stringToEncrypt: dataToEncrypt[fieldName],
-                                            })) === null || _b === void 0 ? void 0 : _b.encryptedString;
+                                            (_b = EncryptionMethods.decryptData({
+                                                stringToDecrypt: dataToEncrypt[fieldName],
+                                            })) === null || _b === void 0 ? void 0 : _b.decryptedString;
                                     }
                                     catch (error) {
                                         sdk_1.logger.error("[managingDatabaseEncryption] Error when decrypting the value \"".concat(dataToEncrypt[fieldName], "\" of the column \"").concat(fieldName, "\": ").concat(error));
@@ -214,13 +214,33 @@ var EncryptionMethods = /** @class */ (function () {
                     // eslint-disable-next-line no-param-reassign
                     dataToEncrypt[fieldName] = dataToEncrypt[fieldName].map(function (item) {
                         var _a, _b;
-                        return manageMode === "encrypt"
-                            ? (_a = EncryptionMethods.encryptData({
-                                stringToEncrypt: item,
-                            })) === null || _a === void 0 ? void 0 : _a.encryptedString
-                            : (_b = EncryptionMethods.decryptData({
-                                stringToDecrypt: item,
-                            })) === null || _b === void 0 ? void 0 : _b.decryptedString;
+                        var result;
+                        switch (manageMode) {
+                            case "encrypt":
+                                try {
+                                    result = (_a = EncryptionMethods.encryptData({
+                                        stringToEncrypt: item,
+                                    })) === null || _a === void 0 ? void 0 : _a.encryptedString;
+                                }
+                                catch (error) {
+                                    sdk_1.logger.error("[managingDatabaseEncryption] Error when encrypting the value \"".concat(item, "\" of the column \"").concat(fieldName, "\": ").concat(error));
+                                    process.exit(1);
+                                }
+                                break;
+                            case "decrypt":
+                                try {
+                                    result = (_b = EncryptionMethods.decryptData({
+                                        stringToDecrypt: item,
+                                    })) === null || _b === void 0 ? void 0 : _b.decryptedString;
+                                }
+                                catch (error) {
+                                    sdk_1.logger.error("[managingDatabaseEncryption] Error when decrypting the value \"".concat(item, "\" of the column \"").concat(fieldName, "\": ").concat(error));
+                                    process.exit(1);
+                                }
+                                break;
+                            default:
+                        }
+                        return result;
                     });
                     break;
                 default:
