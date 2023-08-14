@@ -175,7 +175,19 @@ var getDbName = function (_a) {
                             lastEncryptedModels = (0, jsonwebtoken_1.verify)((_c = latestMigration[0]) === null || _c === void 0 ? void 0 : _c.token, "prisma-crypto-secret");
                         }
                         getEncryptionChanges = function (newModels, oldModels) {
-                            return Object.keys(newModels).reduce(function (acc, curr) {
+                            // verifica se algum model foi removido da lista de models para criptografar, se sim, automaticamente todos os campos dele devem entrar para a lista de remove_encryption
+                            var removed_fields = Object.keys(oldModels).reduce(function (acc, curr) {
+                                var _a;
+                                if (newModels[curr])
+                                    return acc;
+                                var modelFields = oldModels[curr].map(function (field) { return "".concat(curr, ".").concat(field.fieldName); });
+                                (_a = acc.removed_fields).push.apply(_a, modelFields);
+                                return acc;
+                            }, {
+                                removed_fields: [],
+                            }).removed_fields;
+                            //transformar em array de strings
+                            var _a = Object.keys(newModels).reduce(function (acc, curr) {
                                 var _a, _b;
                                 var _c, _d;
                                 var newFields;
@@ -193,7 +205,12 @@ var getDbName = function (_a) {
                             }, {
                                 add_encryption: [],
                                 remove_encryption: [],
-                            });
+                            }), add_encryption = _a.add_encryption, remove_encryption = _a.remove_encryption;
+                            remove_encryption.push.apply(remove_encryption, removed_fields);
+                            return {
+                                add_encryption: add_encryption,
+                                remove_encryption: remove_encryption,
+                            };
                         };
                         _g = getEncryptionChanges(newEncryptedModels, lastEncryptedModels === null || lastEncryptedModels === void 0 ? void 0 : lastEncryptedModels.encryptedModels), add_encryption = _g.add_encryption, remove_encryption = _g.remove_encryption;
                         _h = getEncryptionChanges(newEncryptedModelsDbName, lastEncryptedModels === null || lastEncryptedModels === void 0 ? void 0 : lastEncryptedModels.encryptedModelsDbName), add_encryption_db_name = _h.add_encryption, remove_encryption_db_name = _h.remove_encryption;

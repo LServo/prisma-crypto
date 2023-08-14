@@ -209,11 +209,33 @@ generatorHandler({
                 };
             }
 
+            // Reconhece as mudanças entre as migrations de criptografia
             const getEncryptionChanges = (
                 newModels: PrismaCrypto.PrismaEncryptModels,
                 oldModels: PrismaCrypto.PrismaEncryptModels,
-            ) =>
-                Object.keys(newModels).reduce(
+            ) => {
+                // verifica se algum model foi removido da lista de models para criptografar, se sim, automaticamente todos os campos dele devem entrar para a lista de remove_encryption
+                const { removed_fields } = Object.keys(oldModels).reduce(
+                    (acc, curr) => {
+                        if (newModels[curr]) return acc;
+
+                        const modelFields = oldModels[curr].map(
+                            (field) => `${curr}.${field.fieldName}`,
+                        );
+
+                        acc.removed_fields.push(...modelFields);
+
+                        return acc;
+                    },
+                    {
+                        removed_fields: [] as string[],
+                    },
+                );
+
+                //transformar em array de strings
+                const { add_encryption, remove_encryption } = Object.keys(
+                    newModels,
+                ).reduce(
                     (acc, curr) => {
                         let newFields: string[];
                         if (newModels)
@@ -245,6 +267,14 @@ generatorHandler({
                         remove_encryption: [] as String[],
                     },
                 );
+
+                remove_encryption.push(...removed_fields);
+
+                return {
+                    add_encryption,
+                    remove_encryption,
+                };
+            };
 
             const { add_encryption, remove_encryption } = getEncryptionChanges(
                 newEncryptedModels,
