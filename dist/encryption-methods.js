@@ -210,7 +210,7 @@ var EncryptionMethods = /** @class */ (function () {
         var fixedIV = EncryptionMethods.generateHash({
             stringToGenerateHash: stringToEncrypt,
         }).generatedHash;
-        var cipher = (0, node_crypto_1.createCipheriv)("aes-256-gcm", getMyVar("SECRET_KEY"), fixedIV);
+        var cipher = (0, node_crypto_1.createCipheriv)("aes-256-gcm", getMyVar("PRISMA_CRYPTO_SECRET_KEY"), fixedIV);
         var encrypted = Buffer.concat([
             cipher.update(stringToEncrypt, "utf8"),
             cipher.final(),
@@ -239,7 +239,7 @@ var EncryptionMethods = /** @class */ (function () {
         var iv = encryptedBuffer.subarray(0, 32);
         var tag = encryptedBuffer.subarray(32, 48);
         var encrypted = encryptedBuffer.subarray(48);
-        var decipher = (0, node_crypto_1.createDecipheriv)("aes-256-gcm", getMyVar("SECRET_KEY"), iv);
+        var decipher = (0, node_crypto_1.createDecipheriv)("aes-256-gcm", getMyVar("PRISMA_CRYPTO_SECRET_KEY"), iv);
         decipher.setAuthTag(tag);
         var decrypted = Buffer.concat([
             decipher.update(encrypted),

@@ -217,7 +217,7 @@ class EncryptionMethods implements PrismaCrypto.EncryptionMethods {
         });
         const cipher = createCipheriv(
             "aes-256-gcm",
-            getMyVar("SECRET_KEY"),
+            getMyVar("PRISMA_CRYPTO_SECRET_KEY"),
             fixedIV,
         );
 
@@ -258,7 +258,7 @@ class EncryptionMethods implements PrismaCrypto.EncryptionMethods {
 
         const decipher = createDecipheriv(
             "aes-256-gcm",
-            getMyVar("SECRET_KEY"),
+            getMyVar("PRISMA_CRYPTO_SECRET_KEY"),
             iv,
         );
         decipher.setAuthTag(tag);
