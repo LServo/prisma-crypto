@@ -176,16 +176,18 @@ var getDbName = function (_a) {
                         }
                         getEncryptionChanges = function (newModels, oldModels) {
                             // verifica se algum model foi removido da lista de models para criptografar, se sim, automaticamente todos os campos dele devem entrar para a lista de remove_encryption
-                            var removed_fields = Object.keys(oldModels).reduce(function (acc, curr) {
-                                var _a;
-                                if (newModels[curr])
+                            var removed_fields = (oldModels
+                                ? Object.keys(oldModels).reduce(function (acc, curr) {
+                                    var _a;
+                                    if (newModels[curr])
+                                        return acc;
+                                    var modelFields = oldModels[curr].map(function (field) { return "".concat(curr, ".").concat(field.fieldName); });
+                                    (_a = acc.removed_fields).push.apply(_a, modelFields);
                                     return acc;
-                                var modelFields = oldModels[curr].map(function (field) { return "".concat(curr, ".").concat(field.fieldName); });
-                                (_a = acc.removed_fields).push.apply(_a, modelFields);
-                                return acc;
-                            }, {
-                                removed_fields: [],
-                            }).removed_fields;
+                                }, {
+                                    removed_fields: [],
+                                })
+                                : { removed_fields: [] }).removed_fields;
                             //transformar em array de strings
                             var _a = Object.keys(newModels).reduce(function (acc, curr) {
                                 var _a, _b;
