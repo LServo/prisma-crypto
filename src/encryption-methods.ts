@@ -325,6 +325,8 @@ class EncryptionMethods implements PrismaCrypto.EncryptionMethods {
         return EncryptionMethods.decryptData({ stringToDecrypt });
     }
 
+    static AllPrismaTransactions: any[] = [];
+
     static async managingDatabaseEncryption(
         fields: String[],
         fieldsDbName: String[],
@@ -436,9 +438,6 @@ class EncryptionMethods implements PrismaCrypto.EncryptionMethods {
         if (debugMode)
             logger.info("[managingDatabaseEncryption] allEntries:", allEntries);
 
-        if (fields.length > 0)
-            await this.managingDatabaseEncryption(fields, fieldsDbName, "add");
-
         // modificar todos os registros da coluna criptografando um a um utilizando o método `EncryptionMethods.encryptData`
         const createPrismaTransactions = allEntries
             .map((entry) => {
@@ -506,7 +505,15 @@ class EncryptionMethods implements PrismaCrypto.EncryptionMethods {
             })
             .filter(Boolean);
 
-        await prismaDirect.$transaction(createPrismaTransactions);
+        this.AllPrismaTransactions.push(...createPrismaTransactions);
+
+        if (fields.length > 0)
+            await this.managingDatabaseEncryption(fields, fieldsDbName, "add");
+
+        if (this.AllPrismaTransactions) {
+            await prismaDirect.$transaction(createPrismaTransactions);
+            this.AllPrismaTransactions = [];
+        }
     }
 }
 
