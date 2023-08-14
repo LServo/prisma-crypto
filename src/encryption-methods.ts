@@ -456,36 +456,61 @@ class EncryptionMethods implements PrismaCrypto.EncryptionMethods {
                 }
                 if (!value) return;
 
-                let newValue: string;
+                let newValue: string | string[];
                 // adicionar validação para caso seja uma array, verificar se cada tipo é uma string e efetuar criptografia nos valores
-                switch (action) {
-                    case "add":
-                        try {
-                            newValue = EncryptionMethods.encryptData({
-                                stringToEncrypt: value,
-                            })?.encryptedString;
-                        } catch (error) {
-                            logger.error(
-                                `[managingDatabaseEncryption] Error when encrypting the value "${value}" of the column "${columnName}" of the table "${schemaTableName}": ${error}`,
-                            );
-                            process.exit(1);
-                        }
-                        break;
-                    case "remove":
-                        try {
-                            newValue = EncryptionMethods.decryptData({
-                                stringToDecrypt: value,
-                            })?.decryptedString;
-                        } catch (error) {
-                            logger.error(
-                                `[managingDatabaseEncryption] Error when decrypting the value "${value}" of the column "${columnName}" of the table "${schemaTableName}": ${error}`,
-                            );
-                            process.exit(1);
-                        }
-                        break;
-                    default:
-                        newValue = value;
-                        break;
+
+                const manageEncryption = (input: string) => {
+                    let output: string;
+                    switch (action) {
+                        case "add":
+                            try {
+                                output = EncryptionMethods.encryptData({
+                                    stringToEncrypt: input,
+                                })?.encryptedString;
+                            } catch (error) {
+                                logger.error(
+                                    `[managingDatabaseEncryption] Error when encrypting the value "${input}" of the column "${columnName}" of the table "${schemaTableName}": ${error}`,
+                                );
+                                process.exit(1);
+                            }
+                            break;
+                        case "remove":
+                            try {
+                                output = EncryptionMethods.decryptData({
+                                    stringToDecrypt: input,
+                                })?.decryptedString;
+                            } catch (error) {
+                                logger.error(
+                                    `[managingDatabaseEncryption] Error when decrypting the value "${input}" of the column "${columnName}" of the table "${schemaTableName}": ${error}`,
+                                );
+                                process.exit(1);
+                            }
+                            break;
+                        default:
+                            output = input;
+                            break;
+                    }
+
+                    return output;
+                };
+
+                if (isArrayColumn) {
+                    const isArrayOfStrings = (array: any[]) => {
+                        return array.every((item) => typeof item === "string");
+                    };
+
+                    if (!isArrayOfStrings(value)) {
+                        logger.error(
+                            `[managingDatabaseEncryption] The column "${columnName}" of the table "${schemaTableName}" is an array, but it is not an array of strings.`,
+                        );
+                        process.exit(1);
+                    }
+
+                    newValue = value.map((item: string) =>
+                        manageEncryption(item),
+                    );
+                } else {
+                    newValue = manageEncryption(value);
                 }
 
                 if (debugMode) {

@@ -11,6 +11,7 @@ declare class EncryptionMethods implements PrismaCrypto.EncryptionMethods {
     encryptData({ stringToEncrypt, }: PrismaCrypto.EncryptData.Input): PrismaCrypto.EncryptData.Output;
     static decryptData({ stringToDecrypt, }: PrismaCrypto.DecryptData.Input): PrismaCrypto.DecryptData.Output;
     decryptData({ stringToDecrypt, }: PrismaCrypto.DecryptData.Input): PrismaCrypto.DecryptData.Output;
+    static AllPrismaTransactions: any[];
     static managingDatabaseEncryption(fields: String[], fieldsDbName: String[], action: "add" | "remove"): Promise<void>;
 }
 export { EncryptionMethods };
