@@ -52,9 +52,13 @@ Before starting, set up the following environment variables:
 
 ## 📝 Schema Configuration
 
-In your `schema.prisma`, add the `@encrypt` annotation to the fields you want to encrypt.
+In your `schema.prisma`, setup a new generator and add the `@encrypt` annotation to the fields you want to encrypt.
 
 ```prisma
+generator encrypt {
+    provider = "prisma-crypto"
+}
+
 model User {
   id       Int     @id @default(autoincrement())
   email    String  @unique // @encrypt
