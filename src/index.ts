@@ -76,6 +76,37 @@ function findEncryptFields(
     return { modelsEncryptedFields, modelsEncryptedFieldsDbName };
 }
 
+function getMyVar(env_var: string) {
+    return process.env[env_var];
+}
+
+function validateEnvVars() {
+    const requiredEnvVars = [
+        "PRISMA_CRYPTO_SECRET_KEY",
+        "PRISMA_CRYPTO_DIRECT_DB",
+        "PRISMA_CRYPTO_WRITE_DB",
+        "PRISMA_CRYPTO_READ_DB",
+    ];
+
+    const missingEnvVars: string[] = [];
+
+    for (const envVar of requiredEnvVars) {
+        const value = getMyVar(envVar);
+        if (!value) {
+            missingEnvVars.push(envVar);
+        }
+    }
+
+    if (missingEnvVars.length > 0) {
+        logger.error(
+            `The following environment variables are required: ${missingEnvVars.join(
+                ", ",
+            )}.`,
+        );
+        process.exit(1);
+    }
+}
+
 // função que recebe um nome de model do schema.prisma e retorna o nome do model no banco de dados
 const getDbName = ({
     modelName,
@@ -105,6 +136,7 @@ generatorHandler({
         };
     },
     async onGenerate(options: GeneratorOptions) {
+        validateEnvVars();
         const {
             modelsEncryptedFields: newEncryptedModels,
             modelsEncryptedFieldsDbName: newEncryptedModelsDbName,

@@ -96,6 +96,29 @@ function findEncryptFields(filePath, modelsInfo) {
     });
     return { modelsEncryptedFields: modelsEncryptedFields, modelsEncryptedFieldsDbName: modelsEncryptedFieldsDbName };
 }
+function getMyVar(env_var) {
+    return process.env[env_var];
+}
+function validateEnvVars() {
+    var requiredEnvVars = [
+        "PRISMA_CRYPTO_SECRET_KEY",
+        "PRISMA_CRYPTO_DIRECT_DB",
+        "PRISMA_CRYPTO_WRITE_DB",
+        "PRISMA_CRYPTO_READ_DB",
+    ];
+    var missingEnvVars = [];
+    for (var _i = 0, requiredEnvVars_1 = requiredEnvVars; _i < requiredEnvVars_1.length; _i++) {
+        var envVar = requiredEnvVars_1[_i];
+        var value = getMyVar(envVar);
+        if (!value) {
+            missingEnvVars.push(envVar);
+        }
+    }
+    if (missingEnvVars.length > 0) {
+        sdk_1.logger.error("The following environment variables are required: ".concat(missingEnvVars.join(", "), "."));
+        process.exit(1);
+    }
+}
 // função que recebe um nome de model do schema.prisma e retorna o nome do model no banco de dados
 var getDbName = function (_a) {
     var modelName = _a.modelName, modelsInfo = _a.modelsInfo;
@@ -123,6 +146,7 @@ var getDbName = function (_a) {
             return __generator(this, function (_j) {
                 switch (_j.label) {
                     case 0:
+                        validateEnvVars();
                         _f = findEncryptFields(options.schemaPath, options.dmmf.datamodel.models), newEncryptedModels = _f.modelsEncryptedFields, newEncryptedModelsDbName = _f.modelsEncryptedFieldsDbName;
                         if (!node_fs_1.default.existsSync((0, node_path_1.resolve)(__dirname)))
                             return [2 /*return*/, { exitCode: 1 }];
