@@ -153,7 +153,6 @@ generatorHandler({
             );
             process.exit(1);
         }
-        console.log("options.datasources:", options.datasources);
 
         if (!fs.existsSync(resolve(__dirname))) return { exitCode: 1 };
 

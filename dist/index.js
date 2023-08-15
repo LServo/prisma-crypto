@@ -152,7 +152,6 @@ var getDbName = function (_a) {
                             sdk_1.logger.error("Prisma Crypto currently only supports PostgreSQL databases.");
                             process.exit(1);
                         }
-                        console.log("options.datasources:", options.datasources);
                         if (!node_fs_1.default.existsSync((0, node_path_1.resolve)(__dirname)))
                             return [2 /*return*/, { exitCode: 1 }];
                         return [4 /*yield*/, prisma_client_1.prisma.$queryRaw(client_1.Prisma.sql(templateObject_1 || (templateObject_1 = __makeTemplateObject(["SELECT EXISTS (\n                SELECT FROM information_schema.tables\n                WHERE table_name = '_migrate_encryption'\n                ) AS \"exists\""], ["SELECT EXISTS (\n                SELECT FROM information_schema.tables\n                WHERE table_name = '_migrate_encryption'\n                ) AS \"exists\""]))))];
