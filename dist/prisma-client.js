@@ -291,7 +291,7 @@ var readReplicaPrisma = new client_1.PrismaClient({
                                         });
                                 }
                                 if (debugMode)
-                                    sdk_1.logger.info("[".concat(model + "." + operation, "] result before:"), result);
+                                    sdk_1.logger.info("[".concat(model + "." + operation, "] result after:"), result);
                                 return [2 /*return*/, result];
                         }
                     });

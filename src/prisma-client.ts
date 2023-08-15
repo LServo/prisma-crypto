@@ -309,7 +309,7 @@ const readReplicaPrisma = new PrismaClient({
 
                 if (debugMode)
                     logger.info(
-                        `[${model + "." + operation}] result before:`,
+                        `[${model + "." + operation}] result after:`,
                         result,
                     );
                 return result;
