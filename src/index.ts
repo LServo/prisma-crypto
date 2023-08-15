@@ -92,9 +92,7 @@ function validateEnvVars() {
 
     for (const envVar of requiredEnvVars) {
         const value = getMyVar(envVar);
-        if (!value) {
-            missingEnvVars.push(envVar);
-        }
+        if (!value) missingEnvVars.push(envVar);
     }
 
     if (missingEnvVars.length > 0) {
@@ -144,6 +142,18 @@ generatorHandler({
             options.schemaPath,
             options.dmmf.datamodel.models,
         );
+
+        const onlyPostgresProvider = options.datasources.every(
+            (datasource) => datasource.provider === "postgresql",
+        );
+
+        if (!onlyPostgresProvider) {
+            logger.error(
+                "Prisma Crypto currently only supports PostgreSQL databases.",
+            );
+            process.exit(1);
+        }
+        console.log("options.datasources:", options.datasources);
 
         if (!fs.existsSync(resolve(__dirname))) return { exitCode: 1 };
 
@@ -198,9 +208,6 @@ generatorHandler({
                 logger.error(
                     "Error when executing `prisma db push/pull` command:",
                     error,
-                );
-                logger.info(
-                    "This command uses the `PRISMA_WRITE` environment variable if there is no `var_env_url` property in the generator of schema.prisma",
                 );
                 process.exit(1);
             }

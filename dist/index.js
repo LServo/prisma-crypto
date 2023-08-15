@@ -110,9 +110,8 @@ function validateEnvVars() {
     for (var _i = 0, requiredEnvVars_1 = requiredEnvVars; _i < requiredEnvVars_1.length; _i++) {
         var envVar = requiredEnvVars_1[_i];
         var value = getMyVar(envVar);
-        if (!value) {
+        if (!value)
             missingEnvVars.push(envVar);
-        }
     }
     if (missingEnvVars.length > 0) {
         sdk_1.logger.error("The following environment variables are required: ".concat(missingEnvVars.join(", "), "."));
@@ -142,12 +141,18 @@ var getDbName = function (_a) {
     onGenerate: function (options) {
         var _a, _b, _c, _d, _e;
         return __awaiter(this, void 0, void 0, function () {
-            var _f, newEncryptedModels, newEncryptedModelsDbName, result, modelExists, schemaPath, modelMigrateEncryption, latestMigration, error_1, newToken, lastEncryptedModels, getEncryptionChanges, _g, add_encryption, remove_encryption, _h, add_encryption_db_name, remove_encryption_db_name, hasChanges, deepClonedAddEncryption, deepClonedAddEncryptionDbName, deepClonedRemoveEncryption, deepClonedRemoveEncryptionDbName, error_2, newMigration, error_3, encryptedModelsFilePath, newEncryptedModelsJSON, readEncryptedModelsFile, regex, findIndex, cutInterestParts, newContent;
+            var _f, newEncryptedModels, newEncryptedModelsDbName, onlyPostgresProvider, result, modelExists, schemaPath, modelMigrateEncryption, latestMigration, error_1, newToken, lastEncryptedModels, getEncryptionChanges, _g, add_encryption, remove_encryption, _h, add_encryption_db_name, remove_encryption_db_name, hasChanges, deepClonedAddEncryption, deepClonedAddEncryptionDbName, deepClonedRemoveEncryption, deepClonedRemoveEncryptionDbName, error_2, newMigration, error_3, encryptedModelsFilePath, newEncryptedModelsJSON, readEncryptedModelsFile, regex, findIndex, cutInterestParts, newContent;
             return __generator(this, function (_j) {
                 switch (_j.label) {
                     case 0:
                         validateEnvVars();
                         _f = findEncryptFields(options.schemaPath, options.dmmf.datamodel.models), newEncryptedModels = _f.modelsEncryptedFields, newEncryptedModelsDbName = _f.modelsEncryptedFieldsDbName;
+                        onlyPostgresProvider = options.datasources.every(function (datasource) { return datasource.provider === "postgresql"; });
+                        if (!onlyPostgresProvider) {
+                            sdk_1.logger.error("Prisma Crypto currently only supports PostgreSQL databases.");
+                            process.exit(1);
+                        }
+                        console.log("options.datasources:", options.datasources);
                         if (!node_fs_1.default.existsSync((0, node_path_1.resolve)(__dirname)))
                             return [2 /*return*/, { exitCode: 1 }];
                         return [4 /*yield*/, prisma_client_1.prisma.$queryRaw(client_1.Prisma.sql(templateObject_1 || (templateObject_1 = __makeTemplateObject(["SELECT EXISTS (\n                SELECT FROM information_schema.tables\n                WHERE table_name = '_migrate_encryption'\n                ) AS \"exists\""], ["SELECT EXISTS (\n                SELECT FROM information_schema.tables\n                WHERE table_name = '_migrate_encryption'\n                ) AS \"exists\""]))))];
@@ -171,7 +176,6 @@ var getDbName = function (_a) {
                             }
                             catch (error) {
                                 sdk_1.logger.error("Error when executing `prisma db push/pull` command:", error);
-                                sdk_1.logger.info("This command uses the `PRISMA_WRITE` environment variable if there is no `var_env_url` property in the generator of schema.prisma");
                                 process.exit(1);
                             }
                         }
