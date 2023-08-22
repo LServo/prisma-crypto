@@ -6,10 +6,10 @@
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
     "scripts": {
-        "test": "vitest",
+        "test": "sh ./test.sh",
         "clean": "rimraf dist",
-        "build": "npm run clean && tsc --declaration",
-        "start": "node -r dotenv/config dist/shared/main/index.cjs",
+        "build": "sh ./build.sh",
+        "start": "sh ./start.sh",
         "local": "npx nodemon",
         "prepare": "husky install",
         "lint": "eslint .",
