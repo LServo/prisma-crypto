@@ -1,13 +1,10 @@
-import "dotenv/config";
-declare const prisma: import("@prisma/client/runtime/library").DynamicClientExtensionThis<import(".prisma/client").Prisma.TypeMap<import("@prisma/client/runtime/library").Args_2 & {
-    result: {};
-    model: {};
-    query: {};
-    client: {};
-}>, import(".prisma/client").Prisma.TypeMapCb, {
-    result: {};
-    model: {};
-    query: {};
-    client: {};
-}>;
-export { prisma };
+import { Prisma, PrismaClient } from "@prisma/client";
+export declare class PrismaCrypto {
+    private prisma;
+    private static debugMode;
+    constructor();
+    private static getMyVar;
+    private static convertToJson;
+    private initPrisma;
+    getPrismaClient(): PrismaClient<Prisma.PrismaClientOptions, never, import("@prisma/client/runtime/library").DefaultArgs>;
+}

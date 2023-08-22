@@ -1,5 +1,4 @@
 "use strict";
-/* eslint-disable no-case-declarations */
 var __assign = (this && this.__assign) || function () {
     __assign = Object.assign || function(t) {
         for (var s, i = 1, n = arguments.length; i < n; i++) {
@@ -48,255 +47,276 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.prisma = void 0;
-require("dotenv/config");
+exports.PrismaCrypto = void 0;
 var client_1 = require("@prisma/client");
 var sdk_1 = require("@prisma/sdk");
 var encrypted_models_1 = require("./encrypted-models");
 var encryption_methods_1 = require("./encryption-methods");
-var convertToJson = function (variable) {
-    return JSON.stringify(variable, null, 2);
-};
-function getMyVar(env_var) {
-    return process.env[env_var];
-}
-var debugMode = getMyVar("PRISMA_CRYPTO_DEBUG") === "true";
-var prisma = new client_1.PrismaClient({
-    datasources: {
-        db: {
-            url: getMyVar("PRISMA_CRYPTO_DIRECT_DB"),
-        },
-    },
-}).$extends({
-    query: {
-        $allModels: {
-            // eslint-disable-next-line consistent-return
-            $allOperations: function (_a) {
-                var args = _a.args, model = _a.model, query = _a.query, operation = _a.operation;
-                switch (operation) {
-                    case "create":
-                    case "createMany":
-                    case "update":
-                    case "updateMany":
-                    case "upsert":
-                    case "delete":
-                    case "deleteMany":
-                        if (debugMode)
-                            sdk_1.logger.info("[PrismaCLient] write instance");
-                        return writeReplicaPrisma[model][operation](args, model, query, operation);
-                    case "findFirst":
-                    case "findFirstOrThrow":
-                    case "findMany":
-                    case "findUnique":
-                    case "findUniqueOrThrow":
-                        if (debugMode)
-                            sdk_1.logger.info("[PrismaCLient] read instance");
-                        return readReplicaPrisma[model][operation](args, model, query, operation);
-                    default:
-                        if (debugMode)
-                            sdk_1.logger.info("[PrismaCLient] default instance");
-                        return query(args);
-                }
+var PrismaCrypto = exports.PrismaCrypto = /** @class */ (function () {
+    function PrismaCrypto() {
+        this.initPrisma();
+    }
+    PrismaCrypto.getMyVar = function (env_var) {
+        return process.env[env_var];
+    };
+    PrismaCrypto.convertToJson = function (variable) {
+        return JSON.stringify(variable, null, 2);
+    };
+    PrismaCrypto.prototype.initPrisma = function () {
+        var prismaOptions = {
+            datasources: {
+                db: {
+                    url: PrismaCrypto.getMyVar("PRISMA_CRYPTO_DIRECT_DB"),
+                },
             },
-        },
-    },
-});
-exports.prisma = prisma;
-var writeReplicaPrisma = new client_1.PrismaClient({
-    datasources: {
-        db: {
-            url: getMyVar("PRISMA_CRYPTO_WRITE_DB"),
-        },
-    },
-}).$extends({
-    name: "writeReplica",
-    query: {
-        $allModels: {
-            // Métodos de escrita personalizados
-            create: function (_a) {
-                var args = _a.args, model = _a.model, query = _a.query;
-                if (debugMode)
-                    sdk_1.logger.info("[".concat(model + ".create", "] args before:"), convertToJson(args));
-                var dataToEncrypt = args.data;
-                var fieldsToManage = encrypted_models_1.prismaEncryptModels[model];
-                if (debugMode)
-                    sdk_1.logger.info("fieldsToManage:", convertToJson(fieldsToManage));
-                if (fieldsToManage)
-                    encryption_methods_1.EncryptionMethods.manageEncryption({
-                        fieldsToManage: fieldsToManage,
-                        dataToEncrypt: dataToEncrypt,
-                        manageMode: "encrypt",
-                    });
-                if (debugMode)
-                    sdk_1.logger.info("[".concat(model + ".create", "] args after:"), convertToJson(args));
-                return query(__assign({}, args));
-            },
-            update: function (_a) {
-                var args = _a.args, model = _a.model, query = _a.query;
-                if (debugMode)
-                    sdk_1.logger.info("[".concat(model + ".update", "] args before:"), convertToJson(args));
-                var dataToEncrypt = args.data;
-                var fieldsToManage = encrypted_models_1.prismaEncryptModels[model];
-                if (fieldsToManage) {
-                    encryption_methods_1.EncryptionMethods.resolveEncryptedArgs({
-                        whereArgs: args,
-                        fieldsToManage: fieldsToManage,
-                    });
-                    encryption_methods_1.EncryptionMethods.manageEncryption({
-                        fieldsToManage: fieldsToManage,
-                        dataToEncrypt: dataToEncrypt,
-                        manageMode: "encrypt",
-                    });
-                }
-                if (debugMode)
-                    sdk_1.logger.info("[".concat(model + ".update", "] args after:"), convertToJson(args));
-                return query(__assign({}, args));
-            },
-            createMany: function (_a) {
-                var args = _a.args, model = _a.model, query = _a.query;
-                if (debugMode)
-                    sdk_1.logger.info("[".concat(model + ".createMany", "] args before:"), convertToJson(args));
-                var dataToEncrypt = args.data;
-                var fieldsToManage = encrypted_models_1.prismaEncryptModels[model];
-                if (fieldsToManage) {
-                    if (Array.isArray(dataToEncrypt))
-                        dataToEncrypt.forEach(function (entry) {
-                            encryption_methods_1.EncryptionMethods.manageEncryption({
-                                fieldsToManage: fieldsToManage,
-                                dataToEncrypt: entry,
-                                manageMode: "encrypt",
-                            });
-                        });
-                    else
-                        encryption_methods_1.EncryptionMethods.manageEncryption({
-                            fieldsToManage: fieldsToManage,
-                            dataToEncrypt: dataToEncrypt,
-                            manageMode: "encrypt",
-                        });
-                }
-                if (debugMode)
-                    sdk_1.logger.info("[".concat(model + ".createMany", "] args after:"), convertToJson(args));
-                return query(__assign({}, args));
-            },
-            updateMany: function (_a) {
-                var args = _a.args, model = _a.model, query = _a.query;
-                if (debugMode)
-                    sdk_1.logger.info("[".concat(model + ".updateMany", "] args before:"), convertToJson(args));
-                var dataToEncrypt = args.data, whereArgs = args.where;
-                var fieldsToManage = encrypted_models_1.prismaEncryptModels[model];
-                if (fieldsToManage) {
-                    encryption_methods_1.EncryptionMethods.resolveEncryptedArgs({
-                        whereArgs: whereArgs,
-                        fieldsToManage: fieldsToManage,
-                    });
-                    if (Array.isArray(dataToEncrypt))
-                        dataToEncrypt.forEach(function (entry) {
-                            encryption_methods_1.EncryptionMethods.manageEncryption({
-                                fieldsToManage: fieldsToManage,
-                                dataToEncrypt: entry,
-                                manageMode: "encrypt",
-                            });
-                        });
-                    else
-                        encryption_methods_1.EncryptionMethods.manageEncryption({
-                            fieldsToManage: fieldsToManage,
-                            dataToEncrypt: dataToEncrypt,
-                            manageMode: "encrypt",
-                        });
-                }
-                if (debugMode)
-                    sdk_1.logger.info("[".concat(model + ".updateMany", "] args after:"), convertToJson(args));
-                return query(__assign({}, args));
-            },
-            upsert: function (_a) {
-                var args = _a.args, model = _a.model, query = _a.query;
-                if (debugMode)
-                    sdk_1.logger.info("[".concat(model + ".upsert", "] args before:"), convertToJson(args));
-                var create = args.create, update = args.update, whereArgs = args.where;
-                var fieldsToManage = encrypted_models_1.prismaEncryptModels[model];
-                if (fieldsToManage) {
-                    encryption_methods_1.EncryptionMethods.resolveEncryptedArgs({
-                        whereArgs: whereArgs,
-                        fieldsToManage: fieldsToManage,
-                    });
-                    if (create)
-                        encryption_methods_1.EncryptionMethods.manageEncryption({
-                            fieldsToManage: fieldsToManage,
-                            dataToEncrypt: create,
-                            manageMode: "encrypt",
-                        });
-                    if (update)
-                        encryption_methods_1.EncryptionMethods.manageEncryption({
-                            fieldsToManage: fieldsToManage,
-                            dataToEncrypt: update,
-                            manageMode: "encrypt",
-                        });
-                }
-                if (debugMode)
-                    sdk_1.logger.info("[".concat(model + ".upsert", "] args after:"), convertToJson(args));
-                return query(__assign({}, args));
-            },
-        },
-    },
-});
-var readReplicaPrisma = new client_1.PrismaClient({
-    datasources: {
-        db: {
-            url: getMyVar("PRISMA_CRYPTO_READ_DB"),
-        },
-    },
-}).$extends({
-    name: "readReplica",
-    query: {
-        $allModels: {
-            $allOperations: function (_a) {
-                var args = _a.args, model = _a.model, query = _a.query, operation = _a.operation;
-                return __awaiter(this, void 0, void 0, function () {
-                    var whereArgs, fieldsToManage, result;
-                    return __generator(this, function (_b) {
-                        switch (_b.label) {
-                            case 0:
-                                whereArgs = args.where;
-                                if (debugMode)
-                                    sdk_1.logger.info("[".concat(model + "." + operation, "] whereArgs before:"), whereArgs);
-                                fieldsToManage = encrypted_models_1.prismaEncryptModels[model];
-                                if (fieldsToManage)
-                                    encryption_methods_1.EncryptionMethods.resolveEncryptedArgs({
-                                        whereArgs: whereArgs,
-                                        fieldsToManage: fieldsToManage,
-                                    });
-                                if (debugMode)
-                                    sdk_1.logger.info("[".concat(model + "." + operation, "] whereArgs after:"), whereArgs);
-                                return [4 /*yield*/, query(args)];
-                            case 1:
-                                result = _b.sent();
-                                if (debugMode)
-                                    sdk_1.logger.info("[".concat(model + "." + operation, "] result before:"), result);
-                                // descriptografar os campos criptografados no resultado da pesquisa
-                                if (fieldsToManage && result) {
-                                    if (Array.isArray(result))
-                                        // caso seja utilizado o findMany
-                                        result.forEach(function (entry) {
-                                            encryption_methods_1.EncryptionMethods.manageEncryption({
-                                                fieldsToManage: fieldsToManage,
-                                                dataToEncrypt: entry,
-                                                manageMode: "decrypt",
-                                            });
-                                        });
-                                    else
-                                        encryption_methods_1.EncryptionMethods.manageEncryption({
-                                            fieldsToManage: fieldsToManage,
-                                            dataToEncrypt: result,
-                                            manageMode: "decrypt",
-                                        });
-                                }
-                                if (debugMode)
-                                    sdk_1.logger.info("[".concat(model + "." + operation, "] result after:"), result);
-                                return [2 /*return*/, result];
+            log: [
+                {
+                    emit: "event",
+                    level: "query",
+                },
+            ],
+        };
+        if (!PrismaCrypto.debugMode)
+            delete prismaOptions.log;
+        var prisma = new client_1.PrismaClient(prismaOptions).$extends({
+            query: {
+                $allModels: {
+                    // eslint-disable-next-line consistent-return
+                    $allOperations: function (_a) {
+                        var args = _a.args, model = _a.model, query = _a.query, operation = _a.operation;
+                        switch (operation) {
+                            case "create":
+                            case "createMany":
+                            case "update":
+                            case "updateMany":
+                            case "upsert":
+                            case "delete":
+                            case "deleteMany":
+                                if (PrismaCrypto.debugMode)
+                                    sdk_1.logger.info("[PrismaCLient] write instance");
+                                return writeReplicaPrisma[model][operation](args, model, query, operation);
+                            case "findFirst":
+                            case "findFirstOrThrow":
+                            case "findMany":
+                            case "findUnique":
+                            case "findUniqueOrThrow":
+                                if (PrismaCrypto.debugMode)
+                                    sdk_1.logger.info("[PrismaCLient] read instance");
+                                return readReplicaPrisma[model][operation](args, model, query, operation);
+                            default:
+                                if (PrismaCrypto.debugMode)
+                                    sdk_1.logger.info("[PrismaCLient] default instance");
+                                return query(args);
                         }
-                    });
-                });
+                    },
+                },
             },
-        },
-    },
-});
+        });
+        var writeReplicaOptions = {
+            datasources: {
+                db: {
+                    url: PrismaCrypto.getMyVar("PRISMA_CRYPTO_WRITE_DB"),
+                },
+            },
+        };
+        var writeReplicaPrisma = new client_1.PrismaClient(writeReplicaOptions).$extends({
+            name: "writeReplica",
+            query: {
+                $allModels: {
+                    // Métodos de escrita personalizados
+                    create: function (_a) {
+                        var args = _a.args, model = _a.model, query = _a.query;
+                        if (PrismaCrypto.debugMode)
+                            sdk_1.logger.info("[".concat(model + ".create", "] args before:"), PrismaCrypto.convertToJson(args));
+                        var dataToEncrypt = args.data;
+                        var fieldsToManage = encrypted_models_1.prismaEncryptModels[model];
+                        if (PrismaCrypto.debugMode)
+                            sdk_1.logger.info("fieldsToManage:", PrismaCrypto.convertToJson(fieldsToManage));
+                        if (fieldsToManage)
+                            encryption_methods_1.EncryptionMethods.manageEncryption({
+                                fieldsToManage: fieldsToManage,
+                                dataToEncrypt: dataToEncrypt,
+                                manageMode: "encrypt",
+                            });
+                        if (PrismaCrypto.debugMode)
+                            sdk_1.logger.info("[".concat(model + ".create", "] args after:"), PrismaCrypto.convertToJson(args));
+                        return query(__assign({}, args));
+                    },
+                    update: function (_a) {
+                        var args = _a.args, model = _a.model, query = _a.query;
+                        if (PrismaCrypto.debugMode)
+                            sdk_1.logger.info("[".concat(model + ".update", "] args before:"), PrismaCrypto.convertToJson(args));
+                        var dataToEncrypt = args.data;
+                        var fieldsToManage = encrypted_models_1.prismaEncryptModels[model];
+                        if (fieldsToManage) {
+                            encryption_methods_1.EncryptionMethods.resolveEncryptedArgs({
+                                whereArgs: args,
+                                fieldsToManage: fieldsToManage,
+                            });
+                            encryption_methods_1.EncryptionMethods.manageEncryption({
+                                fieldsToManage: fieldsToManage,
+                                dataToEncrypt: dataToEncrypt,
+                                manageMode: "encrypt",
+                            });
+                        }
+                        if (PrismaCrypto.debugMode)
+                            sdk_1.logger.info("[".concat(model + ".update", "] args after:"), PrismaCrypto.convertToJson(args));
+                        return query(__assign({}, args));
+                    },
+                    createMany: function (_a) {
+                        var args = _a.args, model = _a.model, query = _a.query;
+                        if (PrismaCrypto.debugMode)
+                            sdk_1.logger.info("[".concat(model + ".createMany", "] args before:"), PrismaCrypto.convertToJson(args));
+                        var dataToEncrypt = args.data;
+                        var fieldsToManage = encrypted_models_1.prismaEncryptModels[model];
+                        if (fieldsToManage) {
+                            if (Array.isArray(dataToEncrypt))
+                                dataToEncrypt.forEach(function (entry) {
+                                    encryption_methods_1.EncryptionMethods.manageEncryption({
+                                        fieldsToManage: fieldsToManage,
+                                        dataToEncrypt: entry,
+                                        manageMode: "encrypt",
+                                    });
+                                });
+                            else
+                                encryption_methods_1.EncryptionMethods.manageEncryption({
+                                    fieldsToManage: fieldsToManage,
+                                    dataToEncrypt: dataToEncrypt,
+                                    manageMode: "encrypt",
+                                });
+                        }
+                        if (PrismaCrypto.debugMode)
+                            sdk_1.logger.info("[".concat(model + ".createMany", "] args after:"), PrismaCrypto.convertToJson(args));
+                        return query(__assign({}, args));
+                    },
+                    updateMany: function (_a) {
+                        var args = _a.args, model = _a.model, query = _a.query;
+                        if (PrismaCrypto.debugMode)
+                            sdk_1.logger.info("[".concat(model + ".updateMany", "] args before:"), PrismaCrypto.convertToJson(args));
+                        var dataToEncrypt = args.data, whereArgs = args.where;
+                        var fieldsToManage = encrypted_models_1.prismaEncryptModels[model];
+                        if (fieldsToManage) {
+                            encryption_methods_1.EncryptionMethods.resolveEncryptedArgs({
+                                whereArgs: whereArgs,
+                                fieldsToManage: fieldsToManage,
+                            });
+                            if (Array.isArray(dataToEncrypt))
+                                dataToEncrypt.forEach(function (entry) {
+                                    encryption_methods_1.EncryptionMethods.manageEncryption({
+                                        fieldsToManage: fieldsToManage,
+                                        dataToEncrypt: entry,
+                                        manageMode: "encrypt",
+                                    });
+                                });
+                            else
+                                encryption_methods_1.EncryptionMethods.manageEncryption({
+                                    fieldsToManage: fieldsToManage,
+                                    dataToEncrypt: dataToEncrypt,
+                                    manageMode: "encrypt",
+                                });
+                        }
+                        if (PrismaCrypto.debugMode)
+                            sdk_1.logger.info("[".concat(model + ".updateMany", "] args after:"), PrismaCrypto.convertToJson(args));
+                        return query(__assign({}, args));
+                    },
+                    upsert: function (_a) {
+                        var args = _a.args, model = _a.model, query = _a.query;
+                        if (PrismaCrypto.debugMode)
+                            sdk_1.logger.info("[".concat(model + ".upsert", "] args before:"), PrismaCrypto.convertToJson(args));
+                        var create = args.create, update = args.update, whereArgs = args.where;
+                        var fieldsToManage = encrypted_models_1.prismaEncryptModels[model];
+                        if (fieldsToManage) {
+                            encryption_methods_1.EncryptionMethods.resolveEncryptedArgs({
+                                whereArgs: whereArgs,
+                                fieldsToManage: fieldsToManage,
+                            });
+                            if (create)
+                                encryption_methods_1.EncryptionMethods.manageEncryption({
+                                    fieldsToManage: fieldsToManage,
+                                    dataToEncrypt: create,
+                                    manageMode: "encrypt",
+                                });
+                            if (update)
+                                encryption_methods_1.EncryptionMethods.manageEncryption({
+                                    fieldsToManage: fieldsToManage,
+                                    dataToEncrypt: update,
+                                    manageMode: "encrypt",
+                                });
+                        }
+                        if (PrismaCrypto.debugMode)
+                            sdk_1.logger.info("[".concat(model + ".upsert", "] args after:"), PrismaCrypto.convertToJson(args));
+                        return query(__assign({}, args));
+                    },
+                },
+            },
+        });
+        var readReplicaOptions = {
+            datasources: {
+                db: {
+                    url: PrismaCrypto.getMyVar("PRISMA_CRYPTO_READ_DB"),
+                },
+            },
+        };
+        var readReplicaPrisma = new client_1.PrismaClient(readReplicaOptions).$extends({
+            name: "readReplica",
+            query: {
+                $allModels: {
+                    $allOperations: function (_a) {
+                        var args = _a.args, model = _a.model, query = _a.query, operation = _a.operation;
+                        return __awaiter(this, void 0, void 0, function () {
+                            var whereArgs, fieldsToManage, result;
+                            return __generator(this, function (_b) {
+                                switch (_b.label) {
+                                    case 0:
+                                        whereArgs = args.where;
+                                        if (PrismaCrypto.debugMode)
+                                            sdk_1.logger.info("[".concat(model + "." + operation, "] whereArgs before:"), whereArgs);
+                                        fieldsToManage = encrypted_models_1.prismaEncryptModels[model];
+                                        if (fieldsToManage)
+                                            encryption_methods_1.EncryptionMethods.resolveEncryptedArgs({
+                                                whereArgs: whereArgs,
+                                                fieldsToManage: fieldsToManage,
+                                            });
+                                        if (PrismaCrypto.debugMode)
+                                            sdk_1.logger.info("[".concat(model + "." + operation, "] whereArgs after:"), whereArgs);
+                                        return [4 /*yield*/, query(args)];
+                                    case 1:
+                                        result = _b.sent();
+                                        if (PrismaCrypto.debugMode)
+                                            sdk_1.logger.info("[".concat(model + "." + operation, "] result before:"), result);
+                                        // descriptografar os campos criptografados no resultado da pesquisa
+                                        if (fieldsToManage && result) {
+                                            if (Array.isArray(result))
+                                                // caso seja utilizado o findMany
+                                                result.forEach(function (entry) {
+                                                    encryption_methods_1.EncryptionMethods.manageEncryption({
+                                                        fieldsToManage: fieldsToManage,
+                                                        dataToEncrypt: entry,
+                                                        manageMode: "decrypt",
+                                                    });
+                                                });
+                                            else
+                                                encryption_methods_1.EncryptionMethods.manageEncryption({
+                                                    fieldsToManage: fieldsToManage,
+                                                    dataToEncrypt: result,
+                                                    manageMode: "decrypt",
+                                                });
+                                        }
+                                        if (PrismaCrypto.debugMode)
+                                            sdk_1.logger.info("[".concat(model + "." + operation, "] result after:"), result);
+                                        return [2 /*return*/, result];
+                                }
+                            });
+                        });
+                    },
+                },
+            },
+        });
+        this.prisma = prisma;
+    };
+    PrismaCrypto.prototype.getPrismaClient = function () {
+        return this.prisma;
+    };
+    PrismaCrypto.debugMode = PrismaCrypto.getMyVar("PRISMA_CRYPTO_DEBUG") === "true";
+    return PrismaCrypto;
+}());

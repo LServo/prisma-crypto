@@ -15,9 +15,9 @@ import {
 import { logger } from "@prisma/sdk";
 
 import { EncryptionMethods } from "./encryption-methods";
-import { prisma } from "./prisma-client";
+import { PrismaCrypto as PrismaCryptoClient } from "./prisma-client";
 import { PrismaCrypto } from "./prisma-crypto";
-export { prisma } from "./prisma-client";
+export { PrismaCrypto } from "./prisma-client";
 
 function findEncryptFields(
     filePath: string,
@@ -134,6 +134,7 @@ generatorHandler({
         };
     },
     async onGenerate(options: GeneratorOptions) {
+        const prisma = new PrismaCryptoClient().getPrismaClient();
         validateEnvVars();
         const {
             modelsEncryptedFields: newEncryptedModels,
