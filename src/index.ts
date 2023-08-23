@@ -74,15 +74,14 @@ function findEncryptFields(
         }
     });
 
-    const encryptedModelsRegex = Object.keys(modelsEncryptedFields).map(
-        (model) => new RegExp(`\\b${model}\\b`),
-    );
-
     const numberOfModels = modelsInfo.length;
     console.log("numberOfModels:", numberOfModels);
 
     // criar um loop para rodar o número de vezes que temos de models
     for (let i = 0; i < numberOfModels; i++) {
+        const encryptedModelsRegex = Object.keys(modelsEncryptedFields).map(
+            (model) => new RegExp(`\\b${model}\\b`),
+        );
         currentModel = null;
         lines.forEach((line) => {
             const modelMatch = line.match(modelRegex);
@@ -110,7 +109,13 @@ function findEncryptFields(
 
                 const fieldAlreadyExists = modelsEncryptedFields[
                     currentModel
-                ].some((field) => field.fieldName === fieldName);
+                ].some((field) => {
+                    return (
+                        field.fieldName === fieldName ||
+                        field.fieldName === `${fieldName}>${typeName}`
+                    );
+                });
+
                 if (fieldAlreadyExists) return;
 
                 modelsEncryptedFields[currentModel].push({

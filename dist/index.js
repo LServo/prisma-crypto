@@ -96,47 +96,53 @@ function findEncryptFields(filePath, modelsInfo) {
             });
         }
     });
-    var encryptedModelsRegex = Object.keys(modelsEncryptedFields).map(function (model) { return new RegExp("\\b".concat(model, "\\b")); });
     var numberOfModels = modelsInfo.length;
     console.log("numberOfModels:", numberOfModels);
+    var _loop_1 = function (i) {
+        var encryptedModelsRegex = Object.keys(modelsEncryptedFields).map(function (model) { return new RegExp("\\b".concat(model, "\\b")); });
+        currentModel = null;
+        lines.forEach(function (line) {
+            var modelMatch = line.match(modelRegex);
+            if (modelMatch) {
+                currentModel = modelMatch[1];
+                currentModelDbName = getDbName({
+                    modelName: currentModel,
+                    modelsInfo: modelsInfo,
+                });
+            }
+            var commentMatch = null;
+            if (!modelMatch)
+                commentMatch = encryptedModelsRegex.some(function (regex) {
+                    return line.match(regex);
+                });
+            if (commentMatch && currentModel) {
+                var _a = line.split(/\s+/).filter(Boolean), fieldName_1 = _a[0], typeName_1 = _a[1];
+                typeName_1 = typeName_1.replace("[]", "").replace("?", "");
+                if (!modelsEncryptedFields[currentModel])
+                    modelsEncryptedFields[currentModel] = [];
+                if (!modelsEncryptedFieldsDbName[currentModelDbName])
+                    modelsEncryptedFieldsDbName[currentModelDbName] = [];
+                var fieldAlreadyExists = modelsEncryptedFields[currentModel].some(function (field) {
+                    return (field.fieldName === fieldName_1 ||
+                        field.fieldName === "".concat(fieldName_1, ">").concat(typeName_1));
+                });
+                if (fieldAlreadyExists)
+                    return;
+                modelsEncryptedFields[currentModel].push({
+                    fieldName: "".concat(fieldName_1, ">").concat(typeName_1),
+                    typeName: "Relation",
+                });
+                modelsEncryptedFieldsDbName[currentModelDbName].push({
+                    fieldName: "".concat(fieldName_1, ">").concat(typeName_1.toLowerCase()),
+                    typeName: "Relation",
+                });
+            }
+        });
+    };
     // criar um loop para rodar o número de vezes que temos de models
-    // for (let i = 0; i < numberOfModels; i++) {
-    currentModel = null;
-    lines.forEach(function (line) {
-        var modelMatch = line.match(modelRegex);
-        if (modelMatch) {
-            currentModel = modelMatch[1];
-            currentModelDbName = getDbName({
-                modelName: currentModel,
-                modelsInfo: modelsInfo,
-            });
-        }
-        var commentMatch = null;
-        if (!modelMatch)
-            commentMatch = encryptedModelsRegex.some(function (regex) {
-                return line.match(regex);
-            });
-        if (commentMatch && currentModel) {
-            var _a = line.split(/\s+/).filter(Boolean), fieldName_1 = _a[0], typeName = _a[1];
-            typeName = typeName.replace("[]", "").replace("?", "");
-            if (!modelsEncryptedFields[currentModel])
-                modelsEncryptedFields[currentModel] = [];
-            if (!modelsEncryptedFieldsDbName[currentModelDbName])
-                modelsEncryptedFieldsDbName[currentModelDbName] = [];
-            var fieldAlreadyExists = modelsEncryptedFields[currentModel].some(function (field) { return field.fieldName === fieldName_1; });
-            if (fieldAlreadyExists)
-                return;
-            modelsEncryptedFields[currentModel].push({
-                fieldName: "".concat(fieldName_1, ">").concat(typeName),
-                typeName: "Relation",
-            });
-            modelsEncryptedFieldsDbName[currentModelDbName].push({
-                fieldName: "".concat(fieldName_1, ">").concat(typeName.toLowerCase()),
-                typeName: "Relation",
-            });
-        }
-    });
-    // }
+    for (var i = 0; i < numberOfModels; i++) {
+        _loop_1(i);
+    }
     return { modelsEncryptedFields: modelsEncryptedFields, modelsEncryptedFieldsDbName: modelsEncryptedFieldsDbName };
 }
 function getMyVar(env_var) {
