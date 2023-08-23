@@ -73,7 +73,9 @@ model User {
 With `prisma-crypto` set up, run your Prisma operations as usual. The extension will handle encryption and decryption for you.
 
 ```typescript
-import { prisma } from "prisma-crypto";
+import { PrismaCrypto } from "prisma-crypto";
+
+const prisma = new PrismaCrypto().getPrismaClient();
 
 const newUser = {
   email: 'example@example.com',
@@ -87,7 +89,9 @@ await prisma.user.create({
 When retrieving the user, the encrypted fields will be automatically decrypted:
 
 ```typescript
-import { prisma } from "prisma-crypto";
+import { PrismaCrypto } from "prisma-crypto";
+
+const prisma = new PrismaCrypto().getPrismaClient();
 
 const userEmail = 'example@example.com';
 
