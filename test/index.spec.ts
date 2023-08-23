@@ -1,6 +1,5 @@
 import { it, describe, expect, chai, beforeAll } from "vitest";
 
-// import { prisma } from "../dist/prisma-client";
 import { PrismaClient } from "@prisma/client";
 
 import { PrismaCrypto } from "../dist/prisma-client";
@@ -16,7 +15,7 @@ describe("Prisma Crypto Tests", () => {
         prisma = new PrismaCrypto().getPrismaClient();
     });
 
-    it("should be able to encrypt new users", async () => {
+    it("should be able to encrypt new users with cellphones", async () => {
         try {
             const output = await prisma.user.create({
                 data: {
@@ -24,13 +23,32 @@ describe("Prisma Crypto Tests", () => {
                     name: "test",
                     password: "test",
                     CellPhone: {
-                        connectOrCreate: {
-                            where: {
-                                number: "123456789",
-                            },
-                            create: {
-                                number: "123456789",
-                            },
+                        // connectOrCreate: {
+                        //     where: {
+                        //         number: "75988893409",
+                        //     },
+                        //     create: {
+                        //         number: "75988893409",
+                        //     },
+                        // },
+                        // connect: {
+                        //     number: "75988893409",
+                        // },
+                        // create: {
+                        //     number: "75988893409",
+                        // },
+                        createMany: {
+                            data: [
+                                {
+                                    number: "75988893409",
+                                },
+                                {
+                                    number: "275988893409",
+                                },
+                                {
+                                    number: "375988893409",
+                                },
+                            ],
                         },
                     },
                 },
@@ -43,7 +61,22 @@ describe("Prisma Crypto Tests", () => {
         }
     });
 
-    it("should be able to decrypt existent users", async () => {});
-
-    it("should be able to decrypt users cellphones", async () => {});
+    it("should be able to decrypt users with cellphones", async () => {
+        try {
+            const output = await prisma.user.findFirst({
+                where: {
+                    email: "test@test.com",
+                },
+                select: {
+                    name: true,
+                    CellPhone: true,
+                },
+            });
+            console.log("output:", output);
+            expect(output).toBeDefined();
+            expect(output).toBeTruthy();
+        } catch (error) {
+            chai.assert.fail(convertToJson(error));
+        }
+    });
 });

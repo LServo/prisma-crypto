@@ -41,10 +41,12 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.EncryptionMethods = void 0;
+/* eslint-disable no-case-declarations */
 require("dotenv/config");
 var node_crypto_1 = require("node:crypto");
 var client_1 = require("@prisma/client");
 var sdk_1 = require("@prisma/sdk");
+var encrypted_models_1 = require("./encrypted-models");
 var convertToJson = function (variable) {
     return JSON.stringify(variable, null, 2);
 };
@@ -116,131 +118,157 @@ var EncryptionMethods = /** @class */ (function () {
     EncryptionMethods.manageEncryption = function (_a) {
         var dataToEncrypt = _a.dataToEncrypt, fieldsToManage = _a.fieldsToManage, manageMode = _a.manageMode;
         fieldsToManage.forEach(function (field) {
-            var _a, _b;
-            var fieldName = field.fieldName;
+            var isRelation = field.typeName === "Relation";
+            var fieldName = !isRelation
+                ? field.fieldName
+                : field.fieldName.split(">")[0];
             var fieldValue = dataToEncrypt[fieldName];
             if (!fieldValue)
                 return;
             if (debugMode)
                 sdk_1.logger.info("[manageEncryption] dataToEncrypt[".concat(fieldName, "] before:"), dataToEncrypt[fieldName]);
+            // função que vai aplicar a criptografia ou decriptografia numa string, levando em consideração o modo de gerenciamento
+            var manageEncryptionMode = function (input) {
+                var _a, _b;
+                var isString = typeof input === "string";
+                if (!isString) {
+                    sdk_1.logger.error("[managingDatabaseEncryption] Error when encrypting the value \"".concat(input, "\" of the column \"").concat(fieldName, "\": The value is not a string."));
+                    process.exit(1);
+                }
+                switch (manageMode) {
+                    case "encrypt":
+                        try {
+                            input = (_a = EncryptionMethods.encryptData({
+                                stringToEncrypt: input,
+                            })) === null || _a === void 0 ? void 0 : _a.encryptedString;
+                        }
+                        catch (error) {
+                            sdk_1.logger.error("[managingDatabaseEncryption] Error when encrypting the value \"".concat(input, "\" of the column \"").concat(fieldName, "\": ").concat(error));
+                            process.exit(1);
+                        }
+                        break;
+                    case "decrypt":
+                        try {
+                            input = (_b = EncryptionMethods.decryptData({
+                                stringToDecrypt: input,
+                            })) === null || _b === void 0 ? void 0 : _b.decryptedString;
+                        }
+                        catch (error) {
+                            sdk_1.logger.error("[managingDatabaseEncryption] Error when decrypting the value \"".concat(input, "\" of the column \"").concat(fieldName, "\": ").concat(error));
+                            process.exit(1);
+                        }
+                        break;
+                    default:
+                }
+                return input;
+            };
+            // função que vai reconhecer o tipo de dado, que pode ser uma string ou um objeto. Se for uma string, então simplesmente aplicamos a função manageEncryptionMode passando a string como argumento. Se for um objeto, então precisamos verificar se é fruto de um Relacionamento ou não. Caso seja um relacionamento, então iteramos sobre as propriedades do objeto verificando na referência do model relacionado, quais precisamos aplicar a criptografia. Caso não seja um Relacionamento, significa que estamos lidando com parâmetros do prisma, portanto iremos iterar sobre as propriedades do objeto, verificando os parâmetros que podem ser utilizados e aplicando a criptografia no valor se tudo estiver correto.
+            var executeEncryption = function (input) {
+                var isString = typeof input === "string";
+                switch (isString) {
+                    case false: // se não for uma string, nem uma array, é um objeto
+                        switch (isRelation) {
+                            case true:
+                                var _a = field.fieldName.split(">"), modelName = _a[1];
+                                var fieldsToManage_1 = encrypted_models_1.prismaEncryptModels[modelName];
+                                var applyCryptoToRelation_1 = function (inputObject) {
+                                    var fieldsNameToManage = fieldsToManage_1.map(function (field) { return field.fieldName; });
+                                    Object.keys(inputObject).forEach(function (key) {
+                                        if (!inputObject[key])
+                                            return;
+                                        var mustManageField = fieldsNameToManage.includes(key);
+                                        if (mustManageField)
+                                            inputObject[key] =
+                                                manageEncryptionMode(inputObject[key]);
+                                    });
+                                };
+                                var createRelationMethods = [
+                                    "connect",
+                                    "create",
+                                    "createMany",
+                                    "connectOrCreate",
+                                ];
+                                var objectProperties_1 = Object.keys(input);
+                                var isCreateRelationMethod = createRelationMethods.some(function (method) {
+                                    return objectProperties_1.includes(method);
+                                });
+                                if (isCreateRelationMethod) {
+                                    objectProperties_1.forEach(function (method) {
+                                        switch (method) {
+                                            case "connect":
+                                                EncryptionMethods.resolveEncryptedArgs({
+                                                    whereArgs: input[method],
+                                                    fieldsToManage: fieldsToManage_1,
+                                                });
+                                                break;
+                                            case "create":
+                                                applyCryptoToRelation_1(input[method]);
+                                                break;
+                                            case "connectOrCreate":
+                                                applyCryptoToRelation_1(input[method]["create"]);
+                                                EncryptionMethods.resolveEncryptedArgs({
+                                                    whereArgs: input[method]["where"],
+                                                    fieldsToManage: fieldsToManage_1,
+                                                });
+                                                break;
+                                            case "createMany":
+                                                input[method]["data"].forEach(function (item) {
+                                                    applyCryptoToRelation_1(item);
+                                                });
+                                                break;
+                                            default:
+                                                break;
+                                        }
+                                    });
+                                }
+                                else {
+                                    // se não tem os métodos, quer dizer que estamos tentando ler um resultado de busca por relacionamento
+                                    applyCryptoToRelation_1(input);
+                                }
+                                break;
+                            case false:
+                                Object.keys(input).forEach(function (key) {
+                                    var allowedKeys = ["equals", "not"];
+                                    var forbiddenKeys = [
+                                        "contains",
+                                        "startsWith",
+                                        "endsWith",
+                                        "in",
+                                        "notIn",
+                                        "lt",
+                                        "lte",
+                                        "gt",
+                                        "gte",
+                                    ];
+                                    if (forbiddenKeys.includes(key))
+                                        throw new Error("The key \"".concat(key, "\" is not allowed for the field \"").concat(fieldName, "\". Encrypted fields cannot be used with the following keys: ").concat(forbiddenKeys.join(", ")));
+                                    if (!allowedKeys.includes(key))
+                                        return; // Caso não tenha nenhum valor proibido, mas também não tenha nenhum permitido, como é o caso do "mode", então, retornamos sem fazer nada
+                                    if (!input[key])
+                                        return;
+                                    input[key] = manageEncryptionMode(input[key]);
+                                });
+                                break;
+                            default:
+                        }
+                        break;
+                    case true:
+                        input = manageEncryptionMode(input);
+                        break;
+                    default:
+                }
+                return input;
+            };
             var isArray = Array.isArray(fieldValue);
-            var isString = typeof fieldValue === "string";
             switch (isArray) {
                 case false:
-                    switch (isString) {
-                        case false:
-                            Object.keys(fieldValue).forEach(function (key) {
-                                var _a, _b;
-                                var allowedKeys = ["equals", "not"];
-                                var forbiddenKeys = [
-                                    "contains",
-                                    "startsWith",
-                                    "endsWith",
-                                    "in",
-                                    "notIn",
-                                    "lt",
-                                    "lte",
-                                    "gt",
-                                    "gte",
-                                ];
-                                if (forbiddenKeys.includes(key))
-                                    throw new Error("The key \"".concat(key, "\" is not allowed for the field \"").concat(fieldName, "\". Encrypted fields cannot be used with the following keys: ").concat(forbiddenKeys.join(", ")));
-                                if (!allowedKeys.includes(key))
-                                    return; // Caso não tenha nenhum valor proibido, mas também não tenha nenhum permitido, como é o caso do "mode", então, retornamos sem fazer nada
-                                if (!dataToEncrypt[fieldName][key])
-                                    return;
-                                switch (manageMode) {
-                                    case "encrypt":
-                                        try {
-                                            dataToEncrypt[fieldName][key] =
-                                                (_a = EncryptionMethods.encryptData({
-                                                    stringToEncrypt: dataToEncrypt[fieldName][key],
-                                                })) === null || _a === void 0 ? void 0 : _a.encryptedString;
-                                        }
-                                        catch (error) {
-                                            sdk_1.logger.error("[managingDatabaseEncryption] Error when encrypting the value \"".concat(dataToEncrypt[fieldName][key], "\" of the column \"").concat(fieldName, "\": ").concat(error));
-                                            process.exit(1);
-                                        }
-                                        break;
-                                    case "decrypt":
-                                        try {
-                                            dataToEncrypt[fieldName][key] =
-                                                (_b = EncryptionMethods.decryptData({
-                                                    stringToDecrypt: dataToEncrypt[fieldName][key],
-                                                })) === null || _b === void 0 ? void 0 : _b.decryptedString;
-                                        }
-                                        catch (error) {
-                                            sdk_1.logger.error("[managingDatabaseEncryption] Error when decrypting the value \"".concat(dataToEncrypt[fieldName][key], "\" of the column \"").concat(fieldName, "\": ").concat(error));
-                                            process.exit(1);
-                                        }
-                                        break;
-                                    default:
-                                }
-                            });
-                            break;
-                        case true:
-                            switch (manageMode) {
-                                case "encrypt":
-                                    try {
-                                        dataToEncrypt[fieldName] =
-                                            (_a = EncryptionMethods.encryptData({
-                                                stringToEncrypt: dataToEncrypt[fieldName],
-                                            })) === null || _a === void 0 ? void 0 : _a.encryptedString;
-                                    }
-                                    catch (error) {
-                                        sdk_1.logger.error("[managingDatabaseEncryption] Error when encrypting the value \"".concat(dataToEncrypt[fieldName], "\" of the column \"").concat(fieldName, "\": ").concat(error));
-                                        process.exit(1);
-                                    }
-                                    break;
-                                case "decrypt":
-                                    try {
-                                        dataToEncrypt[fieldName] =
-                                            (_b = EncryptionMethods.decryptData({
-                                                stringToDecrypt: dataToEncrypt[fieldName],
-                                            })) === null || _b === void 0 ? void 0 : _b.decryptedString;
-                                    }
-                                    catch (error) {
-                                        sdk_1.logger.error("[managingDatabaseEncryption] Error when decrypting the value \"".concat(dataToEncrypt[fieldName], "\" of the column \"").concat(fieldName, "\": ").concat(error));
-                                        process.exit(1);
-                                    }
-                                    break;
-                                default:
-                            }
-                            break;
-                        default:
-                    }
+                    dataToEncrypt[fieldName] = executeEncryption(dataToEncrypt[fieldName]);
                     break;
                 case true:
                     // eslint-disable-next-line no-param-reassign
                     dataToEncrypt[fieldName] = dataToEncrypt[fieldName].map(function (item) {
-                        var _a, _b;
-                        var result;
-                        switch (manageMode) {
-                            case "encrypt":
-                                try {
-                                    result = (_a = EncryptionMethods.encryptData({
-                                        stringToEncrypt: item,
-                                    })) === null || _a === void 0 ? void 0 : _a.encryptedString;
-                                }
-                                catch (error) {
-                                    sdk_1.logger.error("[managingDatabaseEncryption] Error when encrypting the value \"".concat(item, "\" of the column \"").concat(fieldName, "\": ").concat(error));
-                                    process.exit(1);
-                                }
-                                break;
-                            case "decrypt":
-                                try {
-                                    result = (_b = EncryptionMethods.decryptData({
-                                        stringToDecrypt: item,
-                                    })) === null || _b === void 0 ? void 0 : _b.decryptedString;
-                                }
-                                catch (error) {
-                                    sdk_1.logger.error("[managingDatabaseEncryption] Error when decrypting the value \"".concat(item, "\" of the column \"").concat(fieldName, "\": ").concat(error));
-                                    process.exit(1);
-                                }
-                                break;
-                            default:
-                        }
-                        return result;
+                        item = executeEncryption(item);
+                        return item;
                     });
                     break;
                 default:
@@ -311,12 +339,12 @@ var EncryptionMethods = /** @class */ (function () {
         return EncryptionMethods.decryptData({ stringToDecrypt: stringToDecrypt });
     };
     EncryptionMethods.managingDatabaseEncryption = function (fields, fieldsDbName, action) {
-        var _a, _b, _c;
+        var _a, _b, _c, _d;
         return __awaiter(this, void 0, void 0, function () {
-            var actualField, actualFieldDbName, _d, schemaTableName, columnName, dbTableName, result, columnExists, columnType, columnDataType, isArrayColumn, isTextColumn, getModelPrimaryKey, primaryKeyColumnName, allEntries, createPrismaTransactions;
-            var _e, _f;
-            return __generator(this, function (_g) {
-                switch (_g.label) {
+            var actualField, actualFieldDbName, _e, schemaTableName, columnName, dbTableName, isRelation, createPrismaTransactions, result, columnExists, columnType, columnDataType, isArrayColumn_1, isTextColumn, getModelPrimaryKey, primaryKeyColumnName_1, allEntries;
+            var _f, _g;
+            return __generator(this, function (_h) {
+                switch (_h.label) {
                     case 0:
                         if (debugMode)
                             sdk_1.logger.info("[managingDatabaseEncryption] index:", fields.length);
@@ -326,8 +354,10 @@ var EncryptionMethods = /** @class */ (function () {
                         actualFieldDbName = fieldsDbName.shift();
                         if (!actualField)
                             return [2 /*return*/];
-                        _d = actualField.split("."), schemaTableName = _d[0], columnName = _d[1];
+                        _e = actualField.split("."), schemaTableName = _e[0], columnName = _e[1];
                         dbTableName = actualFieldDbName.split(".")[0];
+                        isRelation = columnName.includes(">");
+                        if (!!isRelation) return [3 /*break*/, 5];
                         if (debugMode) {
                             sdk_1.logger.info("[managingDatabaseEncryption] schemaTableName:", actualField);
                             sdk_1.logger.info("[managingDatabaseEncryption] dbTableName:", dbTableName);
@@ -339,7 +369,7 @@ var EncryptionMethods = /** @class */ (function () {
                                 throw new Error("Error when executing the query to check if the column ".concat(dbTableName, ".").concat(columnName, " exists: ").concat(error));
                             })];
                     case 1:
-                        result = _g.sent();
+                        result = _h.sent();
                         columnExists = (_a = result[0]) === null || _a === void 0 ? void 0 : _a.exists;
                         if (debugMode)
                             sdk_1.logger.info("[managingDatabaseEncryption] columnExists:", columnExists);
@@ -352,13 +382,13 @@ var EncryptionMethods = /** @class */ (function () {
                                 throw new Error("Error when executing the query to get the column type of ".concat(dbTableName, ".").concat(columnName, ": ").concat(error));
                             })];
                     case 2:
-                        columnType = _g.sent();
+                        columnType = _h.sent();
                         columnDataType = (_b = columnType[0]) === null || _b === void 0 ? void 0 : _b.data_type;
-                        isArrayColumn = columnDataType === "ARRAY";
+                        isArrayColumn_1 = columnDataType === "ARRAY";
                         isTextColumn = columnDataType === "text";
                         if (debugMode)
                             sdk_1.logger.info("[managingDatabaseEncryption] columnDataType:", columnDataType);
-                        if (!isTextColumn && !isArrayColumn) {
+                        if (!isTextColumn && !isArrayColumn_1) {
                             throw new Error("The column ".concat(dbTableName, ".").concat(columnName, " is not of type \"text\"."));
                         }
                         return [4 /*yield*/, prismaDirect
@@ -367,25 +397,29 @@ var EncryptionMethods = /** @class */ (function () {
                                 throw new Error("Error when executing the query to get the primary key of ".concat(dbTableName, ": ").concat(error));
                             })];
                     case 3:
-                        getModelPrimaryKey = _g.sent();
-                        primaryKeyColumnName = (_c = getModelPrimaryKey[0]) === null || _c === void 0 ? void 0 : _c.column_name;
+                        getModelPrimaryKey = _h.sent();
+                        primaryKeyColumnName_1 = (_c = getModelPrimaryKey[0]) === null || _c === void 0 ? void 0 : _c.column_name;
                         return [4 /*yield*/, prismaDirect[schemaTableName]
                                 .findMany({
-                                select: (_e = {}, _e[primaryKeyColumnName] = true, _e[columnName] = true, _e),
+                                select: (_f = {},
+                                    _f[primaryKeyColumnName_1] = true,
+                                    _f[columnName] = true,
+                                    _f),
                             })
                                 .catch(function (error) {
                                 throw new Error("Error when executing the query to get all entries of ".concat(schemaTableName, ": ").concat(error));
                             })];
                     case 4:
-                        allEntries = _g.sent();
+                        allEntries = _h.sent();
                         if (debugMode)
                             sdk_1.logger.info("[managingDatabaseEncryption] allEntries:", allEntries);
+                        // modificar todos os registros da coluna criptografando um a um utilizando o método `EncryptionMethods.encryptData`
                         createPrismaTransactions = allEntries
                             .map(function (entry) {
                             var _a, _b;
-                            var _c = entry, _d = primaryKeyColumnName, id = _c[_d], _e = columnName, value = _c[_e];
+                            var _c = entry, _d = primaryKeyColumnName_1, id = _c[_d], _e = columnName, value = _c[_e];
                             if (debugMode) {
-                                sdk_1.logger.info("[managingDatabaseEncryption] primaryKeyColumnName:", primaryKeyColumnName);
+                                sdk_1.logger.info("[managingDatabaseEncryption] primaryKeyColumnName:", primaryKeyColumnName_1);
                                 sdk_1.logger.info("[managingDatabaseEncryption] columnName:", columnName);
                                 sdk_1.logger.info("[managingDatabaseEncryption] value:", value);
                             }
@@ -425,7 +459,7 @@ var EncryptionMethods = /** @class */ (function () {
                                 }
                                 return output;
                             };
-                            if (isArrayColumn) {
+                            if (isArrayColumn_1) {
                                 var isArrayOfStrings = function (array) {
                                     return array.every(function (item) { return typeof item === "string"; });
                                 };
@@ -442,28 +476,30 @@ var EncryptionMethods = /** @class */ (function () {
                             }
                             if (debugMode) {
                                 sdk_1.logger.info("[managingDatabaseEncryption] newValue:", newValue);
-                                sdk_1.logger.info("[managingDatabaseEncryption] return prisma[".concat(schemaTableName, "].update({\n                        where: { [").concat(primaryKeyColumnName, "]: ").concat(id, " },\n                        data: { [").concat(columnName, "]: ").concat(newValue, " },\n                    });"));
+                                sdk_1.logger.info("[managingDatabaseEncryption] return prisma[".concat(schemaTableName, "].update({\n                        where: { [").concat(primaryKeyColumnName_1, "]: ").concat(id, " },\n                        data: { [").concat(columnName, "]: ").concat(newValue, " },\n                    });"));
                             }
                             return prismaDirect[schemaTableName].update({
-                                where: (_a = {}, _a[primaryKeyColumnName] = id, _a),
+                                where: (_a = {}, _a[primaryKeyColumnName_1] = id, _a),
                                 data: (_b = {}, _b[columnName] = newValue, _b),
                             });
                         })
                             .filter(Boolean);
-                        (_f = this.AllPrismaTransactions).push.apply(_f, createPrismaTransactions);
-                        if (!(fields.length > 0)) return [3 /*break*/, 6];
-                        return [4 /*yield*/, this.managingDatabaseEncryption(fields, fieldsDbName, "add")];
+                        (_g = this.AllPrismaTransactions).push.apply(_g, createPrismaTransactions);
+                        _h.label = 5;
                     case 5:
-                        _g.sent();
-                        _g.label = 6;
+                        if (!((fields === null || fields === void 0 ? void 0 : fields.length) > 0)) return [3 /*break*/, 7];
+                        return [4 /*yield*/, this.managingDatabaseEncryption(fields, fieldsDbName, action)];
                     case 6:
-                        if (!this.AllPrismaTransactions) return [3 /*break*/, 8];
-                        return [4 /*yield*/, prismaDirect.$transaction(createPrismaTransactions)];
+                        _h.sent();
+                        _h.label = 7;
                     case 7:
-                        _g.sent();
+                        if (!((_d = this.AllPrismaTransactions) === null || _d === void 0 ? void 0 : _d.length)) return [3 /*break*/, 9];
+                        return [4 /*yield*/, prismaDirect.$transaction(createPrismaTransactions)];
+                    case 8:
+                        _h.sent();
                         this.AllPrismaTransactions = [];
-                        _g.label = 8;
-                    case 8: return [2 /*return*/];
+                        _h.label = 9;
+                    case 9: return [2 /*return*/];
                 }
             });
         });

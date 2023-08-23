@@ -44,7 +44,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.PrismaCrypto = void 0;
+exports.EncryptionMethods = exports.PrismaCrypto = void 0;
 /* eslint-disable @typescript-eslint/no-var-requires */
 require("dotenv/config");
 var jsonwebtoken_1 = require("jsonwebtoken");
@@ -58,6 +58,8 @@ var encryption_methods_1 = require("./encryption-methods");
 var prisma_client_1 = require("./prisma-client");
 var prisma_client_2 = require("./prisma-client");
 Object.defineProperty(exports, "PrismaCrypto", { enumerable: true, get: function () { return prisma_client_2.PrismaCrypto; } });
+var encryption_methods_2 = require("./encryption-methods");
+Object.defineProperty(exports, "EncryptionMethods", { enumerable: true, get: function () { return encryption_methods_2.EncryptionMethods; } });
 function findEncryptFields(filePath, modelsInfo) {
     var fileContent = node_fs_1.default.readFileSync(filePath, "utf-8");
     var lines = fileContent.split("\n");
@@ -91,6 +93,40 @@ function findEncryptFields(filePath, modelsInfo) {
             modelsEncryptedFieldsDbName[currentModelDbName].push({
                 fieldName: fieldName,
                 typeName: typeName,
+            });
+        }
+    });
+    var encryptedModelsRegex = Object.keys(modelsEncryptedFields).map(function (model) { return new RegExp("\\b".concat(model, "\\b")); });
+    // fazer outro loop passando pelas linhas novamente, buscando por relacionamentos com models criptografados e inserindo eles na lista de models criptografados
+    currentModel = null;
+    lines.forEach(function (line) {
+        var modelMatch = line.match(modelRegex);
+        if (modelMatch) {
+            currentModel = modelMatch[1];
+            currentModelDbName = getDbName({
+                modelName: currentModel,
+                modelsInfo: modelsInfo,
+            });
+        }
+        var commentMatch = null;
+        if (!modelMatch)
+            commentMatch = encryptedModelsRegex.some(function (regex) {
+                return line.match(regex);
+            });
+        if (commentMatch && currentModel) {
+            var _a = line.split(/\s+/).filter(Boolean), fieldName = _a[0], typeName = _a[1];
+            typeName = typeName.replace("[]", "").replace("?", "");
+            if (!modelsEncryptedFields[currentModel])
+                modelsEncryptedFields[currentModel] = [];
+            if (!modelsEncryptedFieldsDbName[currentModelDbName])
+                modelsEncryptedFieldsDbName[currentModelDbName] = [];
+            modelsEncryptedFields[currentModel].push({
+                fieldName: "".concat(fieldName, ">").concat(typeName),
+                typeName: "Relation",
+            });
+            modelsEncryptedFieldsDbName[currentModelDbName].push({
+                fieldName: "".concat(fieldName, ">").concat(typeName.toLowerCase()),
+                typeName: "Relation",
             });
         }
     });

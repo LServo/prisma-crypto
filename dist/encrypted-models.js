@@ -14,12 +14,20 @@ exports.prismaEncryptModels = {
         {
             "fieldName": "password",
             "typeName": "String"
+        },
+        {
+            "fieldName": "CellPhone>CellPhone",
+            "typeName": "Relation"
         }
     ],
     "CellPhone": [
         {
             "fieldName": "number",
             "typeName": "String"
+        },
+        {
+            "fieldName": "User>User",
+            "typeName": "Relation"
         }
     ]
 };

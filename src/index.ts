@@ -18,6 +18,7 @@ import { EncryptionMethods } from "./encryption-methods";
 import { PrismaCrypto as PrismaCryptoClient } from "./prisma-client";
 import { PrismaCrypto } from "./prisma-crypto";
 export { PrismaCrypto } from "./prisma-client";
+export { EncryptionMethods } from "./encryption-methods";
 
 function findEncryptFields(
     filePath: string,
@@ -69,6 +70,48 @@ function findEncryptFields(
             modelsEncryptedFieldsDbName[currentModelDbName].push({
                 fieldName,
                 typeName,
+            });
+        }
+    });
+
+    const encryptedModelsRegex = Object.keys(modelsEncryptedFields).map(
+        (model) => new RegExp(`\\b${model}\\b`),
+    );
+
+    // fazer outro loop passando pelas linhas novamente, buscando por relacionamentos com models criptografados e inserindo eles na lista de models criptografados
+
+    currentModel = null;
+    lines.forEach((line) => {
+        const modelMatch = line.match(modelRegex);
+        if (modelMatch) {
+            [, currentModel] = modelMatch;
+            currentModelDbName = getDbName({
+                modelName: currentModel,
+                modelsInfo,
+            });
+        }
+
+        let commentMatch = null;
+        if (!modelMatch)
+            commentMatch = encryptedModelsRegex.some((regex) =>
+                line.match(regex),
+            );
+        if (commentMatch && currentModel) {
+            let [fieldName, typeName] = line.split(/\s+/).filter(Boolean);
+            typeName = typeName.replace("[]", "").replace("?", "");
+
+            if (!modelsEncryptedFields[currentModel])
+                modelsEncryptedFields[currentModel] = [];
+            if (!modelsEncryptedFieldsDbName[currentModelDbName])
+                modelsEncryptedFieldsDbName[currentModelDbName] = [];
+
+            modelsEncryptedFields[currentModel].push({
+                fieldName: `${fieldName}>${typeName}`,
+                typeName: "Relation",
+            });
+            modelsEncryptedFieldsDbName[currentModelDbName].push({
+                fieldName: `${fieldName}>${typeName.toLowerCase()}`,
+                typeName: "Relation",
             });
         }
     });
@@ -337,7 +380,6 @@ generatorHandler({
                 logger.info("Changes found!");
 
                 logger.info("Managing encryption...");
-                // criar função para aplicar ou remover a criptografia com base add_encryption e remove_encryption
 
                 try {
                     const deepClonedAddEncryption = JSON.parse(
