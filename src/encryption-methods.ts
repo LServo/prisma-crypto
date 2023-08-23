@@ -161,25 +161,31 @@ class EncryptionMethods implements PrismaCrypto.EncryptionMethods {
                     case false: // se não for uma string, nem uma array, é um objeto
                         switch (isRelation) {
                             case true:
+                                console.log("isRelation:", isRelation);
                                 const [, modelName] =
                                     field.fieldName.split(">");
                                 const fieldsToManage =
                                     prismaEncryptModels[modelName];
 
                                 const applyCryptoToRelation = (inputObject) => {
+                                    console.log("inputObject:", inputObject);
                                     const fieldsNameToManage =
                                         fieldsToManage.map(
                                             (field) => field.fieldName,
                                         );
                                     Object.keys(inputObject).forEach((key) => {
+                                        console.log("key:", key);
                                         if (!inputObject[key]) return;
                                         const mustManageField =
                                             fieldsNameToManage.includes(key);
-                                        if (mustManageField)
+                                        // necessario fazer um novo split para pegar o fieldName e comparar com a key
+
+                                        if (mustManageField) {
                                             inputObject[key] =
                                                 manageEncryptionMode(
                                                     inputObject[key],
                                                 );
+                                        }
                                     });
                                 };
 

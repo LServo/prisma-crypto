@@ -169,17 +169,22 @@ var EncryptionMethods = /** @class */ (function () {
                     case false: // se não for uma string, nem uma array, é um objeto
                         switch (isRelation) {
                             case true:
+                                console.log("isRelation:", isRelation);
                                 var _a = field.fieldName.split(">"), modelName = _a[1];
                                 var fieldsToManage_1 = encrypted_models_1.prismaEncryptModels[modelName];
                                 var applyCryptoToRelation_1 = function (inputObject) {
+                                    console.log("inputObject:", inputObject);
                                     var fieldsNameToManage = fieldsToManage_1.map(function (field) { return field.fieldName; });
                                     Object.keys(inputObject).forEach(function (key) {
+                                        console.log("key:", key);
                                         if (!inputObject[key])
                                             return;
                                         var mustManageField = fieldsNameToManage.includes(key);
-                                        if (mustManageField)
+                                        // necessario fazer um novo split para pegar o fieldName e comparar com a key
+                                        if (mustManageField) {
                                             inputObject[key] =
                                                 manageEncryptionMode(inputObject[key]);
+                                        }
                                     });
                                 };
                                 var createRelationMethods = [
