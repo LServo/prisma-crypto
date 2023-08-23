@@ -494,7 +494,7 @@ var EncryptionMethods = /** @class */ (function () {
                         _h.label = 7;
                     case 7:
                         if (!(((_d = this.AllPrismaTransactions) === null || _d === void 0 ? void 0 : _d.length) > 0)) return [3 /*break*/, 9];
-                        console.log("this.AllPrismaTransactions:", JSON.stringify(this.AllPrismaTransactions, null, 2));
+                        console.log("this.AllPrismaTransactions:", JSON.stringify(this.AllPrismaTransactions));
                         return [4 /*yield*/, prismaDirect.$transaction(createPrismaTransactions)];
                     case 8:
                         _h.sent();
