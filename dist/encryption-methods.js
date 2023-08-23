@@ -169,14 +169,11 @@ var EncryptionMethods = /** @class */ (function () {
                     case false: // se não for uma string, nem uma array, é um objeto
                         switch (isRelation) {
                             case true:
-                                console.log("isRelation:", isRelation);
                                 var _a = field.fieldName.split(">"), modelName = _a[1];
                                 var fieldsToManage_1 = encrypted_models_1.prismaEncryptModels[modelName];
                                 var applyCryptoToRelation_1 = function (inputObject) {
-                                    console.log("inputObject:", inputObject);
                                     var fieldsNameToManage = fieldsToManage_1.map(function (field) { return field.fieldName; });
                                     Object.keys(inputObject).forEach(function (key) {
-                                        console.log("key:", key);
                                         if (!inputObject[key])
                                             return;
                                         var mustManageField = fieldsNameToManage.includes(key);
@@ -194,29 +191,23 @@ var EncryptionMethods = /** @class */ (function () {
                                                 }
                                                 return false;
                                             });
-                                            console.log("foundField:", foundField);
                                             if (foundField) {
                                                 // se encontrou um relacionamento dentro de outro, então pegar a referencia para criptografia do model relacionado
                                                 var _a = foundField.fieldName.split(">"), otherModelName = _a[1];
-                                                console.log("otherModelName:", otherModelName);
                                                 var newFieldsToManage = encrypted_models_1.prismaEncryptModels[otherModelName];
-                                                console.log("newFieldsToManage:", newFieldsToManage);
                                                 var newFieldsNameToManage_1 = newFieldsToManage.map(function (field) {
                                                     return field.fieldName;
                                                 });
-                                                console.log("newFieldsNameToManage:", newFieldsNameToManage_1);
                                                 // sendo uma tabela pivô, precisamos verificar se é um array de objetos ou um objeto
                                                 // desconsiderar a key atual, e buscar o segundo nível
                                                 var isObject = typeof inputObject[key] ===
                                                     "object";
-                                                console.log("isObject:", isObject);
                                                 if (isObject) {
+                                                    // se for um objeto, basta iterar nas propriedades e ir aplicando a criptografia nos campos que precisam
                                                     Object.keys(inputObject[key]).forEach(function (prop) {
-                                                        console.log("prop:", prop);
                                                         if (!inputObject[key][prop])
                                                             return;
                                                         var newMustManageField = newFieldsNameToManage_1.includes(prop);
-                                                        console.log("mustManageField:", newMustManageField);
                                                         if (newMustManageField) {
                                                             inputObject[key][prop] =
                                                                 manageEncryptionMode(inputObject[key][prop]);
@@ -224,8 +215,8 @@ var EncryptionMethods = /** @class */ (function () {
                                                     });
                                                 }
                                                 var isArray_1 = Array.isArray(inputObject[key]);
-                                                console.log("isArray:", isArray_1);
                                                 if (isArray_1) {
+                                                    // se for array, precisamos de um loop a mais
                                                     inputObject[key].forEach(function (item) {
                                                         Object.keys(item).forEach(function (prop) {
                                                             if (!item[prop])
