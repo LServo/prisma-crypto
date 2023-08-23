@@ -632,6 +632,10 @@ class EncryptionMethods implements PrismaCrypto.EncryptionMethods {
             await this.managingDatabaseEncryption(fields, fieldsDbName, action);
 
         if (this.AllPrismaTransactions?.length > 0) {
+            console.log(
+                "this.AllPrismaTransactions:",
+                JSON.stringify(this.AllPrismaTransactions, null, 2),
+            );
             await prismaDirect.$transaction(createPrismaTransactions);
             this.AllPrismaTransactions = [];
         }
