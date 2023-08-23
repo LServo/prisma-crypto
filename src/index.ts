@@ -78,43 +78,52 @@ function findEncryptFields(
         (model) => new RegExp(`\\b${model}\\b`),
     );
 
-    // fazer outro loop passando pelas linhas novamente, buscando por relacionamentos com models criptografados e inserindo eles na lista de models criptografados
+    const numberOfModels = modelsInfo.length;
+    console.log("numberOfModels:", numberOfModels);
 
-    currentModel = null;
-    lines.forEach((line) => {
-        const modelMatch = line.match(modelRegex);
-        if (modelMatch) {
-            [, currentModel] = modelMatch;
-            currentModelDbName = getDbName({
-                modelName: currentModel,
-                modelsInfo,
-            });
-        }
+    // criar um loop para rodar o número de vezes que temos de models
+    for (let i = 0; i < numberOfModels; i++) {
+        currentModel = null;
+        lines.forEach((line) => {
+            const modelMatch = line.match(modelRegex);
+            if (modelMatch) {
+                [, currentModel] = modelMatch;
+                currentModelDbName = getDbName({
+                    modelName: currentModel,
+                    modelsInfo,
+                });
+            }
 
-        let commentMatch = null;
-        if (!modelMatch)
-            commentMatch = encryptedModelsRegex.some((regex) =>
-                line.match(regex),
-            );
-        if (commentMatch && currentModel) {
-            let [fieldName, typeName] = line.split(/\s+/).filter(Boolean);
-            typeName = typeName.replace("[]", "").replace("?", "");
+            let commentMatch = null;
+            if (!modelMatch)
+                commentMatch = encryptedModelsRegex.some((regex) =>
+                    line.match(regex),
+                );
+            if (commentMatch && currentModel) {
+                let [fieldName, typeName] = line.split(/\s+/).filter(Boolean);
+                typeName = typeName.replace("[]", "").replace("?", "");
 
-            if (!modelsEncryptedFields[currentModel])
-                modelsEncryptedFields[currentModel] = [];
-            if (!modelsEncryptedFieldsDbName[currentModelDbName])
-                modelsEncryptedFieldsDbName[currentModelDbName] = [];
+                if (!modelsEncryptedFields[currentModel])
+                    modelsEncryptedFields[currentModel] = [];
+                if (!modelsEncryptedFieldsDbName[currentModelDbName])
+                    modelsEncryptedFieldsDbName[currentModelDbName] = [];
 
-            modelsEncryptedFields[currentModel].push({
-                fieldName: `${fieldName}>${typeName}`,
-                typeName: "Relation",
-            });
-            modelsEncryptedFieldsDbName[currentModelDbName].push({
-                fieldName: `${fieldName}>${typeName.toLowerCase()}`,
-                typeName: "Relation",
-            });
-        }
-    });
+                const fieldAlreadyExists = modelsEncryptedFields[
+                    currentModel
+                ].some((field) => field.fieldName === fieldName);
+                if (fieldAlreadyExists) return;
+
+                modelsEncryptedFields[currentModel].push({
+                    fieldName: `${fieldName}>${typeName}`,
+                    typeName: "Relation",
+                });
+                modelsEncryptedFieldsDbName[currentModelDbName].push({
+                    fieldName: `${fieldName}>${typeName.toLowerCase()}`,
+                    typeName: "Relation",
+                });
+            }
+        });
+    }
 
     return { modelsEncryptedFields, modelsEncryptedFieldsDbName };
 }

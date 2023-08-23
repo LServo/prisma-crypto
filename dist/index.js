@@ -97,7 +97,10 @@ function findEncryptFields(filePath, modelsInfo) {
         }
     });
     var encryptedModelsRegex = Object.keys(modelsEncryptedFields).map(function (model) { return new RegExp("\\b".concat(model, "\\b")); });
-    // fazer outro loop passando pelas linhas novamente, buscando por relacionamentos com models criptografados e inserindo eles na lista de models criptografados
+    var numberOfModels = modelsInfo.length;
+    console.log("numberOfModels:", numberOfModels);
+    // criar um loop para rodar o número de vezes que temos de models
+    // for (let i = 0; i < numberOfModels; i++) {
     currentModel = null;
     lines.forEach(function (line) {
         var modelMatch = line.match(modelRegex);
@@ -114,22 +117,26 @@ function findEncryptFields(filePath, modelsInfo) {
                 return line.match(regex);
             });
         if (commentMatch && currentModel) {
-            var _a = line.split(/\s+/).filter(Boolean), fieldName = _a[0], typeName = _a[1];
+            var _a = line.split(/\s+/).filter(Boolean), fieldName_1 = _a[0], typeName = _a[1];
             typeName = typeName.replace("[]", "").replace("?", "");
             if (!modelsEncryptedFields[currentModel])
                 modelsEncryptedFields[currentModel] = [];
             if (!modelsEncryptedFieldsDbName[currentModelDbName])
                 modelsEncryptedFieldsDbName[currentModelDbName] = [];
+            var fieldAlreadyExists = modelsEncryptedFields[currentModel].some(function (field) { return field.fieldName === fieldName_1; });
+            if (fieldAlreadyExists)
+                return;
             modelsEncryptedFields[currentModel].push({
-                fieldName: "".concat(fieldName, ">").concat(typeName),
+                fieldName: "".concat(fieldName_1, ">").concat(typeName),
                 typeName: "Relation",
             });
             modelsEncryptedFieldsDbName[currentModelDbName].push({
-                fieldName: "".concat(fieldName, ">").concat(typeName.toLowerCase()),
+                fieldName: "".concat(fieldName_1, ">").concat(typeName.toLowerCase()),
                 typeName: "Relation",
             });
         }
     });
+    // }
     return { modelsEncryptedFields: modelsEncryptedFields, modelsEncryptedFieldsDbName: modelsEncryptedFieldsDbName };
 }
 function getMyVar(env_var) {
