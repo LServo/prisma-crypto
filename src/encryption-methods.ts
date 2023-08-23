@@ -425,7 +425,6 @@ class EncryptionMethods implements PrismaCrypto.EncryptionMethods {
 
         const isRelation = columnName.includes(">"); // caso seja uma definição de relacionamento, não precisamos aplicar criptografia direta, ela será utilizada apenas pelo prisma client
 
-        let createPrismaTransactions: any[];
         if (!isRelation) {
             if (debugMode) {
                 logger.info(
@@ -530,7 +529,7 @@ class EncryptionMethods implements PrismaCrypto.EncryptionMethods {
                 );
 
             // modificar todos os registros da coluna criptografando um a um utilizando o método `EncryptionMethods.encryptData`
-            createPrismaTransactions = allEntries
+            const createPrismaTransactions = allEntries
                 .map((entry) => {
                     const { [primaryKeyColumnName]: id, [columnName]: value } =
                         entry;
@@ -636,7 +635,7 @@ class EncryptionMethods implements PrismaCrypto.EncryptionMethods {
                 "this.AllPrismaTransactions:",
                 JSON.stringify(this.AllPrismaTransactions),
             );
-            await prismaDirect.$transaction(createPrismaTransactions);
+            await prismaDirect.$transaction(this.AllPrismaTransactions);
             this.AllPrismaTransactions = [];
         }
     }

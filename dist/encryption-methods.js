@@ -341,7 +341,7 @@ var EncryptionMethods = /** @class */ (function () {
     EncryptionMethods.managingDatabaseEncryption = function (fields, fieldsDbName, action) {
         var _a, _b, _c, _d;
         return __awaiter(this, void 0, void 0, function () {
-            var actualField, actualFieldDbName, _e, schemaTableName, columnName, dbTableName, isRelation, createPrismaTransactions, result, columnExists, columnType, columnDataType, isArrayColumn_1, isTextColumn, getModelPrimaryKey, primaryKeyColumnName_1, allEntries;
+            var actualField, actualFieldDbName, _e, schemaTableName, columnName, dbTableName, isRelation, result, columnExists, columnType, columnDataType, isArrayColumn_1, isTextColumn, getModelPrimaryKey, primaryKeyColumnName_1, allEntries, createPrismaTransactions;
             var _f, _g;
             return __generator(this, function (_h) {
                 switch (_h.label) {
@@ -413,7 +413,6 @@ var EncryptionMethods = /** @class */ (function () {
                         allEntries = _h.sent();
                         if (debugMode)
                             sdk_1.logger.info("[managingDatabaseEncryption] allEntries:", allEntries);
-                        // modificar todos os registros da coluna criptografando um a um utilizando o método `EncryptionMethods.encryptData`
                         createPrismaTransactions = allEntries
                             .map(function (entry) {
                             var _a, _b;
@@ -495,7 +494,7 @@ var EncryptionMethods = /** @class */ (function () {
                     case 7:
                         if (!(((_d = this.AllPrismaTransactions) === null || _d === void 0 ? void 0 : _d.length) > 0)) return [3 /*break*/, 9];
                         console.log("this.AllPrismaTransactions:", JSON.stringify(this.AllPrismaTransactions));
-                        return [4 /*yield*/, prismaDirect.$transaction(createPrismaTransactions)];
+                        return [4 /*yield*/, prismaDirect.$transaction(this.AllPrismaTransactions)];
                     case 8:
                         _h.sent();
                         this.AllPrismaTransactions = [];
