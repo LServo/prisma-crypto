@@ -185,6 +185,33 @@ var EncryptionMethods = /** @class */ (function () {
                                             inputObject[key] =
                                                 manageEncryptionMode(inputObject[key]);
                                         }
+                                        else {
+                                            // se não encontrou diretamente, verificar se é uma tabela pivo
+                                            var foundField = fieldsToManage_1.find(function (field) {
+                                                if (field.fieldName.includes(">")) {
+                                                    var fieldName_1 = field.fieldName.split(">")[0];
+                                                    return (fieldName_1 === key);
+                                                }
+                                                return false;
+                                            });
+                                            console.log("foundField:", foundField);
+                                            if (foundField) {
+                                                // se encontrou um relacionamento dentro de outro, então pegar a referencia para criptografia do model relacionado
+                                                var _a = foundField.fieldName.split(">"), otherModelName = _a[1];
+                                                console.log("otherModelName:", otherModelName);
+                                                var newFieldsToManage = encrypted_models_1.prismaEncryptModels[otherModelName];
+                                                console.log("newFieldsToManage:", newFieldsToManage);
+                                                var newFieldsNameToManage = newFieldsToManage.map(function (field) {
+                                                    return field.fieldName;
+                                                });
+                                                console.log("newFieldsNameToManage:", newFieldsNameToManage);
+                                                // sendo uma tabela pivô, precisamos verificar se é um array de objetos ou um objeto
+                                                // desconsiderar a key atual, e buscar o segundo nível
+                                                var isObject = typeof inputObject[key] ===
+                                                    "object";
+                                                console.log("isObject:", isObject);
+                                            }
+                                        }
                                     });
                                 };
                                 var createRelationMethods = [

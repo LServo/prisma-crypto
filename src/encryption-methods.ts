@@ -185,6 +185,70 @@ class EncryptionMethods implements PrismaCrypto.EncryptionMethods {
                                                 manageEncryptionMode(
                                                     inputObject[key],
                                                 );
+                                        } else {
+                                            // se não encontrou diretamente, verificar se é uma tabela pivo
+                                            const foundField =
+                                                fieldsToManage.find((field) => {
+                                                    if (
+                                                        field.fieldName.includes(
+                                                            ">",
+                                                        )
+                                                    ) {
+                                                        const [fieldName] =
+                                                            field.fieldName.split(
+                                                                ">",
+                                                            );
+                                                        return (
+                                                            fieldName === key
+                                                        );
+                                                    }
+                                                    return false;
+                                                });
+                                            console.log(
+                                                "foundField:",
+                                                foundField,
+                                            );
+
+                                            if (foundField) {
+                                                // se encontrou um relacionamento dentro de outro, então pegar a referencia para criptografia do model relacionado
+                                                const [, otherModelName] =
+                                                    foundField.fieldName.split(
+                                                        ">",
+                                                    );
+                                                console.log(
+                                                    "otherModelName:",
+                                                    otherModelName,
+                                                );
+                                                const newFieldsToManage =
+                                                    prismaEncryptModels[
+                                                        otherModelName
+                                                    ];
+                                                console.log(
+                                                    "newFieldsToManage:",
+                                                    newFieldsToManage,
+                                                );
+
+                                                const newFieldsNameToManage =
+                                                    newFieldsToManage.map(
+                                                        (field) =>
+                                                            field.fieldName,
+                                                    );
+                                                console.log(
+                                                    "newFieldsNameToManage:",
+                                                    newFieldsNameToManage,
+                                                );
+
+                                                // sendo uma tabela pivô, precisamos verificar se é um array de objetos ou um objeto
+                                                // desconsiderar a key atual, e buscar o segundo nível
+
+                                                const isObject =
+                                                    typeof inputObject[key] ===
+                                                    "object";
+                                                console.log(
+                                                    "isObject:",
+                                                    isObject,
+                                                );
+                                            }
                                         }
                                     });
                                 };
