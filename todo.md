@@ -5,5 +5,3 @@
     Teríamos uma configuração no generator do `schema.prisma` chamada `auto-apply-migrate`, podendo ser `true` ou `false`.
     Sendo `false` seria apenas criado o novo registro da `_migrate_encryption` com o campo `applied` setado como `false`. 
     Seria necessário ter um comando específico como `prisma-crypto apply` para aplicar a última `_migrate_encryption` no banco quando desejado.
-
-- adicionar no readme caso de uso utilizando classe de métodos de criptografia do prisma crypto

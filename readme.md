@@ -103,7 +103,14 @@ const user = await prisma.user.findUnique({
 
 console.log(user.password); // 'securePassword'
 ```
+If necessary, you can call Prisma Crypto's encryption/decryption methods manually:
 
+```typescript
+import { EncryptionMethods } from "@paipe/prisma-crypto";
+
+const encryptedString = EncryptionMethods.encryptData("test");
+const decryptedString = EncryptionMethods.decryptData("test");
+```
 ---
 
 ## 📖 Technical Details

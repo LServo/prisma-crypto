@@ -6,6 +6,7 @@
 .huskyrc
 .nvmrc
 tsconfig.json
+tsconfig.tests.json
 vite.config.ts
 
 .env
@@ -14,3 +15,8 @@ package-lock.json
 src
 node_modules
 test
+
+build.sh
+start.sh
+test.sh
+todo.md
