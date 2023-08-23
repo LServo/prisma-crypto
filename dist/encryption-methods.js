@@ -201,15 +201,43 @@ var EncryptionMethods = /** @class */ (function () {
                                                 console.log("otherModelName:", otherModelName);
                                                 var newFieldsToManage = encrypted_models_1.prismaEncryptModels[otherModelName];
                                                 console.log("newFieldsToManage:", newFieldsToManage);
-                                                var newFieldsNameToManage = newFieldsToManage.map(function (field) {
+                                                var newFieldsNameToManage_1 = newFieldsToManage.map(function (field) {
                                                     return field.fieldName;
                                                 });
-                                                console.log("newFieldsNameToManage:", newFieldsNameToManage);
+                                                console.log("newFieldsNameToManage:", newFieldsNameToManage_1);
                                                 // sendo uma tabela pivô, precisamos verificar se é um array de objetos ou um objeto
                                                 // desconsiderar a key atual, e buscar o segundo nível
                                                 var isObject = typeof inputObject[key] ===
                                                     "object";
                                                 console.log("isObject:", isObject);
+                                                if (isObject) {
+                                                    Object.keys(inputObject[key]).forEach(function (prop) {
+                                                        console.log("prop:", prop);
+                                                        if (!inputObject[key][prop])
+                                                            return;
+                                                        var newMustManageField = newFieldsNameToManage_1.includes(prop);
+                                                        console.log("mustManageField:", newMustManageField);
+                                                        if (newMustManageField) {
+                                                            inputObject[key][prop] =
+                                                                manageEncryptionMode(inputObject[key][prop]);
+                                                        }
+                                                    });
+                                                }
+                                                var isArray_1 = Array.isArray(inputObject[key]);
+                                                console.log("isArray:", isArray_1);
+                                                if (isArray_1) {
+                                                    inputObject[key].forEach(function (item) {
+                                                        Object.keys(item).forEach(function (prop) {
+                                                            if (!item[prop])
+                                                                return;
+                                                            var newMustManageField = newFieldsNameToManage_1.includes(prop);
+                                                            if (newMustManageField) {
+                                                                item[prop] =
+                                                                    manageEncryptionMode(item[prop]);
+                                                            }
+                                                        });
+                                                    });
+                                                }
                                             }
                                         }
                                     });
@@ -525,7 +553,6 @@ var EncryptionMethods = /** @class */ (function () {
                         _h.label = 7;
                     case 7:
                         if (!(((_d = this.AllPrismaTransactions) === null || _d === void 0 ? void 0 : _d.length) > 0)) return [3 /*break*/, 9];
-                        console.log("this.AllPrismaTransactions:", JSON.stringify(this.AllPrismaTransactions));
                         return [4 /*yield*/, prismaDirect.$transaction(this.AllPrismaTransactions)];
                     case 8:
                         _h.sent();

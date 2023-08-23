@@ -248,6 +248,87 @@ class EncryptionMethods implements PrismaCrypto.EncryptionMethods {
                                                     "isObject:",
                                                     isObject,
                                                 );
+
+                                                if (isObject) {
+                                                    Object.keys(
+                                                        inputObject[key],
+                                                    ).forEach((prop) => {
+                                                        console.log(
+                                                            "prop:",
+                                                            prop,
+                                                        );
+                                                        if (
+                                                            !inputObject[key][
+                                                                prop
+                                                            ]
+                                                        )
+                                                            return;
+                                                        const newMustManageField =
+                                                            newFieldsNameToManage.includes(
+                                                                prop,
+                                                            );
+                                                        console.log(
+                                                            "mustManageField:",
+                                                            newMustManageField,
+                                                        );
+
+                                                        if (
+                                                            newMustManageField
+                                                        ) {
+                                                            inputObject[key][
+                                                                prop
+                                                            ] =
+                                                                manageEncryptionMode(
+                                                                    inputObject[
+                                                                        key
+                                                                    ][prop],
+                                                                );
+                                                        }
+                                                    });
+                                                }
+
+                                                const isArray = Array.isArray(
+                                                    inputObject[key],
+                                                );
+                                                console.log(
+                                                    "isArray:",
+                                                    isArray,
+                                                );
+
+                                                if (isArray) {
+                                                    inputObject[key].forEach(
+                                                        (item) => {
+                                                            Object.keys(
+                                                                item,
+                                                            ).forEach(
+                                                                (prop) => {
+                                                                    if (
+                                                                        !item[
+                                                                            prop
+                                                                        ]
+                                                                    )
+                                                                        return;
+                                                                    const newMustManageField =
+                                                                        newFieldsNameToManage.includes(
+                                                                            prop,
+                                                                        );
+                                                                    if (
+                                                                        newMustManageField
+                                                                    ) {
+                                                                        item[
+                                                                            prop
+                                                                        ] =
+                                                                            manageEncryptionMode(
+                                                                                item[
+                                                                                    prop
+                                                                                ],
+                                                                            );
+                                                                    }
+                                                                },
+                                                            );
+                                                        },
+                                                    );
+                                                }
                                             }
                                         }
                                     });
@@ -701,10 +782,6 @@ class EncryptionMethods implements PrismaCrypto.EncryptionMethods {
             await this.managingDatabaseEncryption(fields, fieldsDbName, action);
 
         if (this.AllPrismaTransactions?.length > 0) {
-            console.log(
-                "this.AllPrismaTransactions:",
-                JSON.stringify(this.AllPrismaTransactions),
-            );
             await prismaDirect.$transaction(this.AllPrismaTransactions);
             this.AllPrismaTransactions = [];
         }
