@@ -75,7 +75,6 @@ function findEncryptFields(
     });
 
     const numberOfModels = modelsInfo.length;
-    console.log("numberOfModels:", numberOfModels);
 
     // criar um loop para rodar o número de vezes que temos de models
     for (let i = 0; i < numberOfModels; i++) {
@@ -247,6 +246,7 @@ generatorHandler({
                     id Int @id @default(autoincrement())
                 
                     token             String
+                    applied           Boolean  @default(false)
                     add_encryption    String[]
                     remove_encryption String[]
                 

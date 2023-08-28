@@ -97,7 +97,6 @@ function findEncryptFields(filePath, modelsInfo) {
         }
     });
     var numberOfModels = modelsInfo.length;
-    console.log("numberOfModels:", numberOfModels);
     var _loop_1 = function (i) {
         var encryptedModelsRegex = Object.keys(modelsEncryptedFields).map(function (model) { return new RegExp("\\b".concat(model, "\\b")); });
         currentModel = null;
@@ -218,7 +217,7 @@ var getDbName = function (_a) {
                             try {
                                 sdk_1.logger.info("Synchronizing database schema...");
                                 (0, node_child_process_1.execSync)("npx prisma db pull --schema=".concat(schemaPath));
-                                modelMigrateEncryption = "\nmodel MigrateEncryption {\n                    id Int @id @default(autoincrement())\n                \n                    token             String\n                    add_encryption    String[]\n                    remove_encryption String[]\n                \n                    created_at DateTime @default(now())\n                \n                    @@map(\"_migrate_encryption\")\n                }";
+                                modelMigrateEncryption = "\nmodel MigrateEncryption {\n                    id Int @id @default(autoincrement())\n                \n                    token             String\n                    applied           Boolean  @default(false)\n                    add_encryption    String[]\n                    remove_encryption String[]\n                \n                    created_at DateTime @default(now())\n                \n                    @@map(\"_migrate_encryption\")\n                }";
                                 node_fs_1.default.appendFileSync(schemaPath, modelMigrateEncryption, "utf-8");
                                 (0, node_child_process_1.execSync)("npx prisma db push --skip-generate --schema=".concat(schemaPath));
                                 sdk_1.logger.info("Synchronization completed successfully.");

@@ -48,6 +48,16 @@ Before starting, set up the following environment variables:
 - `PRISMA_CRYPTO_READ_DB`: Connection to the read instance. Used for read operations via Prisma Client.
 - `PRISMA_CRYPTO_DEBUG`: Activate to get detailed logs of the package's operation.
 
+In scenarios where the prisma client has not yet been initialized - as in the case of a project that has just been cloned - it will be necessary to do so. We recommend that you configure a post-installation script, as follows:
+
+```json
+"scripts": {
+        "postinstall": "npx prisma generate --generator client",
+        //...
+```
+
+This way, whenever you run an `npm i` your prisma client will automatically be initialized. If you don't want to add the script, just run the command `npx prisma generate --generator client` manually via CLI.
+
 ---
 
 ## 📝 Schema Configuration
