@@ -264,11 +264,11 @@ var PrismaCrypto = exports.PrismaCrypto = /** @class */ (function () {
                     $allOperations: function (_a) {
                         var args = _a.args, model = _a.model, query = _a.query, operation = _a.operation;
                         return __awaiter(this, void 0, void 0, function () {
-                            var whereArgs, fieldsToManage, result;
-                            return __generator(this, function (_b) {
-                                switch (_b.label) {
+                            var _b, whereArgs, orderBy, fieldsToManage, fieldsNameToManage_1, result;
+                            return __generator(this, function (_c) {
+                                switch (_c.label) {
                                     case 0:
-                                        whereArgs = args.where;
+                                        _b = args, whereArgs = _b.where, orderBy = _b.orderBy;
                                         if (PrismaCrypto.debugMode)
                                             sdk_1.logger.info("[".concat(model + "." + operation, "] whereArgs before:"), whereArgs);
                                         fieldsToManage = encrypted_models_1.prismaEncryptModels[model];
@@ -279,9 +279,18 @@ var PrismaCrypto = exports.PrismaCrypto = /** @class */ (function () {
                                             });
                                         if (PrismaCrypto.debugMode)
                                             sdk_1.logger.info("[".concat(model + "." + operation, "] whereArgs after:"), whereArgs);
+                                        if (orderBy) {
+                                            fieldsNameToManage_1 = fieldsToManage.map(function (field) { return field.fieldName; });
+                                            Object.keys(orderBy).forEach(function (field) {
+                                                var isCryproOrderBy = fieldsNameToManage_1.includes(field);
+                                                if (isCryproOrderBy)
+                                                    sdk_1.logger.error("The field ".concat(field, " is encrypted, so it cannot be used in the orderBy clause."));
+                                                process.exit(1);
+                                            });
+                                        }
                                         return [4 /*yield*/, query(args)];
                                     case 1:
-                                        result = _b.sent();
+                                        result = _c.sent();
                                         if (PrismaCrypto.debugMode)
                                             sdk_1.logger.info("[".concat(model + "." + operation, "] result before:"), result);
                                         // descriptografar os campos criptografados no resultado da pesquisa

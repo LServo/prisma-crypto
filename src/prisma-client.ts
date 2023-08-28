@@ -293,8 +293,9 @@ export class PrismaCrypto {
                             query,
                             operation,
                         }) {
-                            const { where: whereArgs } = args as {
+                            const { where: whereArgs, orderBy } = args as {
                                 where: unknown;
+                                orderBy: unknown;
                             };
                             if (PrismaCrypto.debugMode)
                                 logger.info(
@@ -318,6 +319,25 @@ export class PrismaCrypto {
                                     }] whereArgs after:`,
                                     whereArgs,
                                 );
+
+                            if (orderBy) {
+                                // se dentro do objeto do orderBy houver algum campo criptografado, retornar erro
+                                const fieldsNameToManage = fieldsToManage.map(
+                                    (field) => field.fieldName,
+                                );
+
+                                Object.keys(orderBy).forEach((field) => {
+                                    const isCryproOrderBy =
+                                        fieldsNameToManage.includes(field);
+
+                                    if (isCryproOrderBy)
+                                        logger.error(
+                                            `The field ${field} is encrypted, so it cannot be used in the orderBy clause.`,
+                                        );
+                                    process.exit(1);
+                                });
+                            }
+
                             const result = await query(args);
                             if (PrismaCrypto.debugMode)
                                 logger.info(

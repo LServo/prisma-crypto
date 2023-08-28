@@ -1,4 +1,4 @@
-import { it, describe, expect, chai, beforeAll } from "vitest";
+import { it, describe, expect, chai, beforeAll, vi } from "vitest";
 
 import { PrismaClient } from "@prisma/client";
 
@@ -75,6 +75,45 @@ describe("Prisma Crypto Tests", () => {
             console.log("output:", output);
             expect(output).toBeDefined();
             expect(output).toBeTruthy();
+        } catch (error) {
+            chai.assert.fail(convertToJson(error));
+        }
+    });
+
+    it("should not be able to use encrypted fields on orderBy clause", async () => {
+        try {
+            const mockStderr = vi
+                .spyOn(console, "error")
+                .mockImplementation(() => true);
+            const mockExit = vi
+                .spyOn(process, "exit")
+                .mockImplementation(() => true as never);
+
+            await prisma.user.findFirst({
+                where: {
+                    email: "test@test.com",
+                },
+                select: {
+                    name: true,
+                    CellPhone: true,
+                },
+                orderBy: {
+                    email: "asc",
+                },
+            });
+            // console.error("Sua mensagem de erro aqui"); // Para depuração
+            console.log("mockStderr:", mockStderr.mock.calls); // Para depuração
+            console.log("mockExit:", mockExit.mock.calls); // Para depuração
+
+            expect(mockStderr).toHaveBeenCalledWith(
+                expect.stringContaining(
+                    "The field email is encrypted, so it cannot be used in the orderBy clause.",
+                ),
+            );
+            expect(mockExit).toHaveBeenCalledWith(1);
+
+            mockStderr.mockRestore();
+            mockExit.mockRestore();
         } catch (error) {
             chai.assert.fail(convertToJson(error));
         }
