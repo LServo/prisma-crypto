@@ -6,7 +6,6 @@
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
     "scripts": {
-        "postinstall": "npx prisma generate --generator client",
         "test": "sh ./test.sh",
         "clean": "rimraf dist",
         "build": "sh ./build.sh",
