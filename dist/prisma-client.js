@@ -56,11 +56,9 @@ var PrismaCrypto = /** @class */ (function () {
     function PrismaCrypto(_a) {
         var debug = _a.debug, direct = _a.direct, read = _a.read, write = _a.write;
         this.debugMode = false;
-        console.log("debug:", debug);
         if (debug) {
             sdk_1.logger.info("[PrismaCrypto] debug mode is active");
             this.debugMode = debug;
-            console.log("this.debugMode:", this.debugMode);
         }
         this.direct = direct
             ? direct
@@ -106,7 +104,6 @@ var PrismaCrypto = /** @class */ (function () {
                             case "upsert":
                             case "delete":
                             case "deleteMany":
-                                console.log("this.debugMode:", _this.debugMode);
                                 if (_this.debugMode)
                                     sdk_1.logger.info("[PrismaClient] write instance");
                                 return writeReplicaPrisma[model][operation](args, model, query, operation);
@@ -118,12 +115,10 @@ var PrismaCrypto = /** @class */ (function () {
                             case "findMany":
                             case "findUnique":
                             case "findUniqueOrThrow":
-                                console.log("this.debugMode:", _this.debugMode);
                                 if (_this.debugMode)
                                     sdk_1.logger.info("[PrismaClient] read instance");
                                 return readReplicaPrisma[model][operation](args, model, query, operation);
                             default:
-                                console.log("this.debugMode:", _this.debugMode);
                                 if (_this.debugMode)
                                     sdk_1.logger.info("[PrismaClient] no instance selected");
                                 return;

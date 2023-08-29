@@ -18,11 +18,9 @@ export class PrismaCrypto {
     private debugMode = false;
 
     constructor({ debug, direct, read, write }: PrismaCryptoOptions) {
-        console.log("debug:", debug);
         if (debug) {
             logger.info("[PrismaCrypto] debug mode is active");
             this.debugMode = debug;
-            console.log("this.debugMode:", this.debugMode);
         }
         this.direct = direct
             ? direct
@@ -73,7 +71,6 @@ export class PrismaCrypto {
                             case "upsert":
                             case "delete":
                             case "deleteMany":
-                                console.log("this.debugMode:", this.debugMode);
                                 if (this.debugMode)
                                     logger.info(
                                         "[PrismaClient] write instance",
@@ -92,7 +89,6 @@ export class PrismaCrypto {
                             case "findMany":
                             case "findUnique":
                             case "findUniqueOrThrow":
-                                console.log("this.debugMode:", this.debugMode);
                                 if (this.debugMode)
                                     logger.info("[PrismaClient] read instance");
                                 return readReplicaPrisma[model][operation](
@@ -102,7 +98,6 @@ export class PrismaCrypto {
                                     operation,
                                 );
                             default:
-                                console.log("this.debugMode:", this.debugMode);
                                 if (this.debugMode)
                                     logger.info(
                                         "[PrismaClient] no instance selected",

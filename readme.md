@@ -92,7 +92,9 @@ With `prisma-crypto` set up, run your Prisma operations as usual. The extension 
 ```typescript
 import { PrismaCrypto } from "prisma-crypto";
 
-const prisma = new PrismaCrypto().getPrismaClient();
+const prisma = new PrismaCrypto({
+    debug: true // It is possible to control the level of granularity of the debug by activating only the client and deactivating the env(general)
+}).getPrismaClient();
 
 const newUser = {
   email: 'example@example.com',
