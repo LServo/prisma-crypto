@@ -279,7 +279,7 @@ var PrismaCrypto = exports.PrismaCrypto = /** @class */ (function () {
                                             });
                                         if (PrismaCrypto.debugMode)
                                             sdk_1.logger.info("[".concat(model + "." + operation, "] whereArgs after:"), whereArgs);
-                                        if (orderBy) {
+                                        if (orderBy && fieldsToManage) {
                                             fieldsNameToManage_1 = fieldsToManage.map(function (field) { return field.fieldName; });
                                             Object.keys(orderBy).forEach(function (field) {
                                                 var isCryproOrderBy = fieldsNameToManage_1.includes(field);

@@ -320,7 +320,7 @@ export class PrismaCrypto {
                                     whereArgs,
                                 );
 
-                            if (orderBy) {
+                            if (orderBy && fieldsToManage) {
                                 // se dentro do objeto do orderBy houver algum campo criptografado, retornar erro
                                 const fieldsNameToManage = fieldsToManage.map(
                                     (field) => field.fieldName,
