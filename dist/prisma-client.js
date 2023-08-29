@@ -104,20 +104,23 @@ var PrismaCrypto = /** @class */ (function () {
                             case "delete":
                             case "deleteMany":
                                 if (this.debugMode)
-                                    sdk_1.logger.info("[PrismaCLient] write instance");
+                                    sdk_1.logger.info("[PrismaClient] write instance");
                                 return writeReplicaPrisma[model][operation](args, model, query, operation);
+                            case "count":
+                            case "groupBy":
+                            case "aggregate":
                             case "findFirst":
                             case "findFirstOrThrow":
                             case "findMany":
                             case "findUnique":
                             case "findUniqueOrThrow":
                                 if (this.debugMode)
-                                    sdk_1.logger.info("[PrismaCLient] read instance");
+                                    sdk_1.logger.info("[PrismaClient] read instance");
                                 return readReplicaPrisma[model][operation](args, model, query, operation);
                             default:
                                 if (this.debugMode)
-                                    sdk_1.logger.info("[PrismaCLient] default instance");
-                                return query(args);
+                                    sdk_1.logger.info("[PrismaClient] no instance selected");
+                                return;
                         }
                     },
                 },

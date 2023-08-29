@@ -73,7 +73,7 @@ export class PrismaCrypto {
                             case "deleteMany":
                                 if (this.debugMode)
                                     logger.info(
-                                        "[PrismaCLient] write instance",
+                                        "[PrismaClient] write instance",
                                     );
                                 return writeReplicaPrisma[model][operation](
                                     args,
@@ -81,13 +81,16 @@ export class PrismaCrypto {
                                     query,
                                     operation,
                                 );
+                            case "count":
+                            case "groupBy":
+                            case "aggregate":
                             case "findFirst":
                             case "findFirstOrThrow":
                             case "findMany":
                             case "findUnique":
                             case "findUniqueOrThrow":
                                 if (this.debugMode)
-                                    logger.info("[PrismaCLient] read instance");
+                                    logger.info("[PrismaClient] read instance");
                                 return readReplicaPrisma[model][operation](
                                     args,
                                     model,
@@ -97,9 +100,9 @@ export class PrismaCrypto {
                             default:
                                 if (this.debugMode)
                                     logger.info(
-                                        "[PrismaCLient] default instance",
+                                        "[PrismaClient] no instance selected",
                                     );
-                                return query(args);
+                                return;
                         }
                     },
                 },
