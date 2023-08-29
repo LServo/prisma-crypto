@@ -1,0 +1,13 @@
+{
+    "watch": [
+        "./src"
+    ],
+    "ignore": [
+        "node_modules",
+        "./**/*.test.ts"
+    ],
+    "ext": "ts,js,json,cjs,mjs",
+    "exec": "npm run build && npm t",
+    "legacyWatch": true,
+    "verbose": true
+}

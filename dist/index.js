@@ -193,8 +193,8 @@ var getDbName = function (_a) {
             return __generator(this, function (_j) {
                 switch (_j.label) {
                     case 0:
-                        prisma = new prisma_client_1.PrismaCrypto().getPrismaClient();
                         validateEnvVars();
+                        prisma = new prisma_client_1.PrismaCrypto({}).getPrismaClient();
                         _f = findEncryptFields(options.schemaPath, options.dmmf.datamodel.models), newEncryptedModels = _f.modelsEncryptedFields, newEncryptedModelsDbName = _f.modelsEncryptedFieldsDbName;
                         onlyPostgresProvider = options.datasources.every(function (datasource) { return datasource.provider === "postgresql"; });
                         if (!onlyPostgresProvider) {

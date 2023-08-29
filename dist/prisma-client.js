@@ -52,11 +52,22 @@ var client_1 = require("@prisma/client");
 var sdk_1 = require("@prisma/sdk");
 var encrypted_models_1 = require("./encrypted-models");
 var encryption_methods_1 = require("./encryption-methods");
-var PrismaCrypto = exports.PrismaCrypto = /** @class */ (function () {
-    function PrismaCrypto() {
+var PrismaCrypto = /** @class */ (function () {
+    function PrismaCrypto(_a) {
+        var debug = _a.debug, direct = _a.direct, read = _a.read, write = _a.write;
+        this.debugMode = false;
+        if (debug) {
+            sdk_1.logger.info("[PrismaCrypto] debug mode is active");
+            this.debugMode = true;
+        }
+        this.direct = direct
+            ? direct
+            : this.getMyVar("PRISMA_CRYPTO_DIRECT_DB");
+        this.write = write ? write : this.getMyVar("PRISMA_CRYPTO_WRITE_DB");
+        this.read = read ? read : this.getMyVar("PRISMA_CRYPTO_READ_DB");
         this.initPrisma();
     }
-    PrismaCrypto.getMyVar = function (env_var) {
+    PrismaCrypto.prototype.getMyVar = function (env_var) {
         return process.env[env_var];
     };
     PrismaCrypto.convertToJson = function (variable) {
@@ -66,7 +77,7 @@ var PrismaCrypto = exports.PrismaCrypto = /** @class */ (function () {
         var prismaOptions = {
             datasources: {
                 db: {
-                    url: PrismaCrypto.getMyVar("PRISMA_CRYPTO_DIRECT_DB"),
+                    url: this.direct,
                 },
             },
             log: [
@@ -76,7 +87,7 @@ var PrismaCrypto = exports.PrismaCrypto = /** @class */ (function () {
                 },
             ],
         };
-        if (!PrismaCrypto.debugMode)
+        if (!this.debugMode)
             delete prismaOptions.log;
         var prisma = new client_1.PrismaClient(prismaOptions).$extends({
             query: {
@@ -92,7 +103,7 @@ var PrismaCrypto = exports.PrismaCrypto = /** @class */ (function () {
                             case "upsert":
                             case "delete":
                             case "deleteMany":
-                                if (PrismaCrypto.debugMode)
+                                if (this.debugMode)
                                     sdk_1.logger.info("[PrismaCLient] write instance");
                                 return writeReplicaPrisma[model][operation](args, model, query, operation);
                             case "findFirst":
@@ -100,11 +111,11 @@ var PrismaCrypto = exports.PrismaCrypto = /** @class */ (function () {
                             case "findMany":
                             case "findUnique":
                             case "findUniqueOrThrow":
-                                if (PrismaCrypto.debugMode)
+                                if (this.debugMode)
                                     sdk_1.logger.info("[PrismaCLient] read instance");
                                 return readReplicaPrisma[model][operation](args, model, query, operation);
                             default:
-                                if (PrismaCrypto.debugMode)
+                                if (this.debugMode)
                                     sdk_1.logger.info("[PrismaCLient] default instance");
                                 return query(args);
                         }
@@ -115,7 +126,7 @@ var PrismaCrypto = exports.PrismaCrypto = /** @class */ (function () {
         var writeReplicaOptions = {
             datasources: {
                 db: {
-                    url: PrismaCrypto.getMyVar("PRISMA_CRYPTO_WRITE_DB"),
+                    url: this.write,
                 },
             },
         };
@@ -126,11 +137,11 @@ var PrismaCrypto = exports.PrismaCrypto = /** @class */ (function () {
                     // Métodos de escrita personalizados
                     create: function (_a) {
                         var args = _a.args, model = _a.model, query = _a.query;
-                        if (PrismaCrypto.debugMode)
+                        if (this.debugMode)
                             sdk_1.logger.info("[".concat(model + ".create", "] args before:"), PrismaCrypto.convertToJson(args));
                         var dataToEncrypt = args.data;
                         var fieldsToManage = encrypted_models_1.prismaEncryptModels[model];
-                        if (PrismaCrypto.debugMode)
+                        if (this.debugMode)
                             sdk_1.logger.info("fieldsToManage:", PrismaCrypto.convertToJson(fieldsToManage));
                         if (fieldsToManage)
                             encryption_methods_1.EncryptionMethods.manageEncryption({
@@ -138,13 +149,13 @@ var PrismaCrypto = exports.PrismaCrypto = /** @class */ (function () {
                                 dataToEncrypt: dataToEncrypt,
                                 manageMode: "encrypt",
                             });
-                        if (PrismaCrypto.debugMode)
+                        if (this.debugMode)
                             sdk_1.logger.info("[".concat(model + ".create", "] args after:"), PrismaCrypto.convertToJson(args));
                         return query(__assign({}, args));
                     },
                     update: function (_a) {
                         var args = _a.args, model = _a.model, query = _a.query;
-                        if (PrismaCrypto.debugMode)
+                        if (this.debugMode)
                             sdk_1.logger.info("[".concat(model + ".update", "] args before:"), PrismaCrypto.convertToJson(args));
                         var dataToEncrypt = args.data;
                         var fieldsToManage = encrypted_models_1.prismaEncryptModels[model];
@@ -159,13 +170,13 @@ var PrismaCrypto = exports.PrismaCrypto = /** @class */ (function () {
                                 manageMode: "encrypt",
                             });
                         }
-                        if (PrismaCrypto.debugMode)
+                        if (this.debugMode)
                             sdk_1.logger.info("[".concat(model + ".update", "] args after:"), PrismaCrypto.convertToJson(args));
                         return query(__assign({}, args));
                     },
                     createMany: function (_a) {
                         var args = _a.args, model = _a.model, query = _a.query;
-                        if (PrismaCrypto.debugMode)
+                        if (this.debugMode)
                             sdk_1.logger.info("[".concat(model + ".createMany", "] args before:"), PrismaCrypto.convertToJson(args));
                         var dataToEncrypt = args.data;
                         var fieldsToManage = encrypted_models_1.prismaEncryptModels[model];
@@ -185,13 +196,13 @@ var PrismaCrypto = exports.PrismaCrypto = /** @class */ (function () {
                                     manageMode: "encrypt",
                                 });
                         }
-                        if (PrismaCrypto.debugMode)
+                        if (this.debugMode)
                             sdk_1.logger.info("[".concat(model + ".createMany", "] args after:"), PrismaCrypto.convertToJson(args));
                         return query(__assign({}, args));
                     },
                     updateMany: function (_a) {
                         var args = _a.args, model = _a.model, query = _a.query;
-                        if (PrismaCrypto.debugMode)
+                        if (this.debugMode)
                             sdk_1.logger.info("[".concat(model + ".updateMany", "] args before:"), PrismaCrypto.convertToJson(args));
                         var dataToEncrypt = args.data, whereArgs = args.where;
                         var fieldsToManage = encrypted_models_1.prismaEncryptModels[model];
@@ -215,13 +226,13 @@ var PrismaCrypto = exports.PrismaCrypto = /** @class */ (function () {
                                     manageMode: "encrypt",
                                 });
                         }
-                        if (PrismaCrypto.debugMode)
+                        if (this.debugMode)
                             sdk_1.logger.info("[".concat(model + ".updateMany", "] args after:"), PrismaCrypto.convertToJson(args));
                         return query(__assign({}, args));
                     },
                     upsert: function (_a) {
                         var args = _a.args, model = _a.model, query = _a.query;
-                        if (PrismaCrypto.debugMode)
+                        if (this.debugMode)
                             sdk_1.logger.info("[".concat(model + ".upsert", "] args before:"), PrismaCrypto.convertToJson(args));
                         var create = args.create, update = args.update, whereArgs = args.where;
                         var fieldsToManage = encrypted_models_1.prismaEncryptModels[model];
@@ -243,7 +254,7 @@ var PrismaCrypto = exports.PrismaCrypto = /** @class */ (function () {
                                     manageMode: "encrypt",
                                 });
                         }
-                        if (PrismaCrypto.debugMode)
+                        if (this.debugMode)
                             sdk_1.logger.info("[".concat(model + ".upsert", "] args after:"), PrismaCrypto.convertToJson(args));
                         return query(__assign({}, args));
                     },
@@ -253,7 +264,7 @@ var PrismaCrypto = exports.PrismaCrypto = /** @class */ (function () {
         var readReplicaOptions = {
             datasources: {
                 db: {
-                    url: PrismaCrypto.getMyVar("PRISMA_CRYPTO_READ_DB"),
+                    url: this.read,
                 },
             },
         };
@@ -269,7 +280,7 @@ var PrismaCrypto = exports.PrismaCrypto = /** @class */ (function () {
                                 switch (_c.label) {
                                     case 0:
                                         _b = args, whereArgs = _b.where, orderBy = _b.orderBy;
-                                        if (PrismaCrypto.debugMode)
+                                        if (this.debugMode)
                                             sdk_1.logger.info("[".concat(model + "." + operation, "] whereArgs before:"), whereArgs);
                                         fieldsToManage = encrypted_models_1.prismaEncryptModels[model];
                                         if (fieldsToManage)
@@ -277,7 +288,7 @@ var PrismaCrypto = exports.PrismaCrypto = /** @class */ (function () {
                                                 whereArgs: whereArgs,
                                                 fieldsToManage: fieldsToManage,
                                             });
-                                        if (PrismaCrypto.debugMode)
+                                        if (this.debugMode)
                                             sdk_1.logger.info("[".concat(model + "." + operation, "] whereArgs after:"), whereArgs);
                                         if (orderBy && fieldsToManage) {
                                             fieldsNameToManage_1 = fieldsToManage.map(function (field) { return field.fieldName; });
@@ -292,7 +303,7 @@ var PrismaCrypto = exports.PrismaCrypto = /** @class */ (function () {
                                         return [4 /*yield*/, query(args)];
                                     case 1:
                                         result = _c.sent();
-                                        if (PrismaCrypto.debugMode)
+                                        if (this.debugMode)
                                             sdk_1.logger.info("[".concat(model + "." + operation, "] result before:"), result);
                                         // descriptografar os campos criptografados no resultado da pesquisa
                                         if (fieldsToManage && result) {
@@ -312,7 +323,7 @@ var PrismaCrypto = exports.PrismaCrypto = /** @class */ (function () {
                                                     manageMode: "decrypt",
                                                 });
                                         }
-                                        if (PrismaCrypto.debugMode)
+                                        if (this.debugMode)
                                             sdk_1.logger.info("[".concat(model + "." + operation, "] result after:"), result);
                                         return [2 /*return*/, result];
                                 }
@@ -327,6 +338,6 @@ var PrismaCrypto = exports.PrismaCrypto = /** @class */ (function () {
     PrismaCrypto.prototype.getPrismaClient = function () {
         return this.prisma;
     };
-    PrismaCrypto.debugMode = PrismaCrypto.getMyVar("PRISMA_CRYPTO_DEBUG") === "true";
     return PrismaCrypto;
 }());
+exports.PrismaCrypto = PrismaCrypto;

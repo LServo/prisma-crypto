@@ -190,8 +190,8 @@ generatorHandler({
         };
     },
     async onGenerate(options: GeneratorOptions) {
-        const prisma = new PrismaCryptoClient().getPrismaClient();
         validateEnvVars();
+        const prisma = new PrismaCryptoClient({}).getPrismaClient();
         const {
             modelsEncryptedFields: newEncryptedModels,
             modelsEncryptedFieldsDbName: newEncryptedModelsDbName,

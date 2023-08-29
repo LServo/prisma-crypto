@@ -12,7 +12,7 @@ let prisma: PrismaClient;
 
 describe("Prisma Crypto Tests", () => {
     beforeAll(async () => {
-        prisma = new PrismaCrypto().getPrismaClient();
+        prisma = new PrismaCrypto({}).getPrismaClient();
     });
 
     it("should be able to encrypt new users with cellphones", async () => {
@@ -114,6 +114,24 @@ describe("Prisma Crypto Tests", () => {
 
             mockStderr.mockRestore();
             mockExit.mockRestore();
+        } catch (error) {
+            chai.assert.fail(convertToJson(error));
+        }
+    });
+
+    it("should not crash if we don't have an orderBy clause", async () => {
+        try {
+            const output = await prisma.user.findFirst({
+                where: {
+                    email: "test@test.com",
+                },
+                select: {
+                    name: true,
+                    CellPhone: true,
+                },
+            });
+
+            expect(output).toBeDefined();
         } catch (error) {
             chai.assert.fail(convertToJson(error));
         }
