@@ -283,9 +283,10 @@ var PrismaCrypto = exports.PrismaCrypto = /** @class */ (function () {
                                             fieldsNameToManage_1 = fieldsToManage.map(function (field) { return field.fieldName; });
                                             Object.keys(orderBy).forEach(function (field) {
                                                 var isCryproOrderBy = fieldsNameToManage_1.includes(field);
-                                                if (isCryproOrderBy)
+                                                if (isCryproOrderBy) {
                                                     sdk_1.logger.error("The field ".concat(field, " is encrypted, so it cannot be used in the orderBy clause."));
-                                                process.exit(1);
+                                                    process.exit(1);
+                                                }
                                             });
                                         }
                                         return [4 /*yield*/, query(args)];
