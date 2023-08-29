@@ -330,11 +330,12 @@ export class PrismaCrypto {
                                     const isCryproOrderBy =
                                         fieldsNameToManage.includes(field);
 
-                                    if (isCryproOrderBy)
+                                    if (isCryproOrderBy) {
                                         logger.error(
                                             `The field ${field} is encrypted, so it cannot be used in the orderBy clause.`,
                                         );
-                                    process.exit(1);
+                                        process.exit(1);
+                                    }
                                 });
                             }
 
