@@ -12,7 +12,9 @@ let prisma: PrismaClient;
 
 describe("Prisma Crypto Tests", () => {
     beforeAll(async () => {
-        prisma = new PrismaCrypto({}).getPrismaClient();
+        prisma = new PrismaCrypto({
+            debug: true,
+        }).getPrismaClient();
     });
 
     it("should be able to encrypt new users with cellphones", async () => {

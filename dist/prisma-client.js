@@ -56,9 +56,11 @@ var PrismaCrypto = /** @class */ (function () {
     function PrismaCrypto(_a) {
         var debug = _a.debug, direct = _a.direct, read = _a.read, write = _a.write;
         this.debugMode = false;
+        console.log("debug:", debug);
         if (debug) {
             sdk_1.logger.info("[PrismaCrypto] debug mode is active");
-            this.debugMode = true;
+            this.debugMode = debug;
+            console.log("this.debugMode:", this.debugMode);
         }
         this.direct = direct
             ? direct
@@ -74,6 +76,7 @@ var PrismaCrypto = /** @class */ (function () {
         return JSON.stringify(variable, null, 2);
     };
     PrismaCrypto.prototype.initPrisma = function () {
+        var _this = this;
         var prismaOptions = {
             datasources: {
                 db: {
@@ -103,7 +106,8 @@ var PrismaCrypto = /** @class */ (function () {
                             case "upsert":
                             case "delete":
                             case "deleteMany":
-                                if (this.debugMode)
+                                console.log("this.debugMode:", _this.debugMode);
+                                if (_this.debugMode)
                                     sdk_1.logger.info("[PrismaClient] write instance");
                                 return writeReplicaPrisma[model][operation](args, model, query, operation);
                             case "count":
@@ -114,11 +118,13 @@ var PrismaCrypto = /** @class */ (function () {
                             case "findMany":
                             case "findUnique":
                             case "findUniqueOrThrow":
-                                if (this.debugMode)
+                                console.log("this.debugMode:", _this.debugMode);
+                                if (_this.debugMode)
                                     sdk_1.logger.info("[PrismaClient] read instance");
                                 return readReplicaPrisma[model][operation](args, model, query, operation);
                             default:
-                                if (this.debugMode)
+                                console.log("this.debugMode:", _this.debugMode);
+                                if (_this.debugMode)
                                     sdk_1.logger.info("[PrismaClient] no instance selected");
                                 return;
                         }
@@ -140,11 +146,11 @@ var PrismaCrypto = /** @class */ (function () {
                     // Métodos de escrita personalizados
                     create: function (_a) {
                         var args = _a.args, model = _a.model, query = _a.query;
-                        if (this.debugMode)
+                        if (_this.debugMode)
                             sdk_1.logger.info("[".concat(model + ".create", "] args before:"), PrismaCrypto.convertToJson(args));
                         var dataToEncrypt = args.data;
                         var fieldsToManage = encrypted_models_1.prismaEncryptModels[model];
-                        if (this.debugMode)
+                        if (_this.debugMode)
                             sdk_1.logger.info("fieldsToManage:", PrismaCrypto.convertToJson(fieldsToManage));
                         if (fieldsToManage)
                             encryption_methods_1.EncryptionMethods.manageEncryption({
@@ -152,13 +158,13 @@ var PrismaCrypto = /** @class */ (function () {
                                 dataToEncrypt: dataToEncrypt,
                                 manageMode: "encrypt",
                             });
-                        if (this.debugMode)
+                        if (_this.debugMode)
                             sdk_1.logger.info("[".concat(model + ".create", "] args after:"), PrismaCrypto.convertToJson(args));
                         return query(__assign({}, args));
                     },
                     update: function (_a) {
                         var args = _a.args, model = _a.model, query = _a.query;
-                        if (this.debugMode)
+                        if (_this.debugMode)
                             sdk_1.logger.info("[".concat(model + ".update", "] args before:"), PrismaCrypto.convertToJson(args));
                         var dataToEncrypt = args.data;
                         var fieldsToManage = encrypted_models_1.prismaEncryptModels[model];
@@ -173,13 +179,13 @@ var PrismaCrypto = /** @class */ (function () {
                                 manageMode: "encrypt",
                             });
                         }
-                        if (this.debugMode)
+                        if (_this.debugMode)
                             sdk_1.logger.info("[".concat(model + ".update", "] args after:"), PrismaCrypto.convertToJson(args));
                         return query(__assign({}, args));
                     },
                     createMany: function (_a) {
                         var args = _a.args, model = _a.model, query = _a.query;
-                        if (this.debugMode)
+                        if (_this.debugMode)
                             sdk_1.logger.info("[".concat(model + ".createMany", "] args before:"), PrismaCrypto.convertToJson(args));
                         var dataToEncrypt = args.data;
                         var fieldsToManage = encrypted_models_1.prismaEncryptModels[model];
@@ -199,13 +205,13 @@ var PrismaCrypto = /** @class */ (function () {
                                     manageMode: "encrypt",
                                 });
                         }
-                        if (this.debugMode)
+                        if (_this.debugMode)
                             sdk_1.logger.info("[".concat(model + ".createMany", "] args after:"), PrismaCrypto.convertToJson(args));
                         return query(__assign({}, args));
                     },
                     updateMany: function (_a) {
                         var args = _a.args, model = _a.model, query = _a.query;
-                        if (this.debugMode)
+                        if (_this.debugMode)
                             sdk_1.logger.info("[".concat(model + ".updateMany", "] args before:"), PrismaCrypto.convertToJson(args));
                         var dataToEncrypt = args.data, whereArgs = args.where;
                         var fieldsToManage = encrypted_models_1.prismaEncryptModels[model];
@@ -229,13 +235,13 @@ var PrismaCrypto = /** @class */ (function () {
                                     manageMode: "encrypt",
                                 });
                         }
-                        if (this.debugMode)
+                        if (_this.debugMode)
                             sdk_1.logger.info("[".concat(model + ".updateMany", "] args after:"), PrismaCrypto.convertToJson(args));
                         return query(__assign({}, args));
                     },
                     upsert: function (_a) {
                         var args = _a.args, model = _a.model, query = _a.query;
-                        if (this.debugMode)
+                        if (_this.debugMode)
                             sdk_1.logger.info("[".concat(model + ".upsert", "] args before:"), PrismaCrypto.convertToJson(args));
                         var create = args.create, update = args.update, whereArgs = args.where;
                         var fieldsToManage = encrypted_models_1.prismaEncryptModels[model];
@@ -257,7 +263,7 @@ var PrismaCrypto = /** @class */ (function () {
                                     manageMode: "encrypt",
                                 });
                         }
-                        if (this.debugMode)
+                        if (_this.debugMode)
                             sdk_1.logger.info("[".concat(model + ".upsert", "] args after:"), PrismaCrypto.convertToJson(args));
                         return query(__assign({}, args));
                     },
@@ -277,7 +283,7 @@ var PrismaCrypto = /** @class */ (function () {
                 $allModels: {
                     $allOperations: function (_a) {
                         var args = _a.args, model = _a.model, query = _a.query, operation = _a.operation;
-                        return __awaiter(this, void 0, void 0, function () {
+                        return __awaiter(_this, void 0, void 0, function () {
                             var _b, whereArgs, orderBy, fieldsToManage, fieldsNameToManage_1, result;
                             return __generator(this, function (_c) {
                                 switch (_c.label) {

@@ -18,9 +18,11 @@ export class PrismaCrypto {
     private debugMode = false;
 
     constructor({ debug, direct, read, write }: PrismaCryptoOptions) {
+        console.log("debug:", debug);
         if (debug) {
             logger.info("[PrismaCrypto] debug mode is active");
-            this.debugMode = true;
+            this.debugMode = debug;
+            console.log("this.debugMode:", this.debugMode);
         }
         this.direct = direct
             ? direct
@@ -62,7 +64,7 @@ export class PrismaCrypto {
             query: {
                 $allModels: {
                     // eslint-disable-next-line consistent-return
-                    $allOperations({ args, model, query, operation }) {
+                    $allOperations: ({ args, model, query, operation }) => {
                         switch (operation) {
                             case "create":
                             case "createMany":
@@ -71,6 +73,7 @@ export class PrismaCrypto {
                             case "upsert":
                             case "delete":
                             case "deleteMany":
+                                console.log("this.debugMode:", this.debugMode);
                                 if (this.debugMode)
                                     logger.info(
                                         "[PrismaClient] write instance",
@@ -89,6 +92,7 @@ export class PrismaCrypto {
                             case "findMany":
                             case "findUnique":
                             case "findUniqueOrThrow":
+                                console.log("this.debugMode:", this.debugMode);
                                 if (this.debugMode)
                                     logger.info("[PrismaClient] read instance");
                                 return readReplicaPrisma[model][operation](
@@ -98,6 +102,7 @@ export class PrismaCrypto {
                                     operation,
                                 );
                             default:
+                                console.log("this.debugMode:", this.debugMode);
                                 if (this.debugMode)
                                     logger.info(
                                         "[PrismaClient] no instance selected",
@@ -124,7 +129,7 @@ export class PrismaCrypto {
             query: {
                 $allModels: {
                     // Métodos de escrita personalizados
-                    create({ args, model, query }) {
+                    create: ({ args, model, query }) => {
                         if (this.debugMode)
                             logger.info(
                                 `[${model + ".create"}] args before:`,
@@ -154,7 +159,7 @@ export class PrismaCrypto {
                         return query({ ...args });
                     },
 
-                    update({ args, model, query }) {
+                    update: ({ args, model, query }) => {
                         if (this.debugMode)
                             logger.info(
                                 `[${model + ".update"}] args before:`,
@@ -183,7 +188,7 @@ export class PrismaCrypto {
                         return query({ ...args });
                     },
 
-                    createMany({ args, model, query }) {
+                    createMany: ({ args, model, query }) => {
                         if (this.debugMode)
                             logger.info(
                                 `[${model + ".createMany"}] args before:`,
@@ -217,7 +222,7 @@ export class PrismaCrypto {
                         return query({ ...args });
                     },
 
-                    updateMany({ args, model, query }) {
+                    updateMany: ({ args, model, query }) => {
                         if (this.debugMode)
                             logger.info(
                                 `[${model + ".updateMany"}] args before:`,
@@ -256,7 +261,7 @@ export class PrismaCrypto {
                         return query({ ...args });
                     },
 
-                    upsert({ args, model, query }) {
+                    upsert: ({ args, model, query }) => {
                         if (this.debugMode)
                             logger.info(
                                 `[${model + ".upsert"}] args before:`,
@@ -310,12 +315,12 @@ export class PrismaCrypto {
                 name: "readReplica",
                 query: {
                     $allModels: {
-                        async $allOperations({
+                        $allOperations: async ({
                             args,
                             model,
                             query,
                             operation,
-                        }) {
+                        }) => {
                             const { where: whereArgs, orderBy } = args as {
                                 where: unknown;
                                 orderBy: unknown;
