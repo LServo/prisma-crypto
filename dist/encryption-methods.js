@@ -81,16 +81,31 @@ var EncryptionMethods = /** @class */ (function () {
         if (debugMode)
             sdk_1.logger.info("[resolveEncryptedArgs] whereArgs before:", convertToJson(whereArgs));
         var _c = (_b = whereArgs) !== null && _b !== void 0 ? _b : {}, AND = _c.AND, NOT = _c.NOT, OR = _c.OR;
-        // criptografar a pesquisa para o banco de dados passando o argumento where
         var manageArrayEncryption = function (array) {
-            array.forEach(function (item) {
-                if (item && typeof item === "object")
+            if (!array)
+                return;
+            var isArray = Array.isArray(array);
+            switch (isArray) {
+                case false:
                     EncryptionMethods.manageEncryption({
                         fieldsToManage: fieldsToManage,
-                        dataToEncrypt: item,
+                        dataToEncrypt: array,
                         manageMode: "encrypt",
                     });
-            });
+                    break;
+                case true:
+                    array.forEach(function (item) {
+                        if (item && typeof item === "object")
+                            EncryptionMethods.manageEncryption({
+                                fieldsToManage: fieldsToManage,
+                                dataToEncrypt: item,
+                                manageMode: "encrypt",
+                            });
+                    });
+                    break;
+                default:
+                    break;
+            }
         };
         if (whereArgs)
             EncryptionMethods.manageEncryption({

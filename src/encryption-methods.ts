@@ -53,17 +53,31 @@ class EncryptionMethods implements PrismaCrypto.EncryptionMethods {
         const { AND, NOT, OR } =
             (whereArgs as { AND: unknown; NOT: unknown; OR: unknown }) ?? {};
 
-        // criptografar a pesquisa para o banco de dados passando o argumento where
-
         const manageArrayEncryption = (array: unknown[]) => {
-            array.forEach((item) => {
-                if (item && typeof item === "object")
+            if (!array) return;
+            const isArray = Array.isArray(array);
+
+            switch (isArray) {
+                case false:
                     EncryptionMethods.manageEncryption({
                         fieldsToManage,
-                        dataToEncrypt: item,
+                        dataToEncrypt: array,
                         manageMode: "encrypt",
                     });
-            });
+                    break;
+                case true:
+                    array.forEach((item) => {
+                        if (item && typeof item === "object")
+                            EncryptionMethods.manageEncryption({
+                                fieldsToManage,
+                                dataToEncrypt: item,
+                                manageMode: "encrypt",
+                            });
+                    });
+                    break;
+                default:
+                    break;
+            }
         };
 
         if (whereArgs)
