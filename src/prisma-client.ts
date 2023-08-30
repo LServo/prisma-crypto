@@ -17,7 +17,7 @@ export class PrismaCrypto {
     readonly read: string;
     private debugMode = false;
 
-    constructor({ debug, direct, read, write }: PrismaCryptoOptions) {
+    constructor({ debug, direct, read, write }: PrismaCryptoOptions = {}) {
         if (debug) {
             logger.info("[PrismaCrypto] debug mode is active");
             this.debugMode = debug;

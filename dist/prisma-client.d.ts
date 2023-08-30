@@ -10,7 +10,7 @@ export declare class PrismaCrypto {
     readonly write: string;
     readonly read: string;
     private debugMode;
-    constructor({ debug, direct, read, write }: PrismaCryptoOptions);
+    constructor({ debug, direct, read, write }?: PrismaCryptoOptions);
     private prisma;
     private getMyVar;
     private static convertToJson;

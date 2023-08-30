@@ -54,7 +54,7 @@ var encrypted_models_1 = require("./encrypted-models");
 var encryption_methods_1 = require("./encryption-methods");
 var PrismaCrypto = /** @class */ (function () {
     function PrismaCrypto(_a) {
-        var debug = _a.debug, direct = _a.direct, read = _a.read, write = _a.write;
+        var _b = _a === void 0 ? {} : _a, debug = _b.debug, direct = _b.direct, read = _b.read, write = _b.write;
         this.debugMode = false;
         if (debug) {
             sdk_1.logger.info("[PrismaCrypto] debug mode is active");
