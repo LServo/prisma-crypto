@@ -200,6 +200,33 @@ generatorHandler({
             options.dmmf.datamodel.models,
         );
 
+        const schemaHasMigrateEncryption = options.dmmf.datamodel.models
+            .map((model) => model.dbName)
+            .includes("_migrate_encryption");
+        const modelMigrateEncryption = `\nmodel MigrateEncryption {
+                id Int @id @default(autoincrement())
+            
+                token             String
+                applied           Boolean  @default(false)
+                add_encryption    String[]
+                remove_encryption String[]
+            
+                created_at DateTime @default(now())
+            
+                @@map("_migrate_encryption")
+            }`;
+
+        if (!schemaHasMigrateEncryption) {
+            fs.appendFileSync(
+                options.schemaPath,
+                modelMigrateEncryption,
+                "utf-8",
+            );
+            logger.info(
+                "The `_migrate_encryption` table was added to your schema.prisma.",
+            );
+        }
+
         const onlyPostgresProvider = options.datasources.every(
             (datasource) => datasource.provider === "postgresql",
         );
@@ -213,16 +240,15 @@ generatorHandler({
 
         if (!fs.existsSync(resolve(__dirname))) return { exitCode: 1 };
 
-        const result = await prisma.$queryRaw<boolean>(
+        const searchForMigrateEncryption = await prisma.$queryRaw<boolean>(
             Prisma.sql`SELECT EXISTS (
                 SELECT FROM information_schema.tables
                 WHERE table_name = '_migrate_encryption'
                 ) AS "exists"`,
         );
+        const dbHasMigrateEncryption = searchForMigrateEncryption[0]?.exists;
 
-        const modelExists = result[0]?.exists;
-
-        if (modelExists) {
+        if (dbHasMigrateEncryption) {
             logger.info(
                 "The table `_migrate_encryption` already exists in the database.",
             );
@@ -231,39 +257,53 @@ generatorHandler({
                 "The table `_migrate_encryption` does not yet exist in the database.",
             );
 
-            const schemaPath = resolve(
+            const prismaCryptoSchemaPath = resolve(
                 __dirname,
                 "..",
                 "prisma",
-                "schema.prisma",
+                "crypto.schema.prisma",
             );
-            logger.info("Schema Path:", schemaPath);
+
+            const originalSchemaDirectory = options.schemaPath
+                .split("/")
+                .slice(0, -1);
+            originalSchemaDirectory.push("crypto.schema.prisma");
+            const temporarySchemaPath = originalSchemaDirectory.join("/");
+
+            if (fs.existsSync(temporarySchemaPath))
+                fs.unlinkSync(temporarySchemaPath);
+
+            fs.copyFileSync(
+                prismaCryptoSchemaPath,
+                temporarySchemaPath,
+                fs.constants.COPYFILE_EXCL,
+            );
+
+            logger.info("Temporary Schema Path:", temporarySchemaPath);
             try {
                 logger.info("Synchronizing database schema...");
-                execSync(`npx prisma db pull --schema=${schemaPath}`);
+                execSync(`npx prisma db pull --schema=${temporarySchemaPath}`);
 
-                const modelMigrateEncryption = `\nmodel MigrateEncryption {
-                    id Int @id @default(autoincrement())
-                
-                    token             String
-                    applied           Boolean  @default(false)
-                    add_encryption    String[]
-                    remove_encryption String[]
-                
-                    created_at DateTime @default(now())
-                
-                    @@map("_migrate_encryption")
-                }`;
-
-                fs.appendFileSync(schemaPath, modelMigrateEncryption, "utf-8");
-
-                execSync(
-                    `npx prisma db push --skip-generate --schema=${schemaPath}`,
+                fs.appendFileSync(
+                    temporarySchemaPath,
+                    modelMigrateEncryption,
+                    "utf-8",
                 );
+
+                // execSync(
+                //     `npx prisma db push --skip-generate --schema=${schemaPath}`,
+                // );
+                execSync(
+                    `npx prisma migrate dev --name prisma_crypto_migrate_encryption --skip-generate --skip-seed --schema=${temporarySchemaPath}`,
+                );
+
+                if (fs.existsSync(temporarySchemaPath))
+                    fs.unlinkSync(temporarySchemaPath);
+
                 logger.info("Synchronization completed successfully.");
             } catch (error) {
                 logger.error(
-                    "Error when executing `prisma db push/pull` command:",
+                    "Error when executing `prisma db push/pull/migrate` command:",
                     error,
                 );
                 process.exit(1);

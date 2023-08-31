@@ -189,13 +189,21 @@ var getDbName = function (_a) {
     onGenerate: function (options) {
         var _a, _b, _c, _d, _e;
         return __awaiter(this, void 0, void 0, function () {
-            var prisma, _f, newEncryptedModels, newEncryptedModelsDbName, onlyPostgresProvider, result, modelExists, schemaPath, modelMigrateEncryption, latestMigration, error_1, newToken, lastEncryptedModels, getEncryptionChanges, _g, add_encryption, remove_encryption, _h, add_encryption_db_name, remove_encryption_db_name, hasChanges, deepClonedAddEncryption, deepClonedAddEncryptionDbName, deepClonedRemoveEncryption, deepClonedRemoveEncryptionDbName, error_2, newMigration, error_3, encryptedModelsFilePath, newEncryptedModelsJSON, readEncryptedModelsFile, regex, findIndex, cutInterestParts, newContent;
+            var prisma, _f, newEncryptedModels, newEncryptedModelsDbName, schemaHasMigrateEncryption, modelMigrateEncryption, onlyPostgresProvider, searchForMigrateEncryption, dbHasMigrateEncryption, prismaCryptoSchemaPath, originalSchemaDirectory, temporarySchemaPath, latestMigration, error_1, newToken, lastEncryptedModels, getEncryptionChanges, _g, add_encryption, remove_encryption, _h, add_encryption_db_name, remove_encryption_db_name, hasChanges, deepClonedAddEncryption, deepClonedAddEncryptionDbName, deepClonedRemoveEncryption, deepClonedRemoveEncryptionDbName, error_2, newMigration, error_3, encryptedModelsFilePath, newEncryptedModelsJSON, readEncryptedModelsFile, regex, findIndex, cutInterestParts, newContent;
             return __generator(this, function (_j) {
                 switch (_j.label) {
                     case 0:
                         validateEnvVars();
                         prisma = new prisma_client_1.PrismaCrypto({}).getPrismaClient();
                         _f = findEncryptFields(options.schemaPath, options.dmmf.datamodel.models), newEncryptedModels = _f.modelsEncryptedFields, newEncryptedModelsDbName = _f.modelsEncryptedFieldsDbName;
+                        schemaHasMigrateEncryption = options.dmmf.datamodel.models
+                            .map(function (model) { return model.dbName; })
+                            .includes("_migrate_encryption");
+                        modelMigrateEncryption = "\nmodel MigrateEncryption {\n                id Int @id @default(autoincrement())\n            \n                token             String\n                applied           Boolean  @default(false)\n                add_encryption    String[]\n                remove_encryption String[]\n            \n                created_at DateTime @default(now())\n            \n                @@map(\"_migrate_encryption\")\n            }";
+                        if (!schemaHasMigrateEncryption) {
+                            node_fs_1.default.appendFileSync(options.schemaPath, modelMigrateEncryption, "utf-8");
+                            sdk_1.logger.info("The `_migrate_encryption` table was added to your schema.prisma.");
+                        }
                         onlyPostgresProvider = options.datasources.every(function (datasource) { return datasource.provider === "postgresql"; });
                         if (!onlyPostgresProvider) {
                             sdk_1.logger.error("Prisma Crypto currently only supports PostgreSQL databases.");
@@ -205,25 +213,37 @@ var getDbName = function (_a) {
                             return [2 /*return*/, { exitCode: 1 }];
                         return [4 /*yield*/, prisma.$queryRaw(client_1.Prisma.sql(templateObject_1 || (templateObject_1 = __makeTemplateObject(["SELECT EXISTS (\n                SELECT FROM information_schema.tables\n                WHERE table_name = '_migrate_encryption'\n                ) AS \"exists\""], ["SELECT EXISTS (\n                SELECT FROM information_schema.tables\n                WHERE table_name = '_migrate_encryption'\n                ) AS \"exists\""]))))];
                     case 1:
-                        result = _j.sent();
-                        modelExists = (_a = result[0]) === null || _a === void 0 ? void 0 : _a.exists;
-                        if (modelExists) {
+                        searchForMigrateEncryption = _j.sent();
+                        dbHasMigrateEncryption = (_a = searchForMigrateEncryption[0]) === null || _a === void 0 ? void 0 : _a.exists;
+                        if (dbHasMigrateEncryption) {
                             sdk_1.logger.info("The table `_migrate_encryption` already exists in the database.");
                         }
                         else {
                             sdk_1.logger.info("The table `_migrate_encryption` does not yet exist in the database.");
-                            schemaPath = (0, node_path_1.resolve)(__dirname, "..", "prisma", "schema.prisma");
-                            sdk_1.logger.info("Schema Path:", schemaPath);
+                            prismaCryptoSchemaPath = (0, node_path_1.resolve)(__dirname, "..", "prisma", "crypto.schema.prisma");
+                            originalSchemaDirectory = options.schemaPath
+                                .split("/")
+                                .slice(0, -1);
+                            originalSchemaDirectory.push("crypto.schema.prisma");
+                            temporarySchemaPath = originalSchemaDirectory.join("/");
+                            if (node_fs_1.default.existsSync(temporarySchemaPath))
+                                node_fs_1.default.unlinkSync(temporarySchemaPath);
+                            node_fs_1.default.copyFileSync(prismaCryptoSchemaPath, temporarySchemaPath, node_fs_1.default.constants.COPYFILE_EXCL);
+                            sdk_1.logger.info("Temporary Schema Path:", temporarySchemaPath);
                             try {
                                 sdk_1.logger.info("Synchronizing database schema...");
-                                (0, node_child_process_1.execSync)("npx prisma db pull --schema=".concat(schemaPath));
-                                modelMigrateEncryption = "\nmodel MigrateEncryption {\n                    id Int @id @default(autoincrement())\n                \n                    token             String\n                    applied           Boolean  @default(false)\n                    add_encryption    String[]\n                    remove_encryption String[]\n                \n                    created_at DateTime @default(now())\n                \n                    @@map(\"_migrate_encryption\")\n                }";
-                                node_fs_1.default.appendFileSync(schemaPath, modelMigrateEncryption, "utf-8");
-                                (0, node_child_process_1.execSync)("npx prisma db push --skip-generate --schema=".concat(schemaPath));
+                                (0, node_child_process_1.execSync)("npx prisma db pull --schema=".concat(temporarySchemaPath));
+                                node_fs_1.default.appendFileSync(temporarySchemaPath, modelMigrateEncryption, "utf-8");
+                                // execSync(
+                                //     `npx prisma db push --skip-generate --schema=${schemaPath}`,
+                                // );
+                                (0, node_child_process_1.execSync)("npx prisma migrate dev --name prisma_crypto_migrate_encryption --skip-generate --skip-seed --schema=".concat(temporarySchemaPath));
+                                if (node_fs_1.default.existsSync(temporarySchemaPath))
+                                    node_fs_1.default.unlinkSync(temporarySchemaPath);
                                 sdk_1.logger.info("Synchronization completed successfully.");
                             }
                             catch (error) {
-                                sdk_1.logger.error("Error when executing `prisma db push/pull` command:", error);
+                                sdk_1.logger.error("Error when executing `prisma db push/pull/migrate` command:", error);
                                 process.exit(1);
                             }
                         }
