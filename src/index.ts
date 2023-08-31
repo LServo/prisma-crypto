@@ -5,6 +5,7 @@ import { sign, verify } from "jsonwebtoken";
 import { execSync } from "node:child_process";
 import fs from "node:fs";
 import { resolve } from "node:path";
+import { v4 as uuid } from "uuid";
 
 import { Prisma } from "@prisma/client";
 import {
@@ -204,17 +205,17 @@ generatorHandler({
             .map((model) => model.dbName)
             .includes("_migrate_encryption");
         const modelMigrateEncryption = `\nmodel MigrateEncryption {
-                id Int @id @default(autoincrement())
-            
-                token             String
-                applied           Boolean  @default(false)
-                add_encryption    String[]
-                remove_encryption String[]
-            
-                created_at DateTime @default(now())
-            
-                @@map("_migrate_encryption")
-            }`;
+            id String @id @default(uuid())
+        
+            token             String
+            applied           Boolean  @default(true)
+            add_encryption    String[]
+            remove_encryption String[]
+        
+            created_at DateTime @default(now())
+        
+            @@map("_migrate_encryption")
+        }`;
 
         if (!schemaHasMigrateEncryption) {
             fs.appendFileSync(
@@ -468,10 +469,12 @@ generatorHandler({
                 }
 
                 logger.info("Saving current state...");
+                const migrationId = uuid();
                 const newMigration =
                     await prisma.$queryRaw<PrismaCrypto.MigrateEncryption>(
-                        Prisma.sql`INSERT INTO "_migrate_encryption" ("token", "add_encryption", "remove_encryption") VALUES (${newToken}, ${add_encryption}, ${remove_encryption}) RETURNING *;`,
+                        Prisma.sql`INSERT INTO "_migrate_encryption" ("id", "token", "add_encryption", "remove_encryption") VALUES (${migrationId}, ${newToken}, ${add_encryption}, ${remove_encryption}) RETURNING *;`,
                     );
+
                 logger.info(
                     "Added Encryption:",
                     JSON.stringify(newMigration[0]?.add_encryption),

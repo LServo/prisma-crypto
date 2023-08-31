@@ -28,7 +28,7 @@ export namespace PrismaCrypto {
      * @description Interface da Entidade `MigrateEncryption`
      * @example
      * interface MigrateEncryption {
-     *  id: number;
+     *  id: string;
      *  token: string;
      *  add_encryption: string[];
      *  remove_encryption: string[];
@@ -36,7 +36,7 @@ export namespace PrismaCrypto {
      * }
      */
     export interface MigrateEncryption {
-        id: number;
+        id: string;
         token: string;
         add_encryption: string[];
         remove_encryption: string[];

@@ -51,6 +51,7 @@ var jsonwebtoken_1 = require("jsonwebtoken");
 var node_child_process_1 = require("node:child_process");
 var node_fs_1 = __importDefault(require("node:fs"));
 var node_path_1 = require("node:path");
+var uuid_1 = require("uuid");
 var client_1 = require("@prisma/client");
 var generator_helper_1 = require("@prisma/generator-helper");
 var sdk_1 = require("@prisma/sdk");
@@ -189,7 +190,7 @@ var getDbName = function (_a) {
     onGenerate: function (options) {
         var _a, _b, _c, _d, _e;
         return __awaiter(this, void 0, void 0, function () {
-            var prisma, _f, newEncryptedModels, newEncryptedModelsDbName, schemaHasMigrateEncryption, modelMigrateEncryption, onlyPostgresProvider, searchForMigrateEncryption, dbHasMigrateEncryption, prismaCryptoSchemaPath, originalSchemaDirectory, temporarySchemaPath, latestMigration, error_1, newToken, lastEncryptedModels, getEncryptionChanges, _g, add_encryption, remove_encryption, _h, add_encryption_db_name, remove_encryption_db_name, hasChanges, deepClonedAddEncryption, deepClonedAddEncryptionDbName, deepClonedRemoveEncryption, deepClonedRemoveEncryptionDbName, error_2, newMigration, error_3, encryptedModelsFilePath, newEncryptedModelsJSON, readEncryptedModelsFile, regex, findIndex, cutInterestParts, newContent;
+            var prisma, _f, newEncryptedModels, newEncryptedModelsDbName, schemaHasMigrateEncryption, modelMigrateEncryption, onlyPostgresProvider, searchForMigrateEncryption, dbHasMigrateEncryption, prismaCryptoSchemaPath, originalSchemaDirectory, temporarySchemaPath, latestMigration, error_1, newToken, lastEncryptedModels, getEncryptionChanges, _g, add_encryption, remove_encryption, _h, add_encryption_db_name, remove_encryption_db_name, hasChanges, deepClonedAddEncryption, deepClonedAddEncryptionDbName, deepClonedRemoveEncryption, deepClonedRemoveEncryptionDbName, error_2, migrationId, newMigration, error_3, encryptedModelsFilePath, newEncryptedModelsJSON, readEncryptedModelsFile, regex, findIndex, cutInterestParts, newContent;
             return __generator(this, function (_j) {
                 switch (_j.label) {
                     case 0:
@@ -199,7 +200,7 @@ var getDbName = function (_a) {
                         schemaHasMigrateEncryption = options.dmmf.datamodel.models
                             .map(function (model) { return model.dbName; })
                             .includes("_migrate_encryption");
-                        modelMigrateEncryption = "\nmodel MigrateEncryption {\n                id Int @id @default(autoincrement())\n            \n                token             String\n                applied           Boolean  @default(false)\n                add_encryption    String[]\n                remove_encryption String[]\n            \n                created_at DateTime @default(now())\n            \n                @@map(\"_migrate_encryption\")\n            }";
+                        modelMigrateEncryption = "\nmodel MigrateEncryption {\n            id String @id @default(uuid())\n        \n            token             String\n            applied           Boolean  @default(true)\n            add_encryption    String[]\n            remove_encryption String[]\n        \n            created_at DateTime @default(now())\n        \n            @@map(\"_migrate_encryption\")\n        }";
                         if (!schemaHasMigrateEncryption) {
                             node_fs_1.default.appendFileSync(options.schemaPath, modelMigrateEncryption, "utf-8");
                             sdk_1.logger.info("The `_migrate_encryption` table was added to your schema.prisma.");
@@ -337,7 +338,8 @@ var getDbName = function (_a) {
                         return [3 /*break*/, 10];
                     case 10:
                         sdk_1.logger.info("Saving current state...");
-                        return [4 /*yield*/, prisma.$queryRaw(client_1.Prisma.sql(templateObject_3 || (templateObject_3 = __makeTemplateObject(["INSERT INTO \"_migrate_encryption\" (\"token\", \"add_encryption\", \"remove_encryption\") VALUES (", ", ", ", ", ") RETURNING *;"], ["INSERT INTO \"_migrate_encryption\" (\"token\", \"add_encryption\", \"remove_encryption\") VALUES (", ", ", ", ", ") RETURNING *;"])), newToken, add_encryption, remove_encryption))];
+                        migrationId = (0, uuid_1.v4)();
+                        return [4 /*yield*/, prisma.$queryRaw(client_1.Prisma.sql(templateObject_3 || (templateObject_3 = __makeTemplateObject(["INSERT INTO \"_migrate_encryption\" (\"id\", \"token\", \"add_encryption\", \"remove_encryption\") VALUES (", ", ", ", ", ", ", ") RETURNING *;"], ["INSERT INTO \"_migrate_encryption\" (\"id\", \"token\", \"add_encryption\", \"remove_encryption\") VALUES (", ", ", ", ", ", ", ") RETURNING *;"])), migrationId, newToken, add_encryption, remove_encryption))];
                     case 11:
                         newMigration = _j.sent();
                         sdk_1.logger.info("Added Encryption:", JSON.stringify((_d = newMigration[0]) === null || _d === void 0 ? void 0 : _d.add_encryption));
