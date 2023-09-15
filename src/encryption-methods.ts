@@ -125,7 +125,7 @@ class EncryptionMethods implements PrismaCrypto.EncryptionMethods {
             if (debugMode)
                 logger.info(
                     `[manageEncryption] dataToEncrypt[${fieldName}] before:`,
-                    dataToEncrypt[fieldName],
+                    convertToJson(dataToEncrypt[fieldName]),
                 );
 
             // função que vai aplicar a criptografia ou decriptografia numa string, levando em consideração o modo de gerenciamento
@@ -169,7 +169,10 @@ class EncryptionMethods implements PrismaCrypto.EncryptionMethods {
             };
 
             // função que vai reconhecer o tipo de dado, que pode ser uma string ou um objeto. Se for uma string, então simplesmente aplicamos a função manageEncryptionMode passando a string como argumento. Se for um objeto, então precisamos verificar se é fruto de um Relacionamento ou não. Caso seja um relacionamento, então iteramos sobre as propriedades do objeto verificando na referência do model relacionado, quais precisamos aplicar a criptografia. Caso não seja um Relacionamento, significa que estamos lidando com parâmetros do prisma, portanto iremos iterar sobre as propriedades do objeto, verificando os parâmetros que podem ser utilizados e aplicando a criptografia no valor se tudo estiver correto.
-            const executeEncryption = (input: any): any => {
+            const executeEncryption = (
+                input: any,
+                field?: PrismaCrypto.PrismaEncryptField,
+            ): any => {
                 const isString = typeof input === "string";
                 switch (isString) {
                     case false: // se não for uma string, nem uma array, é um objeto
@@ -251,10 +254,25 @@ class EncryptionMethods implements PrismaCrypto.EncryptionMethods {
                                                             ]
                                                         )
                                                             return;
+
                                                         const newMustManageField =
                                                             newFieldsNameToManage.includes(
                                                                 prop,
                                                             );
+
+                                                        const hasRelationInside =
+                                                            Object.keys(
+                                                                inputObject[
+                                                                    key
+                                                                ][prop],
+                                                            ).some((prop) => {
+                                                                return newFieldsNameToManage.some(
+                                                                    (field) =>
+                                                                        field.includes(
+                                                                            prop,
+                                                                        ),
+                                                                );
+                                                            });
 
                                                         if (
                                                             newMustManageField
@@ -267,6 +285,44 @@ class EncryptionMethods implements PrismaCrypto.EncryptionMethods {
                                                                         key
                                                                     ][prop],
                                                                 );
+                                                        }
+
+                                                        if (hasRelationInside) {
+                                                            newFieldsToManage.forEach(
+                                                                (field) => {
+                                                                    const model =
+                                                                        field.fieldName.split(
+                                                                            ">",
+                                                                        )[1];
+
+                                                                    const valueExists =
+                                                                        inputObject[
+                                                                            key
+                                                                        ][prop][
+                                                                            model
+                                                                        ];
+
+                                                                    if (
+                                                                        valueExists
+                                                                    ) {
+                                                                        inputObject[
+                                                                            key
+                                                                        ][prop][
+                                                                            model
+                                                                        ] =
+                                                                            executeEncryption(
+                                                                                inputObject[
+                                                                                    key
+                                                                                ][
+                                                                                    prop
+                                                                                ][
+                                                                                    model
+                                                                                ],
+                                                                                field,
+                                                                            );
+                                                                    }
+                                                                },
+                                                            );
                                                         }
                                                     });
                                                 }
@@ -424,13 +480,14 @@ class EncryptionMethods implements PrismaCrypto.EncryptionMethods {
                 case false:
                     dataToEncrypt[fieldName] = executeEncryption(
                         dataToEncrypt[fieldName],
+                        field,
                     );
                     break;
                 case true:
                     // eslint-disable-next-line no-param-reassign
                     dataToEncrypt[fieldName] = dataToEncrypt[fieldName].map(
                         (item: string) => {
-                            item = executeEncryption(item);
+                            item = executeEncryption(item, field);
 
                             return item;
                         },
@@ -443,7 +500,7 @@ class EncryptionMethods implements PrismaCrypto.EncryptionMethods {
             if (debugMode)
                 logger.info(
                     `[manageEncryption] dataToEncrypt[${fieldName}] after:`,
-                    dataToEncrypt[fieldName],
+                    convertToJson(dataToEncrypt[fieldName]),
                 );
         });
 

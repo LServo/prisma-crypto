@@ -138,4 +138,49 @@ describe("Prisma Crypto Tests", () => {
             chai.assert.fail(convertToJson(error));
         }
     });
+
+    it("shoud be possible to deeply decrypt pivô relations", async () => {
+        try {
+            await prisma.cellPhoneCalls.create({
+                data: {
+                    CellPhone: {
+                        create: {
+                            number: "99999999999",
+                        },
+                    },
+                    Call: {
+                        create: {
+                            CallsHistory: {
+                                create: {},
+                            },
+                        },
+                    },
+                },
+            });
+
+            const output = await prisma.callsHistory.findMany({
+                select: {
+                    Call: {
+                        select: {
+                            CellPhoneCalls: {
+                                select: {
+                                    CellPhone: {
+                                        select: {
+                                            number: true,
+                                        },
+                                    },
+                                },
+                            },
+                        },
+                    },
+                },
+            });
+
+            expect(
+                output[0].Call[0].CellPhoneCalls[0].CellPhone.number,
+            ).toEqual("99999999999");
+        } catch (error) {
+            chai.assert.fail(convertToJson(error));
+        }
+    });
 });

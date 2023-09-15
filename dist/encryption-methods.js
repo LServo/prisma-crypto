@@ -141,7 +141,7 @@ var EncryptionMethods = /** @class */ (function () {
             if (!fieldValue)
                 return;
             if (debugMode)
-                sdk_1.logger.info("[manageEncryption] dataToEncrypt[".concat(fieldName, "] before:"), dataToEncrypt[fieldName]);
+                sdk_1.logger.info("[manageEncryption] dataToEncrypt[".concat(fieldName, "] before:"), convertToJson(dataToEncrypt[fieldName]));
             // função que vai aplicar a criptografia ou decriptografia numa string, levando em consideração o modo de gerenciamento
             var manageEncryptionMode = function (input) {
                 var _a, _b;
@@ -178,7 +178,7 @@ var EncryptionMethods = /** @class */ (function () {
                 return input;
             };
             // função que vai reconhecer o tipo de dado, que pode ser uma string ou um objeto. Se for uma string, então simplesmente aplicamos a função manageEncryptionMode passando a string como argumento. Se for um objeto, então precisamos verificar se é fruto de um Relacionamento ou não. Caso seja um relacionamento, então iteramos sobre as propriedades do objeto verificando na referência do model relacionado, quais precisamos aplicar a criptografia. Caso não seja um Relacionamento, significa que estamos lidando com parâmetros do prisma, portanto iremos iterar sobre as propriedades do objeto, verificando os parâmetros que podem ser utilizados e aplicando a criptografia no valor se tudo estiver correto.
-            var executeEncryption = function (input) {
+            var executeEncryption = function (input, field) {
                 var isString = typeof input === "string";
                 switch (isString) {
                     case false: // se não for uma string, nem uma array, é um objeto
@@ -209,8 +209,8 @@ var EncryptionMethods = /** @class */ (function () {
                                             if (foundField) {
                                                 // se encontrou um relacionamento dentro de outro, então pegar a referencia para criptografia do model relacionado
                                                 var _a = foundField.fieldName.split(">"), otherModelName = _a[1];
-                                                var newFieldsToManage = encrypted_models_1.prismaEncryptModels[otherModelName];
-                                                var newFieldsNameToManage_1 = newFieldsToManage.map(function (field) {
+                                                var newFieldsToManage_1 = encrypted_models_1.prismaEncryptModels[otherModelName];
+                                                var newFieldsNameToManage_1 = newFieldsToManage_1.map(function (field) {
                                                     return field.fieldName;
                                                 });
                                                 // sendo uma tabela pivô, precisamos verificar se é um array de objetos ou um objeto
@@ -223,9 +223,24 @@ var EncryptionMethods = /** @class */ (function () {
                                                         if (!inputObject[key][prop])
                                                             return;
                                                         var newMustManageField = newFieldsNameToManage_1.includes(prop);
+                                                        var hasRelationInside = Object.keys(inputObject[key][prop]).some(function (prop) {
+                                                            return newFieldsNameToManage_1.some(function (field) {
+                                                                return field.includes(prop);
+                                                            });
+                                                        });
                                                         if (newMustManageField) {
                                                             inputObject[key][prop] =
                                                                 manageEncryptionMode(inputObject[key][prop]);
+                                                        }
+                                                        if (hasRelationInside) {
+                                                            newFieldsToManage_1.forEach(function (field) {
+                                                                var model = field.fieldName.split(">")[1];
+                                                                var valueExists = inputObject[key][prop][model];
+                                                                if (valueExists) {
+                                                                    inputObject[key][prop][model] =
+                                                                        executeEncryption(inputObject[key][prop][model], field);
+                                                                }
+                                                            });
                                                         }
                                                     });
                                                 }
@@ -328,12 +343,12 @@ var EncryptionMethods = /** @class */ (function () {
             var isArray = Array.isArray(fieldValue);
             switch (isArray) {
                 case false:
-                    dataToEncrypt[fieldName] = executeEncryption(dataToEncrypt[fieldName]);
+                    dataToEncrypt[fieldName] = executeEncryption(dataToEncrypt[fieldName], field);
                     break;
                 case true:
                     // eslint-disable-next-line no-param-reassign
                     dataToEncrypt[fieldName] = dataToEncrypt[fieldName].map(function (item) {
-                        item = executeEncryption(item);
+                        item = executeEncryption(item, field);
                         return item;
                     });
                     break;
@@ -341,7 +356,7 @@ var EncryptionMethods = /** @class */ (function () {
                     break;
             }
             if (debugMode)
-                sdk_1.logger.info("[manageEncryption] dataToEncrypt[".concat(fieldName, "] after:"), dataToEncrypt[fieldName]);
+                sdk_1.logger.info("[manageEncryption] dataToEncrypt[".concat(fieldName, "] after:"), convertToJson(dataToEncrypt[fieldName]));
         });
         return {};
     };

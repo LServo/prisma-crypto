@@ -287,7 +287,7 @@ var PrismaCrypto = /** @class */ (function () {
                                         if (this.debugMode)
                                             sdk_1.logger.info("[".concat(model + "." + operation, "] whereArgs before:"), whereArgs);
                                         fieldsToManage = encrypted_models_1.prismaEncryptModels[model];
-                                        if (fieldsToManage)
+                                        if (whereArgs && fieldsToManage)
                                             encryption_methods_1.EncryptionMethods.resolveEncryptedArgs({
                                                 whereArgs: whereArgs,
                                                 fieldsToManage: fieldsToManage,
@@ -308,7 +308,7 @@ var PrismaCrypto = /** @class */ (function () {
                                     case 1:
                                         result = _c.sent();
                                         if (this.debugMode)
-                                            sdk_1.logger.info("[".concat(model + "." + operation, "] result before:"), result);
+                                            sdk_1.logger.info("[".concat(model + "." + operation, "] result before:"), PrismaCrypto.convertToJson(result));
                                         // descriptografar os campos criptografados no resultado da pesquisa
                                         if (fieldsToManage && result) {
                                             if (Array.isArray(result))
@@ -328,7 +328,7 @@ var PrismaCrypto = /** @class */ (function () {
                                                 });
                                         }
                                         if (this.debugMode)
-                                            sdk_1.logger.info("[".concat(model + "." + operation, "] result after:"), result);
+                                            sdk_1.logger.info("[".concat(model + "." + operation, "] result after:"), PrismaCrypto.convertToJson(result));
                                         return [2 /*return*/, result];
                                 }
                             });

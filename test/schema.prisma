@@ -37,8 +37,65 @@ model CellPhone {
 
     number String @unique //@encrypt
 
+    CellPhoneCalls CellPhoneCalls[]
+
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
 
     @@map("cell_phone")
+}
+
+model Call {
+    id String @id @default(uuid())
+
+    CallsHistory   CallsHistory @relation(fields: [callsHistoryId], references: [id])
+    callsHistoryId String
+
+    CellPhoneCalls CellPhoneCalls[]
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    @@map("calls")
+}
+
+model CellPhoneCalls {
+    id String @id @default(uuid())
+
+    Call        Call      @relation(fields: [callId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+    callId      String
+    CellPhone   CellPhone @relation(fields: [cellphoneId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+    cellphoneId String
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    @@map("cellphone_calls")
+}
+
+model CallsHistory {
+    id String @id @default(uuid())
+
+    Call Call[]
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    @@map("calls_history")
+}
+
+// sessão de atividades -> atividade > atividades de usuários -> usuário
+// histórico de chamadas -> chamada > chamadas de celulares -> celular
+
+model MigrateEncryption {
+    id String @id @default(uuid())
+
+    token             String
+    applied           Boolean  @default(true)
+    add_encryption    String[]
+    remove_encryption String[]
+
+    created_at DateTime @default(now())
+
+    @@map("_migrate_encryption")
 }

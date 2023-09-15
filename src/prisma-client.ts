@@ -329,7 +329,7 @@ export class PrismaCrypto {
                                 );
                             const fieldsToManage = prismaEncryptModels[model];
 
-                            if (fieldsToManage)
+                            if (whereArgs && fieldsToManage)
                                 EncryptionMethods.resolveEncryptedArgs({
                                     whereArgs,
                                     fieldsToManage,
@@ -368,7 +368,7 @@ export class PrismaCrypto {
                                     `[${
                                         model + "." + operation
                                     }] result before:`,
-                                    result,
+                                    PrismaCrypto.convertToJson(result),
                                 );
 
                             // descriptografar os campos criptografados no resultado da pesquisa
@@ -395,7 +395,7 @@ export class PrismaCrypto {
                                     `[${
                                         model + "." + operation
                                     }] result after:`,
-                                    result,
+                                    PrismaCrypto.convertToJson(result),
                                 );
                             return result;
                         },
