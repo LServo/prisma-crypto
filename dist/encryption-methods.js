@@ -125,25 +125,28 @@ var EncryptionMethods = /** @class */ (function () {
     };
     EncryptionMethods.prototype.resolveEncryptedArgs = function (_a) {
         var whereArgs = _a.whereArgs, fieldsToManage = _a.fieldsToManage;
+        var deepClonedFieldsToManage = JSON.parse(JSON.stringify(fieldsToManage));
         return EncryptionMethods.resolveEncryptedArgs({
             whereArgs: whereArgs,
-            fieldsToManage: fieldsToManage,
+            fieldsToManage: deepClonedFieldsToManage,
         });
     };
     EncryptionMethods.manageEncryption = function (_a) {
+        var _this = this;
         var dataToEncrypt = _a.dataToEncrypt, fieldsToManage = _a.fieldsToManage, manageMode = _a.manageMode;
-        fieldsToManage.forEach(function (field) {
-            var isRelation = field.typeName === "Relation";
-            var fieldName = !isRelation
-                ? field.fieldName
-                : field.fieldName.split(">")[0];
-            var fieldValue = dataToEncrypt[fieldName];
-            if (!fieldValue)
-                return;
+        var field = fieldsToManage.shift();
+        if (!field)
+            return {};
+        var isRelation = field.typeName === "Relation";
+        var fieldName = !isRelation
+            ? field.fieldName
+            : field.fieldName.split(">")[0];
+        var fieldValue = dataToEncrypt[fieldName];
+        if (fieldValue) {
             if (debugMode)
                 sdk_1.logger.info("[manageEncryption] dataToEncrypt[".concat(fieldName, "] before:"), convertToJson(dataToEncrypt[fieldName]));
             // função que vai aplicar a criptografia ou decriptografia numa string, levando em consideração o modo de gerenciamento
-            var manageEncryptionMode = function (input) {
+            var manageEncryptionMode_1 = function (input) {
                 var _a, _b;
                 var isString = typeof input === "string";
                 if (!isString) {
@@ -178,90 +181,69 @@ var EncryptionMethods = /** @class */ (function () {
                 return input;
             };
             // função que vai reconhecer o tipo de dado, que pode ser uma string ou um objeto. Se for uma string, então simplesmente aplicamos a função manageEncryptionMode passando a string como argumento. Se for um objeto, então precisamos verificar se é fruto de um Relacionamento ou não. Caso seja um relacionamento, então iteramos sobre as propriedades do objeto verificando na referência do model relacionado, quais precisamos aplicar a criptografia. Caso não seja um Relacionamento, significa que estamos lidando com parâmetros do prisma, portanto iremos iterar sobre as propriedades do objeto, verificando os parâmetros que podem ser utilizados e aplicando a criptografia no valor se tudo estiver correto.
-            var executeEncryption = function (input, field) {
+            var executeEncryption_1 = function (input, field) {
                 var isString = typeof input === "string";
                 switch (isString) {
                     case false: // se não for uma string, nem uma array, é um objeto
                         switch (isRelation) {
                             case true:
                                 var _a = field.fieldName.split(">"), modelName = _a[1];
-                                var fieldsToManage_1 = encrypted_models_1.prismaEncryptModels[modelName];
-                                var applyCryptoToRelation_1 = function (inputObject) {
-                                    var fieldsNameToManage = fieldsToManage_1.map(function (field) { return field.fieldName; });
-                                    Object.keys(inputObject).forEach(function (key) {
-                                        if (!inputObject[key])
-                                            return;
-                                        var mustManageField = fieldsNameToManage.includes(key);
-                                        // necessario fazer um novo split para pegar o fieldName e comparar com a key
-                                        if (mustManageField) {
-                                            inputObject[key] =
-                                                manageEncryptionMode(inputObject[key]);
-                                        }
-                                        else {
-                                            // se não encontrou diretamente, verificar se é uma tabela pivo
-                                            var foundField = fieldsToManage_1.find(function (field) {
-                                                if (field.fieldName.includes(">")) {
-                                                    var fieldName_1 = field.fieldName.split(">")[0];
-                                                    return (fieldName_1 === key);
-                                                }
-                                                return false;
-                                            });
-                                            if (foundField) {
-                                                // se encontrou um relacionamento dentro de outro, então pegar a referencia para criptografia do model relacionado
-                                                var _a = foundField.fieldName.split(">"), otherModelName = _a[1];
-                                                var newFieldsToManage_1 = encrypted_models_1.prismaEncryptModels[otherModelName];
-                                                var newFieldsNameToManage_1 = newFieldsToManage_1.map(function (field) {
-                                                    return field.fieldName;
-                                                });
-                                                // sendo uma tabela pivô, precisamos verificar se é um array de objetos ou um objeto
-                                                // desconsiderar a key atual, e buscar o segundo nível
-                                                var isObject = typeof inputObject[key] ===
-                                                    "object";
-                                                if (isObject) {
-                                                    // se for um objeto, basta iterar nas propriedades e ir aplicando a criptografia nos campos que precisam
-                                                    Object.keys(inputObject[key]).forEach(function (prop) {
-                                                        if (!inputObject[key][prop])
-                                                            return;
-                                                        var newMustManageField = newFieldsNameToManage_1.includes(prop);
-                                                        var hasRelationInside = Object.keys(inputObject[key][prop]).some(function (prop) {
-                                                            return newFieldsNameToManage_1.some(function (field) {
-                                                                return field.includes(prop);
-                                                            });
-                                                        });
-                                                        if (newMustManageField) {
-                                                            inputObject[key][prop] =
-                                                                manageEncryptionMode(inputObject[key][prop]);
-                                                        }
-                                                        if (hasRelationInside) {
-                                                            newFieldsToManage_1.forEach(function (field) {
-                                                                var model = field.fieldName.split(">")[1];
-                                                                var valueExists = inputObject[key][prop][model];
-                                                                if (valueExists) {
-                                                                    inputObject[key][prop][model] =
-                                                                        executeEncryption(inputObject[key][prop][model], field);
-                                                                }
-                                                            });
-                                                        }
-                                                    });
-                                                }
-                                                var isArray_1 = Array.isArray(inputObject[key]);
-                                                if (isArray_1) {
+                                var fieldsToManage_1 = JSON.parse(JSON.stringify(encrypted_models_1.prismaEncryptModels[modelName]));
+                                var fieldsNameToManage_1 = fieldsToManage_1.map(function (field) { return field.fieldName; });
+                                var applyCryptoToRelation_1 = function (inputObject, reference) {
+                                    var objectKeys = Object.keys(reference);
+                                    var key = objectKeys.shift();
+                                    // iterando sobre Users>UsersSectors
+                                    if (!reference[key])
+                                        return;
+                                    var mustManageField = fieldsNameToManage_1.includes(key);
+                                    // necessario fazer um novo split para pegar o fieldName e comparar com a key
+                                    if (mustManageField) {
+                                        inputObject[key] = manageEncryptionMode_1(inputObject[key]);
+                                    }
+                                    else {
+                                        // se não encontrou diretamente, verificar se é uma tabela pivo
+                                        var foundField = fieldsToManage_1.find(function (field) {
+                                            if (field.fieldName.includes(">")) {
+                                                var fieldName_1 = field.fieldName.split(">")[0];
+                                                return fieldName_1 === key;
+                                            }
+                                            return false;
+                                        });
+                                        if (foundField) {
+                                            // se encontrou um relacionamento dentro de outro, então pegar a referencia para criptografia do model relacionado
+                                            var _a = foundField.fieldName.split(">"), otherModelName = _a[1];
+                                            var newFieldsToManage_1 = JSON.parse(JSON.stringify(encrypted_models_1.prismaEncryptModels[otherModelName])); // model do user
+                                            var isArray_1 = Array.isArray(inputObject[key]);
+                                            switch (isArray_1) {
+                                                case true:
                                                     // se for array, precisamos de um loop a mais
-                                                    inputObject[key].forEach(function (item) {
-                                                        Object.keys(item).forEach(function (prop) {
-                                                            if (!item[prop])
-                                                                return;
-                                                            var newMustManageField = newFieldsNameToManage_1.includes(prop);
-                                                            if (newMustManageField) {
-                                                                item[prop] =
-                                                                    manageEncryptionMode(item[prop]);
-                                                            }
+                                                    inputObject[key].map(function (item) { return __awaiter(_this, void 0, void 0, function () {
+                                                        return __generator(this, function (_a) {
+                                                            this.manageEncryption({
+                                                                dataToEncrypt: item,
+                                                                fieldsToManage: newFieldsToManage_1,
+                                                                manageMode: manageMode,
+                                                            });
+                                                            return [2 /*return*/, item];
                                                         });
+                                                    }); });
+                                                    break;
+                                                case false:
+                                                    _this.manageEncryption({
+                                                        dataToEncrypt: inputObject[key],
+                                                        fieldsToManage: newFieldsToManage_1,
+                                                        manageMode: manageMode,
                                                     });
-                                                }
+                                                    break;
+                                                default:
                                             }
                                         }
-                                    });
+                                    }
+                                    if (objectKeys.length > 0) {
+                                        Reflect.deleteProperty(reference, key);
+                                        applyCryptoToRelation_1(inputObject, reference);
+                                    }
                                 };
                                 var createRelationMethods = [
                                     "connect",
@@ -283,10 +265,12 @@ var EncryptionMethods = /** @class */ (function () {
                                                 });
                                                 break;
                                             case "create":
-                                                applyCryptoToRelation_1(input[method]);
+                                                var deepClonedCreateInput = JSON.parse(JSON.stringify(input[method]));
+                                                applyCryptoToRelation_1(input[method], deepClonedCreateInput);
                                                 break;
                                             case "connectOrCreate":
-                                                applyCryptoToRelation_1(input[method]["create"]);
+                                                var deepClonedConnectOrCreateInput = JSON.parse(JSON.stringify(input[method]["create"]));
+                                                applyCryptoToRelation_1(input[method]["create"], deepClonedConnectOrCreateInput);
                                                 EncryptionMethods.resolveEncryptedArgs({
                                                     whereArgs: input[method]["where"],
                                                     fieldsToManage: fieldsToManage_1,
@@ -294,7 +278,8 @@ var EncryptionMethods = /** @class */ (function () {
                                                 break;
                                             case "createMany":
                                                 input[method]["data"].forEach(function (item) {
-                                                    applyCryptoToRelation_1(item);
+                                                    var deepClonedCreateManyInput = JSON.parse(JSON.stringify(item));
+                                                    applyCryptoToRelation_1(item, deepClonedCreateManyInput);
                                                 });
                                                 break;
                                             default:
@@ -304,7 +289,8 @@ var EncryptionMethods = /** @class */ (function () {
                                 }
                                 else {
                                     // se não tem os métodos, quer dizer que estamos tentando ler um resultado de busca por relacionamento
-                                    applyCryptoToRelation_1(input);
+                                    var deepClonedInput = JSON.parse(JSON.stringify(input));
+                                    applyCryptoToRelation_1(input, deepClonedInput);
                                 }
                                 break;
                             case false:
@@ -327,14 +313,14 @@ var EncryptionMethods = /** @class */ (function () {
                                         return; // Caso não tenha nenhum valor proibido, mas também não tenha nenhum permitido, como é o caso do "mode", então, retornamos sem fazer nada
                                     if (!input[key])
                                         return;
-                                    input[key] = manageEncryptionMode(input[key]);
+                                    input[key] = manageEncryptionMode_1(input[key]);
                                 });
                                 break;
                             default:
                         }
                         break;
                     case true:
-                        input = manageEncryptionMode(input);
+                        input = manageEncryptionMode_1(input);
                         break;
                     default:
                 }
@@ -343,12 +329,12 @@ var EncryptionMethods = /** @class */ (function () {
             var isArray = Array.isArray(fieldValue);
             switch (isArray) {
                 case false:
-                    dataToEncrypt[fieldName] = executeEncryption(dataToEncrypt[fieldName], field);
+                    dataToEncrypt[fieldName] = executeEncryption_1(dataToEncrypt[fieldName], field);
                     break;
                 case true:
                     // eslint-disable-next-line no-param-reassign
                     dataToEncrypt[fieldName] = dataToEncrypt[fieldName].map(function (item) {
-                        item = executeEncryption(item, field);
+                        item = executeEncryption_1(item, field);
                         return item;
                     });
                     break;
@@ -357,15 +343,22 @@ var EncryptionMethods = /** @class */ (function () {
             }
             if (debugMode)
                 sdk_1.logger.info("[manageEncryption] dataToEncrypt[".concat(fieldName, "] after:"), convertToJson(dataToEncrypt[fieldName]));
-        });
+        }
+        if ((fieldsToManage === null || fieldsToManage === void 0 ? void 0 : fieldsToManage.length) > 0)
+            this.manageEncryption({
+                dataToEncrypt: dataToEncrypt,
+                fieldsToManage: fieldsToManage,
+                manageMode: manageMode,
+            });
         return {};
     };
     EncryptionMethods.prototype.manageEncryption = function (_a) {
         var manageMode = _a.manageMode, dataToEncrypt = _a.dataToEncrypt, fieldsToManage = _a.fieldsToManage;
+        var deepClonedFieldsToManage = JSON.parse(JSON.stringify(fieldsToManage));
         return EncryptionMethods.manageEncryption({
             manageMode: manageMode,
             dataToEncrypt: dataToEncrypt,
-            fieldsToManage: fieldsToManage,
+            fieldsToManage: deepClonedFieldsToManage,
         });
     };
     EncryptionMethods.encryptData = function (_a) {

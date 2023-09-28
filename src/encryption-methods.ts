@@ -102,9 +102,12 @@ class EncryptionMethods implements PrismaCrypto.EncryptionMethods {
         whereArgs,
         fieldsToManage,
     }: PrismaCrypto.ResolveEncryptedArgs.Input): PrismaCrypto.ResolveEncryptedArgs.Output {
+        const deepClonedFieldsToManage = JSON.parse(
+            JSON.stringify(fieldsToManage),
+        );
         return EncryptionMethods.resolveEncryptedArgs({
             whereArgs,
-            fieldsToManage,
+            fieldsToManage: deepClonedFieldsToManage,
         });
     }
 
@@ -113,15 +116,16 @@ class EncryptionMethods implements PrismaCrypto.EncryptionMethods {
         fieldsToManage,
         manageMode,
     }: PrismaCrypto.ManageEncryption.Input): PrismaCrypto.ManageEncryption.Output {
-        fieldsToManage.forEach((field) => {
-            const isRelation = field.typeName === "Relation";
-            const fieldName = !isRelation
-                ? field.fieldName
-                : field.fieldName.split(">")[0];
+        const field = fieldsToManage.shift();
+        if (!field) return {};
 
-            const fieldValue = dataToEncrypt[fieldName];
-            if (!fieldValue) return;
+        const isRelation = field.typeName === "Relation";
+        const fieldName = !isRelation
+            ? field.fieldName
+            : field.fieldName.split(">")[0];
 
+        const fieldValue = dataToEncrypt[fieldName];
+        if (fieldValue) {
             if (debugMode)
                 logger.info(
                     `[manageEncryption] dataToEncrypt[${fieldName}] before:`,
@@ -180,195 +184,108 @@ class EncryptionMethods implements PrismaCrypto.EncryptionMethods {
                             case true:
                                 const [, modelName] =
                                     field.fieldName.split(">");
-                                const fieldsToManage =
-                                    prismaEncryptModels[modelName];
+                                const fieldsToManage = JSON.parse(
+                                    JSON.stringify(
+                                        prismaEncryptModels[modelName],
+                                    ),
+                                );
+                                const fieldsNameToManage = fieldsToManage.map(
+                                    (field) => field.fieldName,
+                                );
 
-                                const applyCryptoToRelation = (inputObject) => {
-                                    const fieldsNameToManage =
-                                        fieldsToManage.map(
-                                            (field) => field.fieldName,
+                                const applyCryptoToRelation = (
+                                    inputObject,
+                                    reference,
+                                ) => {
+                                    const objectKeys = Object.keys(reference);
+                                    const key = objectKeys.shift();
+                                    // iterando sobre Users>UsersSectors
+                                    if (!reference[key]) return;
+                                    const mustManageField =
+                                        fieldsNameToManage.includes(key);
+                                    // necessario fazer um novo split para pegar o fieldName e comparar com a key
+
+                                    if (mustManageField) {
+                                        inputObject[key] = manageEncryptionMode(
+                                            inputObject[key],
                                         );
-                                    Object.keys(inputObject).forEach((key) => {
-                                        if (!inputObject[key]) return;
-                                        const mustManageField =
-                                            fieldsNameToManage.includes(key);
-                                        // necessario fazer um novo split para pegar o fieldName e comparar com a key
-
-                                        if (mustManageField) {
-                                            inputObject[key] =
-                                                manageEncryptionMode(
-                                                    inputObject[key],
-                                                );
-                                        } else {
-                                            // se não encontrou diretamente, verificar se é uma tabela pivo
-                                            const foundField =
-                                                fieldsToManage.find((field) => {
-                                                    if (
-                                                        field.fieldName.includes(
-                                                            ">",
-                                                        )
-                                                    ) {
-                                                        const [fieldName] =
-                                                            field.fieldName.split(
-                                                                ">",
-                                                            );
-                                                        return (
-                                                            fieldName === key
-                                                        );
-                                                    }
-                                                    return false;
-                                                });
-
-                                            if (foundField) {
-                                                // se encontrou um relacionamento dentro de outro, então pegar a referencia para criptografia do model relacionado
-                                                const [, otherModelName] =
-                                                    foundField.fieldName.split(
+                                    } else {
+                                        // se não encontrou diretamente, verificar se é uma tabela pivo
+                                        const foundField = fieldsToManage.find(
+                                            (field) => {
+                                                if (
+                                                    field.fieldName.includes(
                                                         ">",
-                                                    );
-                                                const newFieldsToManage =
-                                                    prismaEncryptModels[
-                                                        otherModelName
-                                                    ];
-
-                                                const newFieldsNameToManage =
-                                                    newFieldsToManage.map(
-                                                        (field) =>
-                                                            field.fieldName,
-                                                    );
-
-                                                // sendo uma tabela pivô, precisamos verificar se é um array de objetos ou um objeto
-                                                // desconsiderar a key atual, e buscar o segundo nível
-
-                                                const isObject =
-                                                    typeof inputObject[key] ===
-                                                    "object";
-
-                                                if (isObject) {
-                                                    // se for um objeto, basta iterar nas propriedades e ir aplicando a criptografia nos campos que precisam
-                                                    Object.keys(
-                                                        inputObject[key],
-                                                    ).forEach((prop) => {
-                                                        if (
-                                                            !inputObject[key][
-                                                                prop
-                                                            ]
-                                                        )
-                                                            return;
-
-                                                        const newMustManageField =
-                                                            newFieldsNameToManage.includes(
-                                                                prop,
-                                                            );
-
-                                                        const hasRelationInside =
-                                                            Object.keys(
-                                                                inputObject[
-                                                                    key
-                                                                ][prop],
-                                                            ).some((prop) => {
-                                                                return newFieldsNameToManage.some(
-                                                                    (field) =>
-                                                                        field.includes(
-                                                                            prop,
-                                                                        ),
-                                                                );
-                                                            });
-
-                                                        if (
-                                                            newMustManageField
-                                                        ) {
-                                                            inputObject[key][
-                                                                prop
-                                                            ] =
-                                                                manageEncryptionMode(
-                                                                    inputObject[
-                                                                        key
-                                                                    ][prop],
-                                                                );
-                                                        }
-
-                                                        if (hasRelationInside) {
-                                                            newFieldsToManage.forEach(
-                                                                (field) => {
-                                                                    const model =
-                                                                        field.fieldName.split(
-                                                                            ">",
-                                                                        )[1];
-
-                                                                    const valueExists =
-                                                                        inputObject[
-                                                                            key
-                                                                        ][prop][
-                                                                            model
-                                                                        ];
-
-                                                                    if (
-                                                                        valueExists
-                                                                    ) {
-                                                                        inputObject[
-                                                                            key
-                                                                        ][prop][
-                                                                            model
-                                                                        ] =
-                                                                            executeEncryption(
-                                                                                inputObject[
-                                                                                    key
-                                                                                ][
-                                                                                    prop
-                                                                                ][
-                                                                                    model
-                                                                                ],
-                                                                                field,
-                                                                            );
-                                                                    }
-                                                                },
-                                                            );
-                                                        }
-                                                    });
+                                                    )
+                                                ) {
+                                                    const [fieldName] =
+                                                        field.fieldName.split(
+                                                            ">",
+                                                        );
+                                                    return fieldName === key;
                                                 }
+                                                return false;
+                                            },
+                                        );
 
-                                                const isArray = Array.isArray(
-                                                    inputObject[key],
-                                                );
+                                        if (foundField) {
+                                            // se encontrou um relacionamento dentro de outro, então pegar a referencia para criptografia do model relacionado
+                                            const [, otherModelName] =
+                                                foundField.fieldName.split(">");
 
-                                                if (isArray) {
+                                            const newFieldsToManage =
+                                                JSON.parse(
+                                                    JSON.stringify(
+                                                        prismaEncryptModels[
+                                                            otherModelName
+                                                        ],
+                                                    ),
+                                                ); // model do user
+
+                                            const isArray = Array.isArray(
+                                                inputObject[key],
+                                            );
+
+                                            switch (isArray) {
+                                                case true:
                                                     // se for array, precisamos de um loop a mais
-                                                    inputObject[key].forEach(
-                                                        (item) => {
-                                                            Object.keys(
-                                                                item,
-                                                            ).forEach(
-                                                                (prop) => {
-                                                                    if (
-                                                                        !item[
-                                                                            prop
-                                                                        ]
-                                                                    )
-                                                                        return;
-                                                                    const newMustManageField =
-                                                                        newFieldsNameToManage.includes(
-                                                                            prop,
-                                                                        );
-                                                                    if (
-                                                                        newMustManageField
-                                                                    ) {
-                                                                        item[
-                                                                            prop
-                                                                        ] =
-                                                                            manageEncryptionMode(
-                                                                                item[
-                                                                                    prop
-                                                                                ],
-                                                                            );
-                                                                    }
+                                                    inputObject[key].map(
+                                                        async (item) => {
+                                                            this.manageEncryption(
+                                                                {
+                                                                    dataToEncrypt:
+                                                                        item,
+                                                                    fieldsToManage:
+                                                                        newFieldsToManage,
+                                                                    manageMode,
                                                                 },
                                                             );
+
+                                                            return item;
                                                         },
                                                     );
-                                                }
+                                                    break;
+                                                case false:
+                                                    this.manageEncryption({
+                                                        dataToEncrypt:
+                                                            inputObject[key],
+                                                        fieldsToManage:
+                                                            newFieldsToManage,
+                                                        manageMode,
+                                                    });
+                                                    break;
+                                                default:
                                             }
                                         }
-                                    });
+                                    }
+
+                                    if (objectKeys.length > 0) {
+                                        Reflect.deleteProperty(reference, key);
+                                        applyCryptoToRelation(
+                                            inputObject,
+                                            reference,
+                                        );
+                                    }
                                 };
 
                                 const createRelationMethods = [
@@ -397,13 +314,29 @@ class EncryptionMethods implements PrismaCrypto.EncryptionMethods {
                                                 );
                                                 break;
                                             case "create":
+                                                const deepClonedCreateInput =
+                                                    JSON.parse(
+                                                        JSON.stringify(
+                                                            input[method],
+                                                        ),
+                                                    );
                                                 applyCryptoToRelation(
                                                     input[method],
+                                                    deepClonedCreateInput,
                                                 );
                                                 break;
                                             case "connectOrCreate":
+                                                const deepClonedConnectOrCreateInput =
+                                                    JSON.parse(
+                                                        JSON.stringify(
+                                                            input[method][
+                                                                "create"
+                                                            ],
+                                                        ),
+                                                    );
                                                 applyCryptoToRelation(
                                                     input[method]["create"],
+                                                    deepClonedConnectOrCreateInput,
                                                 );
                                                 EncryptionMethods.resolveEncryptedArgs(
                                                     {
@@ -418,8 +351,15 @@ class EncryptionMethods implements PrismaCrypto.EncryptionMethods {
                                             case "createMany":
                                                 input[method]["data"].forEach(
                                                     (item) => {
+                                                        const deepClonedCreateManyInput =
+                                                            JSON.parse(
+                                                                JSON.stringify(
+                                                                    item,
+                                                                ),
+                                                            );
                                                         applyCryptoToRelation(
                                                             item,
+                                                            deepClonedCreateManyInput,
                                                         );
                                                     },
                                                 );
@@ -430,7 +370,13 @@ class EncryptionMethods implements PrismaCrypto.EncryptionMethods {
                                     });
                                 } else {
                                     // se não tem os métodos, quer dizer que estamos tentando ler um resultado de busca por relacionamento
-                                    applyCryptoToRelation(input);
+                                    const deepClonedInput = JSON.parse(
+                                        JSON.stringify(input),
+                                    );
+                                    applyCryptoToRelation(
+                                        input,
+                                        deepClonedInput,
+                                    );
                                 }
                                 break;
                             case false:
@@ -502,7 +448,14 @@ class EncryptionMethods implements PrismaCrypto.EncryptionMethods {
                     `[manageEncryption] dataToEncrypt[${fieldName}] after:`,
                     convertToJson(dataToEncrypt[fieldName]),
                 );
-        });
+        }
+
+        if (fieldsToManage?.length > 0)
+            this.manageEncryption({
+                dataToEncrypt,
+                fieldsToManage,
+                manageMode,
+            });
 
         return {};
     }
@@ -511,10 +464,13 @@ class EncryptionMethods implements PrismaCrypto.EncryptionMethods {
         dataToEncrypt,
         fieldsToManage,
     }: PrismaCrypto.ManageEncryption.Input): PrismaCrypto.ManageEncryption.Output {
+        const deepClonedFieldsToManage = JSON.parse(
+            JSON.stringify(fieldsToManage),
+        );
         return EncryptionMethods.manageEncryption({
             manageMode,
             dataToEncrypt,
-            fieldsToManage,
+            fieldsToManage: deepClonedFieldsToManage,
         });
     }
 

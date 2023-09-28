@@ -21,6 +21,7 @@ describe("Prisma Crypto Tests", () => {
         try {
             const output = await prisma.user.create({
                 data: {
+                    id: "4b9d5403-c234-4b16-97a1-0e04e446b016",
                     email: "test@test.com",
                     name: "test",
                     password: "test",
@@ -146,6 +147,11 @@ describe("Prisma Crypto Tests", () => {
                     CellPhone: {
                         create: {
                             number: "99999999999",
+                            User: {
+                                connect: {
+                                    id: "4b9d5403-c234-4b16-97a1-0e04e446b016",
+                                },
+                            },
                         },
                     },
                     Call: {
@@ -167,6 +173,11 @@ describe("Prisma Crypto Tests", () => {
                                     CellPhone: {
                                         select: {
                                             number: true,
+                                            User: {
+                                                select: {
+                                                    name: true,
+                                                },
+                                            },
                                         },
                                     },
                                 },

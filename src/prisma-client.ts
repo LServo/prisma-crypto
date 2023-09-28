@@ -141,7 +141,9 @@ export class PrismaCrypto {
 
                         if (fieldsToManage)
                             EncryptionMethods.manageEncryption({
-                                fieldsToManage,
+                                fieldsToManage: JSON.parse(
+                                    JSON.stringify(fieldsToManage),
+                                ),
                                 dataToEncrypt,
                                 manageMode: "encrypt",
                             });
@@ -166,10 +168,14 @@ export class PrismaCrypto {
                         if (fieldsToManage) {
                             EncryptionMethods.resolveEncryptedArgs({
                                 whereArgs: args,
-                                fieldsToManage,
+                                fieldsToManage: JSON.parse(
+                                    JSON.stringify(fieldsToManage),
+                                ),
                             });
                             EncryptionMethods.manageEncryption({
-                                fieldsToManage,
+                                fieldsToManage: JSON.parse(
+                                    JSON.stringify(fieldsToManage),
+                                ),
                                 dataToEncrypt,
                                 manageMode: "encrypt",
                             });
@@ -196,14 +202,18 @@ export class PrismaCrypto {
                             if (Array.isArray(dataToEncrypt))
                                 dataToEncrypt.forEach((entry: unknown) => {
                                     EncryptionMethods.manageEncryption({
-                                        fieldsToManage,
+                                        fieldsToManage: JSON.parse(
+                                            JSON.stringify(fieldsToManage),
+                                        ),
                                         dataToEncrypt: entry,
                                         manageMode: "encrypt",
                                     });
                                 });
                             else
                                 EncryptionMethods.manageEncryption({
-                                    fieldsToManage,
+                                    fieldsToManage: JSON.parse(
+                                        JSON.stringify(fieldsToManage),
+                                    ),
                                     dataToEncrypt,
                                     manageMode: "encrypt",
                                 });
@@ -229,20 +239,26 @@ export class PrismaCrypto {
                         if (fieldsToManage) {
                             EncryptionMethods.resolveEncryptedArgs({
                                 whereArgs,
-                                fieldsToManage,
+                                fieldsToManage: JSON.parse(
+                                    JSON.stringify(fieldsToManage),
+                                ),
                             });
 
                             if (Array.isArray(dataToEncrypt))
                                 dataToEncrypt.forEach((entry: unknown) => {
                                     EncryptionMethods.manageEncryption({
-                                        fieldsToManage,
+                                        fieldsToManage: JSON.parse(
+                                            JSON.stringify(fieldsToManage),
+                                        ),
                                         dataToEncrypt: entry,
                                         manageMode: "encrypt",
                                     });
                                 });
                             else
                                 EncryptionMethods.manageEncryption({
-                                    fieldsToManage,
+                                    fieldsToManage: JSON.parse(
+                                        JSON.stringify(fieldsToManage),
+                                    ),
                                     dataToEncrypt,
                                     manageMode: "encrypt",
                                 });
@@ -268,19 +284,25 @@ export class PrismaCrypto {
                         if (fieldsToManage) {
                             EncryptionMethods.resolveEncryptedArgs({
                                 whereArgs,
-                                fieldsToManage,
+                                fieldsToManage: JSON.parse(
+                                    JSON.stringify(fieldsToManage),
+                                ),
                             });
 
                             if (create)
                                 EncryptionMethods.manageEncryption({
-                                    fieldsToManage,
+                                    fieldsToManage: JSON.parse(
+                                        JSON.stringify(fieldsToManage),
+                                    ),
                                     dataToEncrypt: create,
                                     manageMode: "encrypt",
                                 });
 
                             if (update)
                                 EncryptionMethods.manageEncryption({
-                                    fieldsToManage,
+                                    fieldsToManage: JSON.parse(
+                                        JSON.stringify(fieldsToManage),
+                                    ),
                                     dataToEncrypt: update,
                                     manageMode: "encrypt",
                                 });
@@ -332,7 +354,9 @@ export class PrismaCrypto {
                             if (whereArgs && fieldsToManage)
                                 EncryptionMethods.resolveEncryptedArgs({
                                     whereArgs,
-                                    fieldsToManage,
+                                    fieldsToManage: JSON.parse(
+                                        JSON.stringify(fieldsToManage),
+                                    ),
                                 });
 
                             if (this.debugMode)
@@ -377,14 +401,18 @@ export class PrismaCrypto {
                                     // caso seja utilizado o findMany
                                     result.forEach((entry: unknown) => {
                                         EncryptionMethods.manageEncryption({
-                                            fieldsToManage,
+                                            fieldsToManage: JSON.parse(
+                                                JSON.stringify(fieldsToManage),
+                                            ),
                                             dataToEncrypt: entry,
                                             manageMode: "decrypt",
                                         });
                                     });
                                 else
                                     EncryptionMethods.manageEncryption({
-                                        fieldsToManage,
+                                        fieldsToManage: JSON.parse(
+                                            JSON.stringify(fieldsToManage),
+                                        ),
                                         dataToEncrypt: result,
                                         manageMode: "decrypt",
                                     });

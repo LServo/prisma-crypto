@@ -149,7 +149,7 @@ var PrismaCrypto = /** @class */ (function () {
                             sdk_1.logger.info("fieldsToManage:", PrismaCrypto.convertToJson(fieldsToManage));
                         if (fieldsToManage)
                             encryption_methods_1.EncryptionMethods.manageEncryption({
-                                fieldsToManage: fieldsToManage,
+                                fieldsToManage: JSON.parse(JSON.stringify(fieldsToManage)),
                                 dataToEncrypt: dataToEncrypt,
                                 manageMode: "encrypt",
                             });
@@ -166,10 +166,10 @@ var PrismaCrypto = /** @class */ (function () {
                         if (fieldsToManage) {
                             encryption_methods_1.EncryptionMethods.resolveEncryptedArgs({
                                 whereArgs: args,
-                                fieldsToManage: fieldsToManage,
+                                fieldsToManage: JSON.parse(JSON.stringify(fieldsToManage)),
                             });
                             encryption_methods_1.EncryptionMethods.manageEncryption({
-                                fieldsToManage: fieldsToManage,
+                                fieldsToManage: JSON.parse(JSON.stringify(fieldsToManage)),
                                 dataToEncrypt: dataToEncrypt,
                                 manageMode: "encrypt",
                             });
@@ -188,14 +188,14 @@ var PrismaCrypto = /** @class */ (function () {
                             if (Array.isArray(dataToEncrypt))
                                 dataToEncrypt.forEach(function (entry) {
                                     encryption_methods_1.EncryptionMethods.manageEncryption({
-                                        fieldsToManage: fieldsToManage,
+                                        fieldsToManage: JSON.parse(JSON.stringify(fieldsToManage)),
                                         dataToEncrypt: entry,
                                         manageMode: "encrypt",
                                     });
                                 });
                             else
                                 encryption_methods_1.EncryptionMethods.manageEncryption({
-                                    fieldsToManage: fieldsToManage,
+                                    fieldsToManage: JSON.parse(JSON.stringify(fieldsToManage)),
                                     dataToEncrypt: dataToEncrypt,
                                     manageMode: "encrypt",
                                 });
@@ -213,19 +213,19 @@ var PrismaCrypto = /** @class */ (function () {
                         if (fieldsToManage) {
                             encryption_methods_1.EncryptionMethods.resolveEncryptedArgs({
                                 whereArgs: whereArgs,
-                                fieldsToManage: fieldsToManage,
+                                fieldsToManage: JSON.parse(JSON.stringify(fieldsToManage)),
                             });
                             if (Array.isArray(dataToEncrypt))
                                 dataToEncrypt.forEach(function (entry) {
                                     encryption_methods_1.EncryptionMethods.manageEncryption({
-                                        fieldsToManage: fieldsToManage,
+                                        fieldsToManage: JSON.parse(JSON.stringify(fieldsToManage)),
                                         dataToEncrypt: entry,
                                         manageMode: "encrypt",
                                     });
                                 });
                             else
                                 encryption_methods_1.EncryptionMethods.manageEncryption({
-                                    fieldsToManage: fieldsToManage,
+                                    fieldsToManage: JSON.parse(JSON.stringify(fieldsToManage)),
                                     dataToEncrypt: dataToEncrypt,
                                     manageMode: "encrypt",
                                 });
@@ -243,17 +243,17 @@ var PrismaCrypto = /** @class */ (function () {
                         if (fieldsToManage) {
                             encryption_methods_1.EncryptionMethods.resolveEncryptedArgs({
                                 whereArgs: whereArgs,
-                                fieldsToManage: fieldsToManage,
+                                fieldsToManage: JSON.parse(JSON.stringify(fieldsToManage)),
                             });
                             if (create)
                                 encryption_methods_1.EncryptionMethods.manageEncryption({
-                                    fieldsToManage: fieldsToManage,
+                                    fieldsToManage: JSON.parse(JSON.stringify(fieldsToManage)),
                                     dataToEncrypt: create,
                                     manageMode: "encrypt",
                                 });
                             if (update)
                                 encryption_methods_1.EncryptionMethods.manageEncryption({
-                                    fieldsToManage: fieldsToManage,
+                                    fieldsToManage: JSON.parse(JSON.stringify(fieldsToManage)),
                                     dataToEncrypt: update,
                                     manageMode: "encrypt",
                                 });
@@ -290,7 +290,7 @@ var PrismaCrypto = /** @class */ (function () {
                                         if (whereArgs && fieldsToManage)
                                             encryption_methods_1.EncryptionMethods.resolveEncryptedArgs({
                                                 whereArgs: whereArgs,
-                                                fieldsToManage: fieldsToManage,
+                                                fieldsToManage: JSON.parse(JSON.stringify(fieldsToManage)),
                                             });
                                         if (this.debugMode)
                                             sdk_1.logger.info("[".concat(model + "." + operation, "] whereArgs after:"), whereArgs);
@@ -315,14 +315,14 @@ var PrismaCrypto = /** @class */ (function () {
                                                 // caso seja utilizado o findMany
                                                 result.forEach(function (entry) {
                                                     encryption_methods_1.EncryptionMethods.manageEncryption({
-                                                        fieldsToManage: fieldsToManage,
+                                                        fieldsToManage: JSON.parse(JSON.stringify(fieldsToManage)),
                                                         dataToEncrypt: entry,
                                                         manageMode: "decrypt",
                                                     });
                                                 });
                                             else
                                                 encryption_methods_1.EncryptionMethods.manageEncryption({
-                                                    fieldsToManage: fieldsToManage,
+                                                    fieldsToManage: JSON.parse(JSON.stringify(fieldsToManage)),
                                                     dataToEncrypt: result,
                                                     manageMode: "decrypt",
                                                 });
