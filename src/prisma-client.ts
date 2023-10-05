@@ -124,7 +124,7 @@ export class PrismaCrypto {
             query: {
                 $allModels: {
                     // Métodos de escrita personalizados
-                    create: ({ args, model, query }) => {
+                    create: async ({ args, model, query }) => {
                         if (this.debugMode)
                             logger.info(
                                 `[${model + ".create"}] args before:`,
@@ -153,10 +153,48 @@ export class PrismaCrypto {
                                 `[${model + ".create"}] args after:`,
                                 PrismaCrypto.convertToJson(args),
                             );
-                        return query({ ...args });
+
+                        const result = await query(args);
+
+                        if (this.debugMode)
+                            logger.info(
+                                `[${model + ".update"}] result before:`,
+                                PrismaCrypto.convertToJson(result),
+                            );
+
+                        // descriptografar os campos criptografados no resultado da pesquisa
+                        if (fieldsToManage && result) {
+                            if (Array.isArray(result))
+                                // caso seja utilizado o findMany
+                                result.forEach((entry: unknown) => {
+                                    EncryptionMethods.manageEncryption({
+                                        fieldsToManage: JSON.parse(
+                                            JSON.stringify(fieldsToManage),
+                                        ),
+                                        dataToEncrypt: entry,
+                                        manageMode: "decrypt",
+                                    });
+                                });
+                            else
+                                EncryptionMethods.manageEncryption({
+                                    fieldsToManage: JSON.parse(
+                                        JSON.stringify(fieldsToManage),
+                                    ),
+                                    dataToEncrypt: result,
+                                    manageMode: "decrypt",
+                                });
+                        }
+
+                        if (this.debugMode)
+                            logger.info(
+                                `[${model + ".update"}] result after:`,
+                                PrismaCrypto.convertToJson(result),
+                            );
+
+                        return result;
                     },
 
-                    update: ({ args, model, query }) => {
+                    update: async ({ args, model, query }) => {
                         if (this.debugMode)
                             logger.info(
                                 `[${model + ".update"}] args before:`,
@@ -186,10 +224,48 @@ export class PrismaCrypto {
                                 `[${model + ".update"}] args after:`,
                                 PrismaCrypto.convertToJson(args),
                             );
-                        return query({ ...args });
+
+                        const result = await query(args);
+
+                        if (this.debugMode)
+                            logger.info(
+                                `[${model + ".update"}] result before:`,
+                                PrismaCrypto.convertToJson(result),
+                            );
+
+                        // descriptografar os campos criptografados no resultado da pesquisa
+                        if (fieldsToManage && result) {
+                            if (Array.isArray(result))
+                                // caso seja utilizado o findMany
+                                result.forEach((entry: unknown) => {
+                                    EncryptionMethods.manageEncryption({
+                                        fieldsToManage: JSON.parse(
+                                            JSON.stringify(fieldsToManage),
+                                        ),
+                                        dataToEncrypt: entry,
+                                        manageMode: "decrypt",
+                                    });
+                                });
+                            else
+                                EncryptionMethods.manageEncryption({
+                                    fieldsToManage: JSON.parse(
+                                        JSON.stringify(fieldsToManage),
+                                    ),
+                                    dataToEncrypt: result,
+                                    manageMode: "decrypt",
+                                });
+                        }
+
+                        if (this.debugMode)
+                            logger.info(
+                                `[${model + ".update"}] result after:`,
+                                PrismaCrypto.convertToJson(result),
+                            );
+
+                        return result;
                     },
 
-                    createMany: ({ args, model, query }) => {
+                    createMany: async ({ args, model, query }) => {
                         if (this.debugMode)
                             logger.info(
                                 `[${model + ".createMany"}] args before:`,
@@ -224,10 +300,48 @@ export class PrismaCrypto {
                                 `[${model + ".createMany"}] args after:`,
                                 PrismaCrypto.convertToJson(args),
                             );
-                        return query({ ...args });
+
+                        const result = await query(args);
+
+                        if (this.debugMode)
+                            logger.info(
+                                `[${model + ".createMany"}] result before:`,
+                                PrismaCrypto.convertToJson(result),
+                            );
+
+                        // descriptografar os campos criptografados no resultado da pesquisa
+                        if (fieldsToManage && result) {
+                            if (Array.isArray(result))
+                                // caso seja utilizado o findMany
+                                result.forEach((entry: unknown) => {
+                                    EncryptionMethods.manageEncryption({
+                                        fieldsToManage: JSON.parse(
+                                            JSON.stringify(fieldsToManage),
+                                        ),
+                                        dataToEncrypt: entry,
+                                        manageMode: "decrypt",
+                                    });
+                                });
+                            else
+                                EncryptionMethods.manageEncryption({
+                                    fieldsToManage: JSON.parse(
+                                        JSON.stringify(fieldsToManage),
+                                    ),
+                                    dataToEncrypt: result,
+                                    manageMode: "decrypt",
+                                });
+                        }
+
+                        if (this.debugMode)
+                            logger.info(
+                                `[${model + ".createMany"}] result after:`,
+                                PrismaCrypto.convertToJson(result),
+                            );
+
+                        return result;
                     },
 
-                    updateMany: ({ args, model, query }) => {
+                    updateMany: async ({ args, model, query }) => {
                         if (this.debugMode)
                             logger.info(
                                 `[${model + ".updateMany"}] args before:`,
@@ -269,10 +383,48 @@ export class PrismaCrypto {
                                 `[${model + ".updateMany"}] args after:`,
                                 PrismaCrypto.convertToJson(args),
                             );
-                        return query({ ...args });
+
+                        const result = await query(args);
+
+                        if (this.debugMode)
+                            logger.info(
+                                `[${model + ".updateMany"}] result before:`,
+                                PrismaCrypto.convertToJson(result),
+                            );
+
+                        // descriptografar os campos criptografados no resultado da pesquisa
+                        if (fieldsToManage && result) {
+                            if (Array.isArray(result))
+                                // caso seja utilizado o findMany
+                                result.forEach((entry: unknown) => {
+                                    EncryptionMethods.manageEncryption({
+                                        fieldsToManage: JSON.parse(
+                                            JSON.stringify(fieldsToManage),
+                                        ),
+                                        dataToEncrypt: entry,
+                                        manageMode: "decrypt",
+                                    });
+                                });
+                            else
+                                EncryptionMethods.manageEncryption({
+                                    fieldsToManage: JSON.parse(
+                                        JSON.stringify(fieldsToManage),
+                                    ),
+                                    dataToEncrypt: result,
+                                    manageMode: "decrypt",
+                                });
+                        }
+
+                        if (this.debugMode)
+                            logger.info(
+                                `[${model + ".updateMany"}] result after:`,
+                                PrismaCrypto.convertToJson(result),
+                            );
+
+                        return result;
                     },
 
-                    upsert: ({ args, model, query }) => {
+                    upsert: async ({ args, model, query }) => {
                         if (this.debugMode)
                             logger.info(
                                 `[${model + ".upsert"}] args before:`,
@@ -313,7 +465,45 @@ export class PrismaCrypto {
                                 `[${model + ".upsert"}] args after:`,
                                 PrismaCrypto.convertToJson(args),
                             );
-                        return query({ ...args });
+
+                        const result = await query(args);
+
+                        if (this.debugMode)
+                            logger.info(
+                                `[${model + ".upsert"}] result before:`,
+                                PrismaCrypto.convertToJson(result),
+                            );
+
+                        // descriptografar os campos criptografados no resultado da pesquisa
+                        if (fieldsToManage && result) {
+                            if (Array.isArray(result))
+                                // caso seja utilizado o findMany
+                                result.forEach((entry: unknown) => {
+                                    EncryptionMethods.manageEncryption({
+                                        fieldsToManage: JSON.parse(
+                                            JSON.stringify(fieldsToManage),
+                                        ),
+                                        dataToEncrypt: entry,
+                                        manageMode: "decrypt",
+                                    });
+                                });
+                            else
+                                EncryptionMethods.manageEncryption({
+                                    fieldsToManage: JSON.parse(
+                                        JSON.stringify(fieldsToManage),
+                                    ),
+                                    dataToEncrypt: result,
+                                    manageMode: "decrypt",
+                                });
+                        }
+
+                        if (this.debugMode)
+                            logger.info(
+                                `[${model + ".upsert"}] result after:`,
+                                PrismaCrypto.convertToJson(result),
+                            );
+
+                        return result;
                     },
                 },
             },
