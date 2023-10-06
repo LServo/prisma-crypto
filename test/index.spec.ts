@@ -1,3 +1,4 @@
+import { execSync } from "child_process";
 import { it, describe, expect, chai, beforeAll, vi } from "vitest";
 
 import { PrismaClient } from "@prisma/client";
@@ -12,6 +13,10 @@ let prisma: PrismaClient;
 
 describe("Prisma Crypto Tests", () => {
     beforeAll(async () => {
+        console.log("Resetting database...");
+        execSync(
+            "npx prisma migrate reset --force --skip-seed --schema=test/schema.prisma",
+        );
         prisma = new PrismaCrypto({
             debug: true,
         }).getPrismaClient();
@@ -44,14 +49,26 @@ describe("Prisma Crypto Tests", () => {
                             data: [
                                 {
                                     number: "75988893409",
+                                    mobile_carrier: "TIM",
                                 },
                                 {
                                     number: "275988893409",
+                                    mobile_carrier: "VIVO",
                                 },
                                 {
                                     number: "375988893409",
+                                    mobile_carrier: "CLARO",
                                 },
                             ],
+                        },
+                    },
+                },
+                select: {
+                    name: true,
+                    CellPhone: {
+                        select: {
+                            number: true,
+                            mobile_carrier: true,
                         },
                     },
                 },
@@ -140,13 +157,14 @@ describe("Prisma Crypto Tests", () => {
         }
     });
 
-    it("shoud be possible to deeply decrypt pivô relations", async () => {
+    it("shoud be possible to deeply decrypt more than 1 field in pivot relations", async () => {
         try {
             await prisma.cellPhoneCalls.create({
                 data: {
                     CellPhone: {
                         create: {
                             number: "99999999999",
+                            mobile_carrier: "TIM",
                             User: {
                                 connect: {
                                     id: "4b9d5403-c234-4b16-97a1-0e04e446b016",
@@ -173,9 +191,11 @@ describe("Prisma Crypto Tests", () => {
                                     CellPhone: {
                                         select: {
                                             number: true,
+                                            mobile_carrier: true,
                                             User: {
                                                 select: {
                                                     name: true,
+                                                    email: true,
                                                 },
                                             },
                                         },
@@ -190,7 +210,17 @@ describe("Prisma Crypto Tests", () => {
             expect(
                 output[0].Call[0].CellPhoneCalls[0].CellPhone.number,
             ).toEqual("99999999999");
+            expect(
+                output[0].Call[0].CellPhoneCalls[0].CellPhone.mobile_carrier,
+            ).toEqual("TIM");
+            expect(
+                output[0].Call[0].CellPhoneCalls[0].CellPhone.User?.name,
+            ).toEqual("test");
+            expect(
+                output[0].Call[0].CellPhoneCalls[0].CellPhone.User?.email,
+            ).toEqual("test@test.com");
         } catch (error) {
+            console.log("error:", error);
             chai.assert.fail(convertToJson(error));
         }
     });

@@ -35,7 +35,8 @@ model CellPhone {
     User   User?   @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
     userId String?
 
-    number String @unique //@encrypt
+    number         String @unique //@encrypt
+    mobile_carrier String //@encrypt
 
     CellPhoneCalls CellPhoneCalls[]
 
