@@ -206,9 +206,12 @@ var EncryptionMethods = /** @class */ (function () {
                                     var objectKeys = Object.keys(reference);
                                     console.log("objectKeys:", objectKeys);
                                     var key = objectKeys.shift();
+                                    console.log("key:", key);
                                     if (!key)
                                         return;
                                     if (reference[key]) {
+                                        console.log("reference[key]:", reference[key]);
+                                        console.log("fieldsNameToManage:", fieldsNameToManage_1);
                                         var mustManageField = fieldsNameToManage_1.includes(key);
                                         // necessario fazer um novo split para pegar o fieldName e comparar com a key
                                         if (mustManageField) {
@@ -224,6 +227,7 @@ var EncryptionMethods = /** @class */ (function () {
                                                 }
                                                 return false;
                                             });
+                                            console.log("foundField:", foundField);
                                             if (foundField) {
                                                 // se encontrou um relacionamento dentro de outro, então pegar a referencia para criptografia do model relacionado
                                                 var _a = foundField.fieldName.split(">"), otherModelName = _a[1];
@@ -301,24 +305,55 @@ var EncryptionMethods = /** @class */ (function () {
                                 console.log("isCreateRelationMethod:", isCreateRelationMethod);
                                 if (isCreateRelationMethod) {
                                     objectProperties_1.forEach(function (method) {
+                                        var isArray = Array.isArray(input[method]);
                                         switch (method) {
                                             case "connect":
-                                                EncryptionMethods.resolveEncryptedArgs({
-                                                    whereArgs: input[method],
-                                                    fieldsToManage: fieldsToManage_1,
-                                                });
+                                                if (isArray) {
+                                                    input[method].forEach(function (item) {
+                                                        EncryptionMethods.resolveEncryptedArgs({
+                                                            whereArgs: item,
+                                                            fieldsToManage: fieldsToManage_1,
+                                                        });
+                                                    });
+                                                }
+                                                else {
+                                                    EncryptionMethods.resolveEncryptedArgs({
+                                                        whereArgs: input[method],
+                                                        fieldsToManage: fieldsToManage_1,
+                                                    });
+                                                }
                                                 break;
                                             case "create":
-                                                var deepClonedCreateInput = JSON.parse(JSON.stringify(input[method]));
-                                                applyCryptoToRelation_1(input[method], deepClonedCreateInput);
+                                                if (isArray) {
+                                                    input[method].forEach(function (item) {
+                                                        var deepClonedCreateInput = JSON.parse(JSON.stringify(item));
+                                                        applyCryptoToRelation_1(item, deepClonedCreateInput);
+                                                    });
+                                                }
+                                                else {
+                                                    var deepClonedCreateInput = JSON.parse(JSON.stringify(input[method]));
+                                                    applyCryptoToRelation_1(input[method], deepClonedCreateInput);
+                                                }
                                                 break;
                                             case "connectOrCreate":
-                                                var deepClonedConnectOrCreateInput = JSON.parse(JSON.stringify(input[method]["create"]));
-                                                applyCryptoToRelation_1(input[method]["create"], deepClonedConnectOrCreateInput);
-                                                EncryptionMethods.resolveEncryptedArgs({
-                                                    whereArgs: input[method]["where"],
-                                                    fieldsToManage: fieldsToManage_1,
-                                                });
+                                                if (isArray) {
+                                                    input[method].forEach(function (item) {
+                                                        var deepClonedConnectOrCreateInput = JSON.parse(JSON.stringify(item["create"]));
+                                                        applyCryptoToRelation_1(item["create"], deepClonedConnectOrCreateInput);
+                                                        EncryptionMethods.resolveEncryptedArgs({
+                                                            whereArgs: item["where"],
+                                                            fieldsToManage: fieldsToManage_1,
+                                                        });
+                                                    });
+                                                }
+                                                else {
+                                                    var deepClonedConnectOrCreateInput = JSON.parse(JSON.stringify(input[method]["create"]));
+                                                    applyCryptoToRelation_1(input[method]["create"], deepClonedConnectOrCreateInput);
+                                                    EncryptionMethods.resolveEncryptedArgs({
+                                                        whereArgs: input[method]["where"],
+                                                        fieldsToManage: fieldsToManage_1,
+                                                    });
+                                                }
                                                 break;
                                             case "createMany":
                                                 input[method]["data"].forEach(function (item) {

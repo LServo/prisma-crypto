@@ -157,47 +157,61 @@ describe("Prisma Crypto Tests", () => {
         }
     });
 
-    // it("shoud be possible to create and encrypt more than 1 field in pivot relations", async () => {
-    //     try {
-    //         const output = await prisma.user.create({
-    //             data: {
-    //                 email: "test1@test1.com",
-    //                 name: "test1",
-    //                 password: "test1",
-    //                 CellPhone: {
-    //                     create: [
-    //                         {
-    //                             number: "teste1",
-    //                             mobile_carrier: "teste1",
-    //                         },
-    //                         {
-    //                             number: "teste2",
-    //                             mobile_carrier: "teste2",
-    //                         },
-    //                         {
-    //                             number: "teste3",
-    //                             mobile_carrier: "teste3",
-    //                         },
-    //                     ],
-    //                 },
-    //             },
-    //             select: {
-    //                 name: true,
-    //                 CellPhone: {
-    //                     select: {
-    //                         number: true,
-    //                         mobile_carrier: true,
-    //                     },
-    //                 },
-    //             },
-    //         });
+    it("shoud be possible to create and encrypt more than 1 field in pivot relations", async () => {
+        try {
+            const output = await prisma.user.create({
+                data: {
+                    email: "test1@test1.com",
+                    name: "test1",
+                    password: "test1",
+                    CellPhone: {
+                        create: [
+                            {
+                                number: "teste1",
+                                mobile_carrier: "teste1",
+                            },
+                            {
+                                number: "teste2",
+                                mobile_carrier: "teste2",
+                            },
+                            {
+                                number: "teste3",
+                                mobile_carrier: "teste3",
+                            },
+                        ],
+                    },
+                },
+                select: {
+                    name: true,
+                    CellPhone: {
+                        select: {
+                            number: true,
+                            mobile_carrier: true,
+                        },
+                    },
+                },
+            });
 
-    //         console.log("output:", output);
-    //     } catch (error) {
-    //         console.log("error:", error);
-    //         chai.assert.fail(convertToJson(error));
-    //     }
-    // });
+            expect(output.name).toEqual("test1");
+            expect(output.CellPhone[0]).toEqual({
+                number: "teste1",
+                mobile_carrier: "teste1",
+            });
+            expect(output.CellPhone[1]).toEqual({
+                number: "teste2",
+                mobile_carrier: "teste2",
+            });
+            expect(output.CellPhone[2]).toEqual({
+                number: "teste3",
+                mobile_carrier: "teste3",
+            });
+
+            console.log("output:", output);
+        } catch (error) {
+            console.log("error:", error);
+            chai.assert.fail(convertToJson(error));
+        }
+    });
 
     it("shoud be possible to deeply decrypt more than 1 field in pivot relations", async () => {
         try {
