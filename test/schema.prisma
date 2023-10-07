@@ -77,7 +77,9 @@ model CellPhoneCalls {
 model CallsHistory {
     id String @id @default(uuid())
 
-    Call Call[]
+    user_name   String //@encrypt
+    description String //@encrypt
+    Call        Call[]
 
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt

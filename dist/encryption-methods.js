@@ -81,23 +81,25 @@ var EncryptionMethods = /** @class */ (function () {
         if (debugMode)
             sdk_1.logger.info("[resolveEncryptedArgs] whereArgs before:", convertToJson(whereArgs));
         var _c = (_b = whereArgs) !== null && _b !== void 0 ? _b : {}, AND = _c.AND, NOT = _c.NOT, OR = _c.OR;
-        var manageArrayEncryption = function (array) {
-            if (!array)
+        var manageArrayEncryption = function (whereData) {
+            if (!whereData)
                 return;
-            var isArray = Array.isArray(array);
+            var isArray = Array.isArray(whereData);
+            console.log("isArray:", isArray);
             switch (isArray) {
                 case false:
                     EncryptionMethods.manageEncryption({
-                        fieldsToManage: fieldsToManage,
-                        dataToEncrypt: array,
+                        fieldsToManage: JSON.parse(JSON.stringify(fieldsToManage)),
+                        dataToEncrypt: whereData,
                         manageMode: "encrypt",
                     });
                     break;
                 case true:
-                    array.forEach(function (item) {
+                    whereData.forEach(function (item) {
+                        console.log("item:", item);
                         if (item && typeof item === "object")
                             EncryptionMethods.manageEncryption({
-                                fieldsToManage: fieldsToManage,
+                                fieldsToManage: JSON.parse(JSON.stringify(fieldsToManage)),
                                 dataToEncrypt: item,
                                 manageMode: "encrypt",
                             });
@@ -107,18 +109,22 @@ var EncryptionMethods = /** @class */ (function () {
                     break;
             }
         };
-        if (whereArgs)
-            EncryptionMethods.manageEncryption({
-                fieldsToManage: fieldsToManage,
-                dataToEncrypt: whereArgs,
-                manageMode: "encrypt",
-            });
-        if (AND)
+        if (whereArgs) {
+            console.log("\nwhereArgs:");
+            manageArrayEncryption(whereArgs);
+        }
+        if (AND) {
+            console.log("\nAND:");
             manageArrayEncryption(AND);
-        if (NOT)
+        }
+        if (NOT) {
+            console.log("\nNOT:");
             manageArrayEncryption(NOT);
-        if (OR)
+        }
+        if (OR) {
+            console.log("\nOR:");
             manageArrayEncryption(OR);
+        }
         if (debugMode)
             sdk_1.logger.info("[resolveEncryptedArgs] whereArgs after:", convertToJson(whereArgs));
         return {};
@@ -135,16 +141,22 @@ var EncryptionMethods = /** @class */ (function () {
         var _this = this;
         var dataToEncrypt = _a.dataToEncrypt, fieldsToManage = _a.fieldsToManage, manageMode = _a.manageMode;
         var field = fieldsToManage.shift();
+        console.log("fieldsToManage:", fieldsToManage);
+        console.log("field:", field);
         if (!field)
             return {};
         var isRelation = field.typeName === "Relation";
+        console.log("isRelation:", isRelation);
         var fieldName = !isRelation
             ? field.fieldName
             : field.fieldName.split(">")[0];
+        console.log("fieldName:", fieldName);
+        console.log("dataToEncrypt:", dataToEncrypt);
         var fieldValue = dataToEncrypt[fieldName];
+        console.log("fieldValue:", fieldValue);
         if (fieldValue) {
-            if (debugMode)
-                sdk_1.logger.info("[manageEncryption] dataToEncrypt[".concat(fieldName, "] before:"), convertToJson(dataToEncrypt[fieldName]));
+            // if (debugMode)
+            sdk_1.logger.info("[manageEncryption] dataToEncrypt[".concat(fieldName, "] before:"), convertToJson(dataToEncrypt[fieldName]));
             // função que vai aplicar a criptografia ou decriptografia numa string, levando em consideração o modo de gerenciamento
             var manageEncryptionMode_1 = function (input) {
                 var _a, _b;
@@ -192,6 +204,7 @@ var EncryptionMethods = /** @class */ (function () {
                                 var fieldsNameToManage_1 = fieldsToManage_1.map(function (field) { return field.fieldName; });
                                 var applyCryptoToRelation_1 = function (inputObject, reference) {
                                     var objectKeys = Object.keys(reference);
+                                    console.log("objectKeys:", objectKeys);
                                     var key = objectKeys.shift();
                                     if (!key)
                                         return;
@@ -220,9 +233,23 @@ var EncryptionMethods = /** @class */ (function () {
                                                     case true:
                                                         // se for array, precisamos de um loop a mais
                                                         inputObject[key].map(function (item) { return __awaiter(_this, void 0, void 0, function () {
+                                                            var itemHead, isCreateRelationMethod;
                                                             return __generator(this, function (_a) {
+                                                                itemHead = Object.keys(item)[0];
+                                                                isCreateRelationMethod = [
+                                                                    "connect",
+                                                                    "create",
+                                                                    "createMany",
+                                                                    "connectOrCreate",
+                                                                ].includes(itemHead);
+                                                                if (isCreateRelationMethod &&
+                                                                    Object.keys(item[itemHead]).length > 1) {
+                                                                    throw new Error("It is not allowed to use multiple create methods in the same object. The object \"".concat(item, "\" has more than one create method."));
+                                                                }
                                                                 this.manageEncryption({
-                                                                    dataToEncrypt: item,
+                                                                    dataToEncrypt: isCreateRelationMethod
+                                                                        ? item[itemHead]
+                                                                        : item,
                                                                     fieldsToManage: newFieldsToManage_1,
                                                                     manageMode: manageMode,
                                                                 });
@@ -231,8 +258,21 @@ var EncryptionMethods = /** @class */ (function () {
                                                         }); });
                                                         break;
                                                     case false:
+                                                        var itemHead = Object.keys(inputObject[key])[0];
+                                                        var isCreateRelationMethod_1 = [
+                                                            "connect",
+                                                            "create",
+                                                            "createMany",
+                                                            "connectOrCreate",
+                                                        ].includes(itemHead);
+                                                        if (isCreateRelationMethod_1 &&
+                                                            Object.keys(inputObject[key]).length > 1) {
+                                                            throw new Error("It is not allowed to use multiple create methods in the same object. The object \"".concat(inputObject[key], "\" has more than one create method."));
+                                                        }
                                                         _this.manageEncryption({
-                                                            dataToEncrypt: inputObject[key],
+                                                            dataToEncrypt: isCreateRelationMethod_1 // se for direto um create significa que são operações de create encadeadas, então precisamos pegar o objeto dentro do objeto passando o nome da operação
+                                                                ? inputObject[key][itemHead]
+                                                                : inputObject[key],
                                                             fieldsToManage: newFieldsToManage_1,
                                                             manageMode: manageMode,
                                                         });
@@ -254,9 +294,11 @@ var EncryptionMethods = /** @class */ (function () {
                                     "connectOrCreate",
                                 ];
                                 var objectProperties_1 = Object.keys(input);
+                                console.log("objectProperties:", objectProperties_1);
                                 var isCreateRelationMethod = createRelationMethods.some(function (method) {
                                     return objectProperties_1.includes(method);
                                 });
+                                console.log("isCreateRelationMethod:", isCreateRelationMethod);
                                 if (isCreateRelationMethod) {
                                     objectProperties_1.forEach(function (method) {
                                         switch (method) {
@@ -346,6 +388,7 @@ var EncryptionMethods = /** @class */ (function () {
             if (debugMode)
                 sdk_1.logger.info("[manageEncryption] dataToEncrypt[".concat(fieldName, "] after:"), convertToJson(dataToEncrypt[fieldName]));
         }
+        console.log("fieldsToManage?.length:", fieldsToManage === null || fieldsToManage === void 0 ? void 0 : fieldsToManage.length);
         if ((fieldsToManage === null || fieldsToManage === void 0 ? void 0 : fieldsToManage.length) > 0)
             this.manageEncryption({
                 dataToEncrypt: dataToEncrypt,

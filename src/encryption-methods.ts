@@ -53,23 +53,29 @@ class EncryptionMethods implements PrismaCrypto.EncryptionMethods {
         const { AND, NOT, OR } =
             (whereArgs as { AND: unknown; NOT: unknown; OR: unknown }) ?? {};
 
-        const manageArrayEncryption = (array: unknown[]) => {
-            if (!array) return;
-            const isArray = Array.isArray(array);
+        const manageArrayEncryption = (whereData: unknown[]) => {
+            if (!whereData) return;
+            const isArray = Array.isArray(whereData);
+            console.log("isArray:", isArray);
 
             switch (isArray) {
                 case false:
                     EncryptionMethods.manageEncryption({
-                        fieldsToManage,
-                        dataToEncrypt: array,
+                        fieldsToManage: JSON.parse(
+                            JSON.stringify(fieldsToManage),
+                        ),
+                        dataToEncrypt: whereData,
                         manageMode: "encrypt",
                     });
                     break;
                 case true:
-                    array.forEach((item) => {
+                    whereData.forEach((item) => {
+                        console.log("item:", item);
                         if (item && typeof item === "object")
                             EncryptionMethods.manageEncryption({
-                                fieldsToManage,
+                                fieldsToManage: JSON.parse(
+                                    JSON.stringify(fieldsToManage),
+                                ),
                                 dataToEncrypt: item,
                                 manageMode: "encrypt",
                             });
@@ -80,15 +86,22 @@ class EncryptionMethods implements PrismaCrypto.EncryptionMethods {
             }
         };
 
-        if (whereArgs)
-            EncryptionMethods.manageEncryption({
-                fieldsToManage,
-                dataToEncrypt: whereArgs,
-                manageMode: "encrypt",
-            });
-        if (AND) manageArrayEncryption(AND as unknown[]);
-        if (NOT) manageArrayEncryption(NOT as unknown[]);
-        if (OR) manageArrayEncryption(OR as unknown[]);
+        if (whereArgs) {
+            console.log("\nwhereArgs:");
+            manageArrayEncryption(whereArgs as unknown[]);
+        }
+        if (AND) {
+            console.log("\nAND:");
+            manageArrayEncryption(AND as unknown[]);
+        }
+        if (NOT) {
+            console.log("\nNOT:");
+            manageArrayEncryption(NOT as unknown[]);
+        }
+        if (OR) {
+            console.log("\nOR:");
+            manageArrayEncryption(OR as unknown[]);
+        }
 
         if (debugMode)
             logger.info(
@@ -117,20 +130,26 @@ class EncryptionMethods implements PrismaCrypto.EncryptionMethods {
         manageMode,
     }: PrismaCrypto.ManageEncryption.Input): PrismaCrypto.ManageEncryption.Output {
         const field = fieldsToManage.shift();
+        console.log("fieldsToManage:", fieldsToManage);
+        console.log("field:", field);
         if (!field) return {};
 
         const isRelation = field.typeName === "Relation";
+        console.log("isRelation:", isRelation);
         const fieldName = !isRelation
             ? field.fieldName
             : field.fieldName.split(">")[0];
+        console.log("fieldName:", fieldName);
 
+        console.log("dataToEncrypt:", dataToEncrypt);
         const fieldValue = dataToEncrypt[fieldName];
+        console.log("fieldValue:", fieldValue);
         if (fieldValue) {
-            if (debugMode)
-                logger.info(
-                    `[manageEncryption] dataToEncrypt[${fieldName}] before:`,
-                    convertToJson(dataToEncrypt[fieldName]),
-                );
+            // if (debugMode)
+            logger.info(
+                `[manageEncryption] dataToEncrypt[${fieldName}] before:`,
+                convertToJson(dataToEncrypt[fieldName]),
+            );
 
             // função que vai aplicar a criptografia ou decriptografia numa string, levando em consideração o modo de gerenciamento
             const manageEncryptionMode = (input: any): string => {
@@ -198,6 +217,7 @@ class EncryptionMethods implements PrismaCrypto.EncryptionMethods {
                                     reference,
                                 ) => {
                                     const objectKeys = Object.keys(reference);
+                                    console.log("objectKeys:", objectKeys);
                                     const key = objectKeys.shift();
                                     if (!key) return;
                                     if (reference[key]) {
@@ -255,10 +275,41 @@ class EncryptionMethods implements PrismaCrypto.EncryptionMethods {
                                                         // se for array, precisamos de um loop a mais
                                                         inputObject[key].map(
                                                             async (item) => {
+                                                                const itemHead =
+                                                                    Object.keys(
+                                                                        item,
+                                                                    )[0];
+                                                                const isCreateRelationMethod =
+                                                                    [
+                                                                        "connect",
+                                                                        "create",
+                                                                        "createMany",
+                                                                        "connectOrCreate",
+                                                                    ].includes(
+                                                                        itemHead,
+                                                                    );
+
+                                                                if (
+                                                                    isCreateRelationMethod &&
+                                                                    Object.keys(
+                                                                        item[
+                                                                            itemHead
+                                                                        ],
+                                                                    ).length > 1
+                                                                ) {
+                                                                    throw new Error(
+                                                                        `It is not allowed to use multiple create methods in the same object. The object "${item}" has more than one create method.`,
+                                                                    );
+                                                                }
+
                                                                 this.manageEncryption(
                                                                     {
                                                                         dataToEncrypt:
-                                                                            item,
+                                                                            isCreateRelationMethod
+                                                                                ? item[
+                                                                                      itemHead
+                                                                                  ]
+                                                                                : item,
                                                                         fieldsToManage:
                                                                             newFieldsToManage,
                                                                         manageMode,
@@ -270,11 +321,46 @@ class EncryptionMethods implements PrismaCrypto.EncryptionMethods {
                                                         );
                                                         break;
                                                     case false:
-                                                        this.manageEncryption({
-                                                            dataToEncrypt:
+                                                        const itemHead =
+                                                            Object.keys(
                                                                 inputObject[
                                                                     key
                                                                 ],
+                                                            )[0];
+
+                                                        const isCreateRelationMethod =
+                                                            [
+                                                                "connect",
+                                                                "create",
+                                                                "createMany",
+                                                                "connectOrCreate",
+                                                            ].includes(
+                                                                itemHead,
+                                                            );
+
+                                                        if (
+                                                            isCreateRelationMethod &&
+                                                            Object.keys(
+                                                                inputObject[
+                                                                    key
+                                                                ],
+                                                            ).length > 1
+                                                        ) {
+                                                            throw new Error(
+                                                                `It is not allowed to use multiple create methods in the same object. The object "${inputObject[key]}" has more than one create method.`,
+                                                            );
+                                                        }
+                                                        this.manageEncryption({
+                                                            dataToEncrypt:
+                                                                isCreateRelationMethod // se for direto um create significa que são operações de create encadeadas, então precisamos pegar o objeto dentro do objeto passando o nome da operação
+                                                                    ? inputObject[
+                                                                          key
+                                                                      ][
+                                                                          itemHead
+                                                                      ]
+                                                                    : inputObject[
+                                                                          key
+                                                                      ],
                                                             fieldsToManage:
                                                                 newFieldsToManage,
                                                             manageMode,
@@ -302,11 +388,19 @@ class EncryptionMethods implements PrismaCrypto.EncryptionMethods {
                                     "connectOrCreate",
                                 ];
                                 const objectProperties = Object.keys(input);
+                                console.log(
+                                    "objectProperties:",
+                                    objectProperties,
+                                );
 
                                 const isCreateRelationMethod =
                                     createRelationMethods.some((method) =>
                                         objectProperties.includes(method),
                                     );
+                                console.log(
+                                    "isCreateRelationMethod:",
+                                    isCreateRelationMethod,
+                                );
 
                                 if (isCreateRelationMethod) {
                                     objectProperties.forEach((method) => {
@@ -457,6 +551,7 @@ class EncryptionMethods implements PrismaCrypto.EncryptionMethods {
                 );
         }
 
+        console.log("fieldsToManage?.length:", fieldsToManage?.length);
         if (fieldsToManage?.length > 0)
             this.manageEncryption({
                 dataToEncrypt,

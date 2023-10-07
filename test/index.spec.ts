@@ -15,7 +15,7 @@ describe("Prisma Crypto Tests", () => {
     beforeAll(async () => {
         console.log("Resetting database...");
         execSync(
-            "npx prisma migrate reset --force --skip-seed --schema=test/schema.prisma",
+            "npx prisma migrate reset --force --skip-seed --schema=test/schema.prisma && npx prisma generate --schema=test/schema.prisma",
         );
         prisma = new PrismaCrypto({
             debug: true,
@@ -157,6 +157,48 @@ describe("Prisma Crypto Tests", () => {
         }
     });
 
+    // it("shoud be possible to create and encrypt more than 1 field in pivot relations", async () => {
+    //     try {
+    //         const output = await prisma.user.create({
+    //             data: {
+    //                 email: "test1@test1.com",
+    //                 name: "test1",
+    //                 password: "test1",
+    //                 CellPhone: {
+    //                     create: [
+    //                         {
+    //                             number: "teste1",
+    //                             mobile_carrier: "teste1",
+    //                         },
+    //                         {
+    //                             number: "teste2",
+    //                             mobile_carrier: "teste2",
+    //                         },
+    //                         {
+    //                             number: "teste3",
+    //                             mobile_carrier: "teste3",
+    //                         },
+    //                     ],
+    //                 },
+    //             },
+    //             select: {
+    //                 name: true,
+    //                 CellPhone: {
+    //                     select: {
+    //                         number: true,
+    //                         mobile_carrier: true,
+    //                     },
+    //                 },
+    //             },
+    //         });
+
+    //         console.log("output:", output);
+    //     } catch (error) {
+    //         console.log("error:", error);
+    //         chai.assert.fail(convertToJson(error));
+    //     }
+    // });
+
     it("shoud be possible to deeply decrypt more than 1 field in pivot relations", async () => {
         try {
             await prisma.cellPhoneCalls.create({
@@ -175,7 +217,11 @@ describe("Prisma Crypto Tests", () => {
                     Call: {
                         create: {
                             CallsHistory: {
-                                create: {},
+                                create: {
+                                    id: "3cdefa24-20bc-4003-9909-2e16c6466d70",
+                                    user_name: "test",
+                                    description: "test",
+                                },
                             },
                         },
                     },
@@ -184,6 +230,118 @@ describe("Prisma Crypto Tests", () => {
 
             const output = await prisma.callsHistory.findMany({
                 select: {
+                    Call: {
+                        select: {
+                            CellPhoneCalls: {
+                                select: {
+                                    CellPhone: {
+                                        select: {
+                                            number: true,
+                                            mobile_carrier: true,
+                                            User: {
+                                                select: {
+                                                    name: true,
+                                                    email: true,
+                                                },
+                                            },
+                                        },
+                                    },
+                                },
+                            },
+                        },
+                    },
+                },
+            });
+
+            expect(
+                output[0].Call[0].CellPhoneCalls[0].CellPhone.number,
+            ).toEqual("99999999999");
+            expect(
+                output[0].Call[0].CellPhoneCalls[0].CellPhone.mobile_carrier,
+            ).toEqual("TIM");
+            expect(
+                output[0].Call[0].CellPhoneCalls[0].CellPhone.User?.name,
+            ).toEqual("test");
+            expect(
+                output[0].Call[0].CellPhoneCalls[0].CellPhone.User?.email,
+            ).toEqual("test@test.com");
+        } catch (error) {
+            console.log("error:", error);
+            chai.assert.fail(convertToJson(error));
+        }
+    });
+
+    it("shoud be possible find using AND clause", async () => {
+        try {
+            const output = await prisma.callsHistory.findMany({
+                where: {
+                    AND: [
+                        {
+                            user_name: "test",
+                        },
+                        {
+                            description: "test",
+                        },
+                    ],
+                },
+                select: {
+                    Call: {
+                        select: {
+                            CellPhoneCalls: {
+                                select: {
+                                    CellPhone: {
+                                        select: {
+                                            number: true,
+                                            mobile_carrier: true,
+                                            User: {
+                                                select: {
+                                                    name: true,
+                                                    email: true,
+                                                },
+                                            },
+                                        },
+                                    },
+                                },
+                            },
+                        },
+                    },
+                },
+            });
+
+            console.log("output:", convertToJson(output));
+            expect(
+                output[0].Call[0].CellPhoneCalls[0].CellPhone.number,
+            ).toEqual("99999999999");
+            expect(
+                output[0].Call[0].CellPhoneCalls[0].CellPhone.mobile_carrier,
+            ).toEqual("TIM");
+            expect(
+                output[0].Call[0].CellPhoneCalls[0].CellPhone.User?.name,
+            ).toEqual("test");
+            expect(
+                output[0].Call[0].CellPhoneCalls[0].CellPhone.User?.email,
+            ).toEqual("test@test.com");
+        } catch (error) {
+            chai.assert.fail(convertToJson(error));
+        }
+    });
+
+    it("shoud be possible find using OR clause", async () => {
+        try {
+            const output = await prisma.callsHistory.findMany({
+                where: {
+                    OR: [
+                        {
+                            user_name: "test",
+                        },
+                        {
+                            description: "test",
+                        },
+                    ],
+                },
+                select: {
+                    user_name: true,
+                    description: true,
                     Call: {
                         select: {
                             CellPhoneCalls: {
