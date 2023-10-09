@@ -56,7 +56,6 @@ class EncryptionMethods implements PrismaCrypto.EncryptionMethods {
         const manageArrayEncryption = (whereData: unknown[]) => {
             if (!whereData) return;
             const isArray = Array.isArray(whereData);
-            console.log("isArray:", isArray);
 
             switch (isArray) {
                 case false:
@@ -70,7 +69,6 @@ class EncryptionMethods implements PrismaCrypto.EncryptionMethods {
                     break;
                 case true:
                     whereData.forEach((item) => {
-                        console.log("item:", item);
                         if (item && typeof item === "object")
                             EncryptionMethods.manageEncryption({
                                 fieldsToManage: JSON.parse(
@@ -86,22 +84,13 @@ class EncryptionMethods implements PrismaCrypto.EncryptionMethods {
             }
         };
 
-        if (whereArgs) {
-            console.log("\nwhereArgs:");
-            manageArrayEncryption(whereArgs as unknown[]);
-        }
-        if (AND) {
-            console.log("\nAND:");
-            manageArrayEncryption(AND as unknown[]);
-        }
-        if (NOT) {
-            console.log("\nNOT:");
-            manageArrayEncryption(NOT as unknown[]);
-        }
-        if (OR) {
-            console.log("\nOR:");
-            manageArrayEncryption(OR as unknown[]);
-        }
+        if (whereArgs) manageArrayEncryption(whereArgs as unknown[]);
+
+        if (AND) manageArrayEncryption(AND as unknown[]);
+
+        if (NOT) manageArrayEncryption(NOT as unknown[]);
+
+        if (OR) manageArrayEncryption(OR as unknown[]);
 
         if (debugMode)
             logger.info(
@@ -130,20 +119,14 @@ class EncryptionMethods implements PrismaCrypto.EncryptionMethods {
         manageMode,
     }: PrismaCrypto.ManageEncryption.Input): PrismaCrypto.ManageEncryption.Output {
         const field = fieldsToManage.shift();
-        console.log("fieldsToManage:", fieldsToManage);
-        console.log("field:", field);
         if (!field) return {};
 
         const isRelation = field.typeName === "Relation";
-        console.log("isRelation:", isRelation);
         const fieldName = !isRelation
             ? field.fieldName
             : field.fieldName.split(">")[0];
-        console.log("fieldName:", fieldName);
 
-        console.log("dataToEncrypt:", dataToEncrypt);
         const fieldValue = dataToEncrypt[fieldName];
-        console.log("fieldValue:", fieldValue);
         if (fieldValue) {
             // if (debugMode)
             logger.info(
@@ -217,19 +200,9 @@ class EncryptionMethods implements PrismaCrypto.EncryptionMethods {
                                     reference,
                                 ) => {
                                     const objectKeys = Object.keys(reference);
-                                    console.log("objectKeys:", objectKeys);
                                     const key = objectKeys.shift();
-                                    console.log("key:", key);
                                     if (!key) return;
                                     if (reference[key]) {
-                                        console.log(
-                                            "reference[key]:",
-                                            reference[key],
-                                        );
-                                        console.log(
-                                            "fieldsNameToManage:",
-                                            fieldsNameToManage,
-                                        );
                                         const mustManageField =
                                             fieldsNameToManage.includes(key);
                                         // necessario fazer um novo split para pegar o fieldName e comparar com a key
@@ -259,10 +232,6 @@ class EncryptionMethods implements PrismaCrypto.EncryptionMethods {
                                                     return false;
                                                 });
 
-                                            console.log(
-                                                "foundField:",
-                                                foundField,
-                                            );
                                             if (foundField) {
                                                 // se encontrou um relacionamento dentro de outro, então pegar a referencia para criptografia do model relacionado
                                                 const [, otherModelName] =
@@ -401,19 +370,11 @@ class EncryptionMethods implements PrismaCrypto.EncryptionMethods {
                                     "connectOrCreate",
                                 ];
                                 const objectProperties = Object.keys(input);
-                                console.log(
-                                    "objectProperties:",
-                                    objectProperties,
-                                );
 
                                 const isCreateRelationMethod =
                                     createRelationMethods.some((method) =>
                                         objectProperties.includes(method),
                                     );
-                                console.log(
-                                    "isCreateRelationMethod:",
-                                    isCreateRelationMethod,
-                                );
 
                                 if (isCreateRelationMethod) {
                                     objectProperties.forEach((method) => {
@@ -625,7 +586,6 @@ class EncryptionMethods implements PrismaCrypto.EncryptionMethods {
                 );
         }
 
-        console.log("fieldsToManage?.length:", fieldsToManage?.length);
         if (fieldsToManage?.length > 0)
             this.manageEncryption({
                 dataToEncrypt,
