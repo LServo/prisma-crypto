@@ -85,7 +85,6 @@ var EncryptionMethods = /** @class */ (function () {
             if (!whereData)
                 return;
             var isArray = Array.isArray(whereData);
-            console.log("isArray:", isArray);
             switch (isArray) {
                 case false:
                     EncryptionMethods.manageEncryption({
@@ -96,7 +95,6 @@ var EncryptionMethods = /** @class */ (function () {
                     break;
                 case true:
                     whereData.forEach(function (item) {
-                        console.log("item:", item);
                         if (item && typeof item === "object")
                             EncryptionMethods.manageEncryption({
                                 fieldsToManage: JSON.parse(JSON.stringify(fieldsToManage)),
@@ -109,22 +107,14 @@ var EncryptionMethods = /** @class */ (function () {
                     break;
             }
         };
-        if (whereArgs) {
-            console.log("\nwhereArgs:");
+        if (whereArgs)
             manageArrayEncryption(whereArgs);
-        }
-        if (AND) {
-            console.log("\nAND:");
+        if (AND)
             manageArrayEncryption(AND);
-        }
-        if (NOT) {
-            console.log("\nNOT:");
+        if (NOT)
             manageArrayEncryption(NOT);
-        }
-        if (OR) {
-            console.log("\nOR:");
+        if (OR)
             manageArrayEncryption(OR);
-        }
         if (debugMode)
             sdk_1.logger.info("[resolveEncryptedArgs] whereArgs after:", convertToJson(whereArgs));
         return {};
@@ -141,19 +131,13 @@ var EncryptionMethods = /** @class */ (function () {
         var _this = this;
         var dataToEncrypt = _a.dataToEncrypt, fieldsToManage = _a.fieldsToManage, manageMode = _a.manageMode;
         var field = fieldsToManage.shift();
-        console.log("fieldsToManage:", fieldsToManage);
-        console.log("field:", field);
         if (!field)
             return {};
         var isRelation = field.typeName === "Relation";
-        console.log("isRelation:", isRelation);
         var fieldName = !isRelation
             ? field.fieldName
             : field.fieldName.split(">")[0];
-        console.log("fieldName:", fieldName);
-        console.log("dataToEncrypt:", dataToEncrypt);
         var fieldValue = dataToEncrypt[fieldName];
-        console.log("fieldValue:", fieldValue);
         if (fieldValue) {
             // if (debugMode)
             sdk_1.logger.info("[manageEncryption] dataToEncrypt[".concat(fieldName, "] before:"), convertToJson(dataToEncrypt[fieldName]));
@@ -204,14 +188,10 @@ var EncryptionMethods = /** @class */ (function () {
                                 var fieldsNameToManage_1 = fieldsToManage_1.map(function (field) { return field.fieldName; });
                                 var applyCryptoToRelation_1 = function (inputObject, reference) {
                                     var objectKeys = Object.keys(reference);
-                                    console.log("objectKeys:", objectKeys);
                                     var key = objectKeys.shift();
-                                    console.log("key:", key);
                                     if (!key)
                                         return;
                                     if (reference[key]) {
-                                        console.log("reference[key]:", reference[key]);
-                                        console.log("fieldsNameToManage:", fieldsNameToManage_1);
                                         var mustManageField = fieldsNameToManage_1.includes(key);
                                         // necessario fazer um novo split para pegar o fieldName e comparar com a key
                                         if (mustManageField) {
@@ -227,7 +207,6 @@ var EncryptionMethods = /** @class */ (function () {
                                                 }
                                                 return false;
                                             });
-                                            console.log("foundField:", foundField);
                                             if (foundField) {
                                                 // se encontrou um relacionamento dentro de outro, então pegar a referencia para criptografia do model relacionado
                                                 var _a = foundField.fieldName.split(">"), otherModelName = _a[1];
@@ -298,11 +277,9 @@ var EncryptionMethods = /** @class */ (function () {
                                     "connectOrCreate",
                                 ];
                                 var objectProperties_1 = Object.keys(input);
-                                console.log("objectProperties:", objectProperties_1);
                                 var isCreateRelationMethod = createRelationMethods.some(function (method) {
                                     return objectProperties_1.includes(method);
                                 });
-                                console.log("isCreateRelationMethod:", isCreateRelationMethod);
                                 if (isCreateRelationMethod) {
                                     objectProperties_1.forEach(function (method) {
                                         var isArray = Array.isArray(input[method]);
@@ -423,7 +400,6 @@ var EncryptionMethods = /** @class */ (function () {
             if (debugMode)
                 sdk_1.logger.info("[manageEncryption] dataToEncrypt[".concat(fieldName, "] after:"), convertToJson(dataToEncrypt[fieldName]));
         }
-        console.log("fieldsToManage?.length:", fieldsToManage === null || fieldsToManage === void 0 ? void 0 : fieldsToManage.length);
         if ((fieldsToManage === null || fieldsToManage === void 0 ? void 0 : fieldsToManage.length) > 0)
             this.manageEncryption({
                 dataToEncrypt: dataToEncrypt,
