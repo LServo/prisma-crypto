@@ -139,8 +139,8 @@ var EncryptionMethods = /** @class */ (function () {
             : field.fieldName.split(">")[0];
         var fieldValue = dataToEncrypt[fieldName];
         if (fieldValue) {
-            // if (debugMode)
-            sdk_1.logger.info("[manageEncryption] dataToEncrypt[".concat(fieldName, "] before:"), convertToJson(dataToEncrypt[fieldName]));
+            if (debugMode)
+                sdk_1.logger.info("[manageEncryption] dataToEncrypt[".concat(fieldName, "] before:"), convertToJson(dataToEncrypt[fieldName]));
             // função que vai aplicar a criptografia ou decriptografia numa string, levando em consideração o modo de gerenciamento
             var manageEncryptionMode_1 = function (input) {
                 var _a, _b;

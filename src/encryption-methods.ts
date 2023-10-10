@@ -128,11 +128,11 @@ class EncryptionMethods implements PrismaCrypto.EncryptionMethods {
 
         const fieldValue = dataToEncrypt[fieldName];
         if (fieldValue) {
-            // if (debugMode)
-            logger.info(
-                `[manageEncryption] dataToEncrypt[${fieldName}] before:`,
-                convertToJson(dataToEncrypt[fieldName]),
-            );
+            if (debugMode)
+                logger.info(
+                    `[manageEncryption] dataToEncrypt[${fieldName}] before:`,
+                    convertToJson(dataToEncrypt[fieldName]),
+                );
 
             // função que vai aplicar a criptografia ou decriptografia numa string, levando em consideração o modo de gerenciamento
             const manageEncryptionMode = (input: any): string => {
