@@ -100,6 +100,7 @@ class EncryptionMethods implements PrismaCrypto.EncryptionMethods {
 
         return {};
     }
+
     resolveEncryptedArgs({
         whereArgs,
         fieldsToManage,
@@ -194,28 +195,47 @@ class EncryptionMethods implements PrismaCrypto.EncryptionMethods {
                                 const fieldsNameToManage = fieldsToManage.map(
                                     (field) => field.fieldName,
                                 );
-
+                                /**
+                                 * @description Método para aplicar criptografia num cenário de relacionamentos (tabelas pivô e afins)
+                                 * @operational
+                                 * 1. Pegar o objeto e iterar sobre as propriedades
+                                 * 2. Verificar se a propriedade é um campo criptografado
+                                 * 3. Se for um campo criptografado, então aplicar a criptografia/decriptografia
+                                 * 4. Se não for um campo criptografado, então verificar se é um relacionamento dentro de outro
+                                 * 5. Se for um relacionamento dentro de outro, então pegar a referencia para criptografia do model relacionado
+                                 * 6. Verifica se é um objeto de criação de relacionamento do prisma, e retorna erro caso seja utilizado mais de um método de criação de relacionamento no mesmo objeto ("connect", "create", "createMany", "connectOrCreate")
+                                 * 7. Chama novamente a função mãe passando o objeto do relacionamento encontrado e os novos campos a serem gerenciados
+                                 * @param inputObject O objeto a ser decriptografado
+                                 * @param reference  O mesmo objeto duplicado, para que seja possível utilizar de recursividade
+                                 * @returns
+                                 */
                                 const applyCryptoToRelation = (
                                     inputObject,
                                     reference,
                                 ) => {
-                                    const objectKeys = Object.keys(reference);
-                                    const key = objectKeys.shift();
-                                    if (!key) return;
-                                    if (reference[key]) {
+                                    const objectKeys = Object.keys(reference); // transforma em array
+                                    const key = objectKeys.shift(); // pega a primeira chave do objeto
+
+                                    if (key && reference[key]) {
+                                        // verifica se existe um valor para a chave
                                         const mustManageField =
-                                            fieldsNameToManage.includes(key);
+                                            fieldsNameToManage.includes(key); // verifica de a chave está incluida na lista de campos a serem gerenciados, ou seja, campos criptografados
                                         // necessario fazer um novo split para pegar o fieldName e comparar com a key
 
                                         if (mustManageField) {
+                                            // caso seja um campo criptografado, então aplicar a criptografia/decriptografia
+                                            // só vai cair aqui, caso seja encontrado um campo com nome ifual no encryptedModels e caso este campo não seja um relacionamento
                                             inputObject[key] =
                                                 manageEncryptionMode(
                                                     inputObject[key],
                                                 );
                                         } else {
                                             // se não encontrou diretamente, verificar se é uma tabela pivo
+                                            // estamos dentro de um loop que passa em cada chave do objeto então vai passar por todo o objeto tranquilo
                                             const foundField =
                                                 fieldsToManage.find((field) => {
+                                                    // Aqui, verificamos se alguma das chaves deve ser gerenciada e não está sendo encontrada pelo fato de ser um relacionamento.
+                                                    // Isso porque, mesmo que esteja com o nome igual - digamos que o campo "user" seja um relacionamento e o campo "user" seja um campo criptografado - o campo criptografado não será encontrado, pois estará descripto como "user>user", por exemplo.
                                                     if (
                                                         field.fieldName.includes(
                                                             ">",
@@ -246,7 +266,7 @@ class EncryptionMethods implements PrismaCrypto.EncryptionMethods {
                                                                 otherModelName
                                                             ],
                                                         ),
-                                                    ); // model do user
+                                                    );
 
                                                 const isArray = Array.isArray(
                                                     inputObject[key],
@@ -280,9 +300,16 @@ class EncryptionMethods implements PrismaCrypto.EncryptionMethods {
                                                                     ).length > 1
                                                                 ) {
                                                                     throw new Error(
-                                                                        `It is not allowed to use multiple create methods in the same object. The object "${item}" has more than one create method.`,
+                                                                        `It is not allowed to use multiple create relation methods in the same object. The object "${item}" has more than one create relation method.`,
                                                                     );
                                                                 }
+
+                                                                const duplicateFieldsToManage =
+                                                                    JSON.parse(
+                                                                        JSON.stringify(
+                                                                            newFieldsToManage,
+                                                                        ),
+                                                                    );
 
                                                                 this.manageEncryption(
                                                                     {
@@ -293,7 +320,7 @@ class EncryptionMethods implements PrismaCrypto.EncryptionMethods {
                                                                                   ]
                                                                                 : item,
                                                                         fieldsToManage:
-                                                                            newFieldsToManage,
+                                                                            duplicateFieldsToManage,
                                                                         manageMode,
                                                                     },
                                                                 );
@@ -329,9 +356,17 @@ class EncryptionMethods implements PrismaCrypto.EncryptionMethods {
                                                             ).length > 1
                                                         ) {
                                                             throw new Error(
-                                                                `It is not allowed to use multiple create methods in the same object. The object "${inputObject[key]}" has more than one create method.`,
+                                                                `It is not allowed to use multiple create relation methods in the same object. The object "${inputObject[key]}" has more than one create relation method.`,
                                                             );
                                                         }
+
+                                                        const duplicateFieldsToManage =
+                                                            JSON.parse(
+                                                                JSON.stringify(
+                                                                    newFieldsToManage,
+                                                                ),
+                                                            );
+
                                                         this.manageEncryption({
                                                             dataToEncrypt:
                                                                 isCreateRelationMethod // se for direto um create significa que são operações de create encadeadas, então precisamos pegar o objeto dentro do objeto passando o nome da operação
@@ -344,7 +379,7 @@ class EncryptionMethods implements PrismaCrypto.EncryptionMethods {
                                                                           key
                                                                       ],
                                                             fieldsToManage:
-                                                                newFieldsToManage,
+                                                                duplicateFieldsToManage,
                                                             manageMode,
                                                         });
                                                         break;

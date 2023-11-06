@@ -186,21 +186,39 @@ var EncryptionMethods = /** @class */ (function () {
                                 var _a = field.fieldName.split(">"), modelName = _a[1];
                                 var fieldsToManage_1 = JSON.parse(JSON.stringify(encrypted_models_1.prismaEncryptModels[modelName]));
                                 var fieldsNameToManage_1 = fieldsToManage_1.map(function (field) { return field.fieldName; });
+                                /**
+                                 * @description Método para aplicar criptografia num cenário de relacionamentos (tabelas pivô e afins)
+                                 * @operational
+                                 * 1. Pegar o objeto e iterar sobre as propriedades
+                                 * 2. Verificar se a propriedade é um campo criptografado
+                                 * 3. Se for um campo criptografado, então aplicar a criptografia/decriptografia
+                                 * 4. Se não for um campo criptografado, então verificar se é um relacionamento dentro de outro
+                                 * 5. Se for um relacionamento dentro de outro, então pegar a referencia para criptografia do model relacionado
+                                 * 6. Verifica se é um objeto de criação de relacionamento do prisma, e retorna erro caso seja utilizado mais de um método de criação de relacionamento no mesmo objeto ("connect", "create", "createMany", "connectOrCreate")
+                                 * 7. Chama novamente a função mãe passando o objeto do relacionamento encontrado e os novos campos a serem gerenciados
+                                 * @param inputObject O objeto a ser decriptografado
+                                 * @param reference  O mesmo objeto duplicado, para que seja possível utilizar de recursividade
+                                 * @returns
+                                 */
                                 var applyCryptoToRelation_1 = function (inputObject, reference) {
-                                    var objectKeys = Object.keys(reference);
-                                    var key = objectKeys.shift();
-                                    if (!key)
-                                        return;
-                                    if (reference[key]) {
-                                        var mustManageField = fieldsNameToManage_1.includes(key);
+                                    var objectKeys = Object.keys(reference); // transforma em array
+                                    var key = objectKeys.shift(); // pega a primeira chave do objeto
+                                    if (key && reference[key]) {
+                                        // verifica se existe um valor para a chave
+                                        var mustManageField = fieldsNameToManage_1.includes(key); // verifica de a chave está incluida na lista de campos a serem gerenciados, ou seja, campos criptografados
                                         // necessario fazer um novo split para pegar o fieldName e comparar com a key
                                         if (mustManageField) {
+                                            // caso seja um campo criptografado, então aplicar a criptografia/decriptografia
+                                            // só vai cair aqui, caso seja encontrado um campo com nome ifual no encryptedModels e caso este campo não seja um relacionamento
                                             inputObject[key] =
                                                 manageEncryptionMode_1(inputObject[key]);
                                         }
                                         else {
                                             // se não encontrou diretamente, verificar se é uma tabela pivo
+                                            // estamos dentro de um loop que passa em cada chave do objeto então vai passar por todo o objeto tranquilo
                                             var foundField = fieldsToManage_1.find(function (field) {
+                                                // Aqui, verificamos se alguma das chaves deve ser gerenciada e não está sendo encontrada pelo fato de ser um relacionamento.
+                                                // Isso porque, mesmo que esteja com o nome igual - digamos que o campo "user" seja um relacionamento e o campo "user" seja um campo criptografado - o campo criptografado não será encontrado, pois estará descripto como "user>user", por exemplo.
                                                 if (field.fieldName.includes(">")) {
                                                     var fieldName_1 = field.fieldName.split(">")[0];
                                                     return (fieldName_1 === key);
@@ -210,13 +228,13 @@ var EncryptionMethods = /** @class */ (function () {
                                             if (foundField) {
                                                 // se encontrou um relacionamento dentro de outro, então pegar a referencia para criptografia do model relacionado
                                                 var _a = foundField.fieldName.split(">"), otherModelName = _a[1];
-                                                var newFieldsToManage_1 = JSON.parse(JSON.stringify(encrypted_models_1.prismaEncryptModels[otherModelName])); // model do user
+                                                var newFieldsToManage_1 = JSON.parse(JSON.stringify(encrypted_models_1.prismaEncryptModels[otherModelName]));
                                                 var isArray_1 = Array.isArray(inputObject[key]);
                                                 switch (isArray_1) {
                                                     case true:
                                                         // se for array, precisamos de um loop a mais
                                                         inputObject[key].map(function (item) { return __awaiter(_this, void 0, void 0, function () {
-                                                            var itemHead, isCreateRelationMethod;
+                                                            var itemHead, isCreateRelationMethod, duplicateFieldsToManage;
                                                             return __generator(this, function (_a) {
                                                                 itemHead = Object.keys(item)[0];
                                                                 isCreateRelationMethod = [
@@ -227,13 +245,14 @@ var EncryptionMethods = /** @class */ (function () {
                                                                 ].includes(itemHead);
                                                                 if (isCreateRelationMethod &&
                                                                     Object.keys(item[itemHead]).length > 1) {
-                                                                    throw new Error("It is not allowed to use multiple create methods in the same object. The object \"".concat(item, "\" has more than one create method."));
+                                                                    throw new Error("It is not allowed to use multiple create relation methods in the same object. The object \"".concat(item, "\" has more than one create relation method."));
                                                                 }
+                                                                duplicateFieldsToManage = JSON.parse(JSON.stringify(newFieldsToManage_1));
                                                                 this.manageEncryption({
                                                                     dataToEncrypt: isCreateRelationMethod
                                                                         ? item[itemHead]
                                                                         : item,
-                                                                    fieldsToManage: newFieldsToManage_1,
+                                                                    fieldsToManage: duplicateFieldsToManage,
                                                                     manageMode: manageMode,
                                                                 });
                                                                 return [2 /*return*/, item];
@@ -250,13 +269,14 @@ var EncryptionMethods = /** @class */ (function () {
                                                         ].includes(itemHead);
                                                         if (isCreateRelationMethod_1 &&
                                                             Object.keys(inputObject[key]).length > 1) {
-                                                            throw new Error("It is not allowed to use multiple create methods in the same object. The object \"".concat(inputObject[key], "\" has more than one create method."));
+                                                            throw new Error("It is not allowed to use multiple create relation methods in the same object. The object \"".concat(inputObject[key], "\" has more than one create relation method."));
                                                         }
+                                                        var duplicateFieldsToManage = JSON.parse(JSON.stringify(newFieldsToManage_1));
                                                         _this.manageEncryption({
                                                             dataToEncrypt: isCreateRelationMethod_1 // se for direto um create significa que são operações de create encadeadas, então precisamos pegar o objeto dentro do objeto passando o nome da operação
                                                                 ? inputObject[key][itemHead]
                                                                 : inputObject[key],
-                                                            fieldsToManage: newFieldsToManage_1,
+                                                            fieldsToManage: duplicateFieldsToManage,
                                                             manageMode: manageMode,
                                                         });
                                                         break;
